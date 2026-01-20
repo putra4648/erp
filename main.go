@@ -9,24 +9,21 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	// Configuration from Environment Variables
 	keycloakURL := os.Getenv("KEYCLOAK_URL")
-	if keycloakURL == "" {
-		keycloakURL = "http://192.168.1.18:8080/realms/erp"
-	}
 	clientID := os.Getenv("KEYCLOAK_CLIENT_ID")
-	if clientID == "" {
-		clientID = "erp-client-golang"
-	}
 	dbDSN := os.Getenv("DB_DSN")
-	if dbDSN == "" {
-		dbDSN = "user=postgres password=admin123 dbname=erp host=192.168.1.11 port=5432 sslmode=disable TimeZone=Asia/Jakarta"
-	}
 
 	// Initialize OIDC Provider
 	ctx := context.Background()
@@ -69,7 +66,7 @@ func main() {
 		log.Fatalf("Cannot connect to DB: %v", err)
 	}
 
-	fmt.Println(db)
+	fmt.Println("DB Connected %s", db)
 	app.Run()
 
 }
