@@ -1,22 +1,23 @@
 package middleware
 
 import (
-	"net/http"
 	"slices"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 )
 
 // Middleware khusus pengecekan role
-func RoleMiddleware(requiredRole string) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		roles := c.MustGet("roles").([]string)
-
-		if slices.Contains(roles, requiredRole) {
-			c.Next()
-			return
+func RoleMiddleware(requiredRole string) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		roles, ok := c.Locals("roles").([]string)
+		if !ok {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 		}
 
-		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Anda tidak memiliki akses " + requiredRole})
+		if slices.Contains(roles, requiredRole) {
+			return c.Next()
+		}
+
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "Anda tidak memiliki akses " + requiredRole})
 	}
 }

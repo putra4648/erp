@@ -2,22 +2,25 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"os"
 	"putra4648/erp/middleware"
 
 	"github.com/coreos/go-oidc/v3/oidc"
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 func main() {
+	logrus.SetFormatter(&logrus.TextFormatter{})
+	logrus.SetOutput(os.Stdout)
+	logrus.SetLevel(logrus.InfoLevel)
+
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		logrus.Fatal("Error loading .env file")
 	}
 
 	// Configuration from Environment Variables
@@ -29,30 +32,30 @@ func main() {
 	ctx := context.Background()
 	provider, err := oidc.NewProvider(ctx, keycloakURL)
 	if err != nil {
-		log.Fatalf("Gagal inisialisasi OIDC provider: %v", err)
+		logrus.Fatalf("Gagal inisialisasi OIDC provider: %v", err)
 	}
 	verifier := provider.Verifier(&oidc.Config{ClientID: clientID})
 
-	app := gin.Default()
+	app := fiber.New()
 
 	// Public Route
-	app.GET("/api/ping", func(c *gin.Context) { c.JSON(200, "pong") })
+	app.Get("/api/ping", func(c *fiber.Ctx) error { return c.JSON("pong") })
 
 	// Protected Route (Semua user yang login)
 	api := app.Group("/api")
 	api.Use(middleware.AuthMiddleware(verifier))
 	{
-		api.GET("/profile", func(c *gin.Context) {
-			uid := c.MustGet("user_id")
-			c.JSON(200, gin.H{"user_id": uid})
+		api.Get("/profile", func(c *fiber.Ctx) error {
+			uid := c.Locals("user_id")
+			return c.JSON(fiber.Map{"user_id": uid})
 		})
 
 		// Route khusus admin
 		admin := api.Group("/admin")
 		admin.Use(middleware.RoleMiddleware("admin")) // Nama role yang Anda buat di Keycloak
 		{
-			admin.GET("/dashboard", func(c *gin.Context) {
-				c.JSON(200, gin.H{"status": "Welcome Admin!"})
+			admin.Get("/dashboard", func(c *fiber.Ctx) error {
+				return c.JSON(fiber.Map{"status": "Welcome Admin!"})
 			})
 		}
 	}
@@ -63,10 +66,10 @@ func main() {
 	}), &gorm.Config{})
 
 	if err != nil {
-		log.Fatalf("Cannot connect to DB: %v", err)
+		logrus.Fatalf("Cannot connect to DB: %v", err)
 	}
 
-	fmt.Println("DB Connected %s", db)
-	app.Run()
+	logrus.Info("DB Connected ", db)
+	logrus.Fatal(app.Listen(":8080"))
 
 }
