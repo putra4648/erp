@@ -12,7 +12,7 @@
   "dependencies": {
     "@nuxt/ui": "4.3.0",
     "@sidebase/nuxt-auth": "1.1.1",
-    "next-auth": "~4.21.1",
+    "next-auth": "~4.24.12",
     "nuxt": "^4.2.2",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
