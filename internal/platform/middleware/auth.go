@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"context"
-	"putra4648/erp/types"
+	"putra4648/erp/internal/platform/auth"
 	"strings"
 
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -25,7 +25,7 @@ func AuthMiddleware(verifier *oidc.IDTokenVerifier) fiber.Handler {
 		}
 
 		// 2. Parse Claims untuk mengambil Roles
-		var claims types.KeycloakClaims
+		var claims auth.KeycloakClaims
 		if err := idToken.Claims(&claims); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal extract claims"})
 		}
