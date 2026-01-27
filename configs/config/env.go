@@ -2,7 +2,7 @@ package config
 
 import (
 	"os"
-	"putra4648/erp/internal/platform/logger"
+	"putra4648/erp/configs/logger"
 
 	"github.com/joho/godotenv"
 )

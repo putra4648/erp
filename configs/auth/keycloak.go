@@ -2,7 +2,7 @@ package auth
 
 import (
 	"context"
-	"putra4648/erp/internal/platform/config"
+	"putra4648/erp/configs/config"
 
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/golang-jwt/jwt/v5"

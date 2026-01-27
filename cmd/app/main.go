@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"log"
-	"putra4648/erp/internal/platform/auth"
-	"putra4648/erp/internal/platform/config"
-	"putra4648/erp/internal/platform/logger"
-	"putra4648/erp/internal/platform/middleware"
+	"putra4648/erp/configs/auth"
+	"putra4648/erp/configs/config"
+	"putra4648/erp/configs/logger"
+	"putra4648/erp/configs/middleware"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gofiber/fiber/v2"

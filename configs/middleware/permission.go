@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"putra4648/erp/internal/platform/logger"
+	"putra4648/erp/configs/logger"
 
 	"github.com/casbin/casbin/v3"
 	"github.com/gofiber/fiber/v2"

@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"context"
-	"putra4648/erp/internal/platform/auth"
+	"putra4648/erp/configs/auth"
 	"strings"
 
 	"github.com/coreos/go-oidc/v3/oidc"
