@@ -65,6 +65,7 @@ require (
 	github.com/tdewolff/parse/v2 v2.8.3 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.69.0 // indirect
+	go.uber.org/dig v1.19.0
 	golang.org/x/crypto v0.47.0 // indirect
 	golang.org/x/exp v0.0.0-20251219203646-944ab1f22d93 // indirect
 	golang.org/x/net v0.49.0 // indirect

@@ -1,99 +1,81 @@
 package main
 
 import (
-	"context"
-	"log"
 	"putra4648/erp/configs/auth"
 	"putra4648/erp/configs/config"
+	"putra4648/erp/configs/database"
 	"putra4648/erp/configs/logger"
 	"putra4648/erp/configs/middleware"
+	"putra4648/erp/internal/modules/inventory"
+	"putra4648/erp/routes"
 
-	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gofiber/fiber/v2"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	"go.uber.org/dig"
 )
 
 func main() {
+	container := dig.New()
 
-	// initialize config
-	cfg := config.LoadConfig()
-
-	// Initialize logger
-	zapLogger, err := logger.InitLogger()
-	if err != nil {
-		log.Fatalf("could not initialize logger: %v", err)
-	}
-	defer zapLogger.Sync()
-
-	// Initialize OIDC Provider
-	ctx := context.Background()
-	provider, err := oidc.NewProvider(ctx, cfg.KeycloakURL+"/realms/"+cfg.KeycloakRealmName)
-	if err != nil {
-		logger.Log.Fatalf("Failed to initialize OIDC provider: %v", err)
+	// Register constructors
+	providers := []interface{}{
+		config.LoadConfig,
+		logger.InitLogger,
+		database.InitDatabase,
+		auth.SetupCasbin,
+		auth.NewOIDCProvider,
+		auth.NewOIDCVerifier,
 	}
 
-	verifier := provider.Verifier(&oidc.Config{ClientID: cfg.KeycloakClientID})
-
-	app := fiber.New()
-
-	db, err := gorm.Open(postgres.New(postgres.Config{
-		DSN:                  cfg.DBDSN,
-		PreferSimpleProtocol: true, // disables implicit prepared statement usage
-	}), &gorm.Config{})
-
-	if err != nil {
-		logger.Log.Fatalf("Cannot connect to DB: %v", err)
+	for _, p := range providers {
+		if err := container.Provide(p); err != nil {
+			logger.Log.Fatalf("Failed to provide dependency: %v", err)
+		}
 	}
 
-	// Initialize Casbin Enforcer
-	enforcer, err := auth.SetupCasbin(db)
-	if err != nil {
-		logger.Log.Fatalf("Failed to setup Casbin: %v", err)
+	if err := inventory.Register(container); err != nil {
+		logger.Log.Fatalf("Failed to register inventory module: %v", err)
 	}
+
+	container.Provide(func() AppDependencies {
+		return AppDependencies{}
+	})
+
+	// Invoke the application runner
+	if err := container.Invoke(run); err != nil {
+		logger.Log.Fatalf("Application failed: %v", err)
+	}
+}
+
+func run(deps AppDependencies) error {
+	defer deps.ZapLogger.Sync()
 
 	// Add policies: p, role, path, action
 	// This gives the 'admin' role GET access to all routes under /api/admin
-	if hasPolicy, _ := enforcer.HasPolicy("admin", "/api/admin/*", "GET"); !hasPolicy {
-		if _, err := enforcer.AddPolicy("admin", "/api/admin/*", "GET"); err != nil {
+	if hasPolicy, _ := deps.Enforcer.HasPolicy("admin", "/api/admin/*", "GET"); !hasPolicy {
+		if _, err := deps.Enforcer.AddPolicy("admin", "/api/admin/*", "GET"); err != nil {
 			logger.Log.Warnf("Could not add admin policy: %v", err)
 		}
 	}
 
-	sqlDb, err := db.DB()
+	sqlDb, err := deps.DB.DB()
 	if err != nil {
-		logger.Log.Fatalf("Cannot get DB: %v", err)
+		return err
 	}
 	sqlDb.SetMaxIdleConns(5)
 	sqlDb.SetMaxOpenConns(20)
 
-	logger.Log.Info("DB Connected")
+	app := fiber.New()
 
 	// Public Route
 	app.Get("/api/ping", func(c *fiber.Ctx) error { return c.JSON("pong") })
 
 	// Protected Route (Semua user yang login)
 	api := app.Group("/api")
-	api.Use(middleware.AuthMiddleware(verifier))
-	{
-		api.Get("/profile", func(c *fiber.Ctx) error {
-			uid := c.Locals("user_id")
-			return c.JSON(fiber.Map{"user_id": uid})
-		})
+	api.Use(middleware.AuthMiddleware(deps.Verifier))
 
-		// Route khusus admin, protected by Casbin
-		// NOTE: The AuthMiddleware should be configured to extract the user's roles
-		// from the JWT claims (e.g., from 'realm_access.roles') and place them
-		// in c.Locals("roles") as a []string for the PermissionMiddleware to use.
-		admin := api.Group("/admin")
-		admin.Use(middleware.PermissionMiddleware(enforcer)) // Use Casbin for authorization
-		{
-			admin.Get("/dashboard", func(c *fiber.Ctx) error {
-				return c.JSON(fiber.Map{"status": "Welcome Admin!"})
-			})
-		}
-	}
+	routes.RegisterAdminRoutes(app, api, deps.Enforcer)
+	routes.RegisterUserProfile(app, api)
+	routes.RegisterInventoryRoutes(app, api, deps.WarehouseCommandService, deps.WarehouseQueryService, deps.SupplierCommandService, deps.SupplierQueryService)
 
-	app.Listen(":" + cfg.Port)
-
+	return app.Listen(":" + deps.Config.Port)
 }
