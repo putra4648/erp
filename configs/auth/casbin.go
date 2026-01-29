@@ -9,8 +9,10 @@ import (
 
 func SetupCasbin(db *gorm.DB) (*casbin.Enforcer, error) {
 	// 1. Gunakan GORM sebagai penyimpan policy di Postgres
-	adapter, _ := gormadapter.NewAdapterByDB(db)
-
+ 	adapter, err := gormadapter.NewAdapterByDB(db)
+ 	if err != nil {
+ 		return nil, err
+ 	}
 	// 2. Load model (RBAC) - Bisa dari file .conf atau string
 	// Kita gunakan model RBAC standar: sub (user/role), obj (resource), act (action)
 	m, _ := model.NewModelFromString(`
