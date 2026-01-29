@@ -13,7 +13,7 @@ type stockRepo struct {
 	db *gorm.DB
 }
 
-// NewOrderRepository mengembalikan interface domain.OrderRepository
+// NewStockRepository mengembalikan interface domain.StockRepository
 // Ini memastikan layer service hanya tahu interface-nya saja
 func NewStockRepository(db *gorm.DB) *stockRepo {
 	return &stockRepo{db}
