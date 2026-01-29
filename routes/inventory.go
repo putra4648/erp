@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"putra4648/erp/internal/modules/inventory/supplier/dto"
 	supplierDto "putra4648/erp/internal/modules/inventory/supplier/dto"
 	supplierService "putra4648/erp/internal/modules/inventory/supplier/service"
 	warehouseDto "putra4648/erp/internal/modules/inventory/warehouse/dto"
@@ -19,6 +18,7 @@ func RegisterInventoryRoutes(
 	scs supplierService.SupplierCommandService,
 	sqs supplierService.SupplierQueryService,
 ) {
+	// TODO: authentication or authorization check
 
 	// Warehouse routes
 	warehouse := api.Group("/warehouse")
@@ -161,7 +161,7 @@ func updateSupplier(service supplierService.SupplierCommandService) fiber.Handle
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
 		}
-		var req dto.UpdateSupplierRequest
+		var req supplierDto.UpdateSupplierRequest
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}

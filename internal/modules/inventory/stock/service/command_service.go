@@ -29,9 +29,8 @@ func NewStockCommandService(params StockServiceParams) *StockService {
 	}
 }
 
-func (s *StockService) CreateStockAdjustment(dto dto.StockRequest) error {
+func (s *StockService) CreateStockAdjustment(dto dto.StockRequest, userId uuid.UUID) error {
 	// first create stock adjustment
-	userId := uuid.New()
 	res, err := s.repository.CreateStockAdjustment(dto, userId)
 	if err != nil {
 		return err

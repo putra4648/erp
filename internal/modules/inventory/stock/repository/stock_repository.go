@@ -22,10 +22,20 @@ func NewStockRepository(db *gorm.DB) *stockRepo {
 func (r *stockRepo) CreateStockAdjustment(dto dto.StockRequest, userID uuid.UUID) (domain.StockAdjustment, error) {
 	var res domain.StockAdjustment
 	err := r.db.Transaction(func(tx *gorm.DB) error {
+		productId, err := uuid.Parse(dto.ProductID)
+		if err != nil {
+			return err
+		}
+
+		qtyDiff, err := decimal.NewFromString(dto.Qty)
+		if err != nil {
+			return err
+		}
+
 		adjustment := domain.StockAdjustment{
 			ID:        uuid.New(),
-			ProductID: uuid.MustParse(dto.ProductID),
-			QtyDiff:   decimal.NewFromFloat(dto.Qty),
+			ProductID: productId,
+			QtyDiff:   qtyDiff,
 			Reason:    dto.Reason,
 			Status:    "WAITING_APPROVAL",
 			CreatedBy: userID,

@@ -36,6 +36,7 @@ func (r *approvalRepository) Create(docCode string, referenceID uuid.UUID) (doma
 			return err
 		}
 
+		res = newApproval
 		return nil
 	})
 
