@@ -7,7 +7,7 @@ tmp_dir = "tmp"
 [build]
   args_bin = []
   bin = "tmp\\main.exe"
-  cmd = "go build -o ./tmp/main.exe ."
+  cmd = "go build -o ./tmp/main ./cmd/app/main.go"
   delay = 1000
   entrypoint = ["tmp\\main.exe"]
   exclude_dir = ["assets", "tmp", "vendor", "testdata"]
@@ -16,8 +16,8 @@ tmp_dir = "tmp"
   exclude_unchanged = false
   follow_symlink = false
   full_bin = ""
-  include_dir = []
-  include_ext = ["go", "tpl", "tmpl", "html"]
+  include_dir = ["internal", "pkg", "cmd"]
+  include_ext = ["go", "tpl", "tmpl", "html", "env"]
   include_file = []
   kill_delay = "0s"
   log = "build-errors.log"
@@ -40,7 +40,7 @@ tmp_dir = "tmp"
 [log]
   main_only = false
   silent = false
-  time = false
+  time = true
 
 [misc]
   clean_on_exit = false

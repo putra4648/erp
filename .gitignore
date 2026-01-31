@@ -1,4 +1,4 @@
 tmp/
 .env
 .vscode
-__debug_bin.exe
+__*

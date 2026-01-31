@@ -18,7 +18,6 @@ export default NuxtAuthHandler({
     ],
     callbacks: {
         async jwt({ token, account, profile }) {
-            console.log(profile)
             if (account) {
                 token.idToken = account.id_token;
                 token.roles = (profile as any).realm_access.roles;
