@@ -62,7 +62,8 @@ const { canAccess } = useNavAccess()
 import type { NavigationMenuItem } from '@nuxt/ui'
 
 type CustomNavigationMenuItem = NavigationMenuItem & {
-    canAccess: boolean
+    canAccess: boolean,
+    children?: (NavigationMenuItem & { canAccess: boolean })[]
 }
 
 const links = ref<CustomNavigationMenuItem[]>([
@@ -73,10 +74,26 @@ const links = ref<CustomNavigationMenuItem[]>([
         canAccess: true
     },
     {
-        label: 'Gudang',
-        to: '/warehouse',
-        // Hanya butuh group 'warehouse' tanpa role spesifik
-        canAccess: canAccess({ groups: ['warehouse', 'admin'] })
+        label: 'Inventory',
+        icon: 'i-heroicons-archive-box',
+        canAccess: canAccess({ groups: ['inventory', 'admin'] }),
+        children: [
+            {
+                label: 'Stock',
+                to: '/inventory/stock',
+                canAccess: canAccess({ groups: ['inventory', 'admin'] })
+            },
+            {
+                label: 'Supplier',
+                to: '/inventory/supplier',
+                canAccess: canAccess({ groups: ['inventory', 'admin'] })
+            },
+            {
+                label: 'Warehouse',
+                to: '/inventory/warehouse',
+                canAccess: canAccess({ groups: ['warehouse', 'admin'] })
+            }
+        ].filter(child => child.canAccess)
     },
     {
         label: 'Settings',
