@@ -8,15 +8,27 @@
 
             <template #body>
                 <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit" @error="onError">
+                    <UFormField label="SKU" name="sku">
+                        <UInput class="w-full" v-model="state.sku" />
+                    </UFormField>
                     <UFormField label="Name" name="name">
-                        <UInput class="w-full" v-model="state.product.name" />
+                        <UInput class="w-full" v-model="state.name" />
+                    </UFormField>
+                    <UFormField label="Category" name="category">
+                        <UInput class="w-full" v-model="state.category.name" />
+                    </UFormField>
+                    <UFormField label="UOM" name="uom">
+                        <UInput class="w-full" v-model="state.uom.name" />
+                    </UFormField>
+                    <UFormField label="Min Stock" name="min_stock">
+                        <UInput class="w-full" v-model.number="state.min_stock" />
                     </UFormField>
                     <UButton type="submit">Save</UButton>
                 </UForm>
             </template>
         </UModal>
 
-        <UTable :data="stock" :columns="stockColumns" />
+        <UTable :data="product" :columns="productColumns" />
     </div>
 </template>
 
@@ -25,8 +37,7 @@
 import type { TableRow, TableColumn, FormSubmitEvent, DropdownMenuItem } from '@nuxt/ui'
 import Joi from 'joi';
 import type { FormError } from '#ui/types';
-import type Product from '~/types/models/product';
-import type { Stock } from '~/types/models/stock';
+import type { Product, UOM } from '~/types/models/product';
 import type { Supplier } from '~/types/models/supplier';
 import type { Warehouse } from '~/types/models/warehouse';
 import { TransactionType } from '~/types/enums/transaction_enum';
@@ -36,92 +47,68 @@ const UButton = resolveComponent('UButton')
 const UDropdownMenu = resolveComponent('UDropdownMenu')
 
 
-const schema = Joi.object<Stock>({
+const schema = Joi.object<Product>({
     id: Joi.string().allow(''),
-    product: Joi.object<Product>({
-        id: Joi.string().allow(''),
+    sku: Joi.string().required(),
+    name: Joi.string().required(),
+    min_stock: Joi.number().required(),
+    category: Joi.object<Product['category']>({
+        id: Joi.string().required(),
         name: Joi.string().required()
     }).required(),
-    supplier: Joi.object<Supplier>({
-        id: Joi.string().allow(''),
-        name: Joi.string().required(),
-    }).required(),
-    warehouse: Joi.object<Warehouse>({
-        id: Joi.string().allow(''),
-        name: Joi.string().required(),
-    }).required(),
-    quantity: Joi.number().min(1).required(),
-    reference_no: Joi.string()
+    uom: Joi.object<UOM>({
+        id: Joi.string().required(),
+        name: Joi.string().required()
+    }).required()
+
 })
 
 const toast = useToast()
 
-const state = reactive<Stock>({
+const state = reactive<Product>({
     id: "",
-    product: {
-        id: "",
-        name: '',
-        sku: '',
-        min_stock: 0,
-        category: {
-            id: '',
-            name: ''
-        },
-        uom: {
-            id: '',
-            name: ''
-        }
+    sku: '',
+    name: '',
+    category: {
+        id: '',
+        name: ''
     },
-    supplier: {
-        id: "",
-        name: '',
-        contact_person: '',
-        email: '',
-        address: ''
+    uom: {
+        id: '',
+        name: ''
     },
-    warehouse: {
-        id: "",
-        name: '',
-        location: '',
-        is_active: false,
-        stock_levels: []
-    },
-    quantity: 0,
-    reference_no: '',
-    type: TransactionType.IN
+    min_stock: 0
 })
 
-const stock = ref<Stock[]>([])
-const stockColumns = ref<TableColumn<Stock>[]>([
+const product = ref<Product[]>([])
+const productColumns = ref<TableColumn<Product>[]>([
     {
         accessorKey: "name",
         header: "Name",
     },
     {
-        accessorKey: "product",
-        header: "Product",
+        accessorKey: "sku",
+        header: "SKU",
+    },
+    {
+        accessorKey: "category",
+        header: "Category",
         cell: ({ row }) => {
-            return row.original.product.name
+            return row.original.category.name
         }
     },
     {
-        accessorKey: "warehouse",
-        header: "Warehouse",
+        accessorKey: "uom",
+        header: "UOM",
         cell: ({ row }) => {
-            return row.original.warehouse.name
+            return row.original.uom.name
         }
     },
     {
-        accessorKey: "supplier",
-        header: "Supplier",
-        cell: ({ row }) => {
-            return row.original.supplier.name
-        }
+        accessorKey: "min_stock",
+        header: "Min Stock",
     },
-    {
-        accessorKey: "quantity",
-        header: "Qty"
-    },
+
     {
         accessorKey: 'actions', header: 'Actions', cell: ({ row }) => {
             return h(
@@ -145,7 +132,7 @@ const stockColumns = ref<TableColumn<Stock>[]>([
     }
 ])
 
-function getRowActions(row: TableRow<Stock>): DropdownMenuItem[] {
+function getRowActions(row: TableRow<Product>): DropdownMenuItem[] {
     return [
         {
             type: 'label',
@@ -160,13 +147,13 @@ function getRowActions(row: TableRow<Stock>): DropdownMenuItem[] {
         {
             label: 'Remove',
             onSelect: (event: Event) => {
-                stock.value = stock.value.filter(s => s.id !== row.original.id)
+                product.value = product.value.filter(s => s.id !== row.original.id)
             }
         },
     ]
 }
 
-async function onSubmit(event: FormSubmitEvent<Stock>) {
+async function onSubmit(event: FormSubmitEvent<Product>) {
     // FIX: The submit event is firing! The `state` object now contains the updated values
     // from your table. Instead of logging `event.data` (which only has schema fields),
     // log the whole `state` to see all your data.

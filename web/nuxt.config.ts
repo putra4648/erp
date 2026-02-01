@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
-  modules: ['@nuxt/ui', '@sidebase/nuxt-auth'],
+  modules: ['@nuxt/ui', '@sidebase/nuxt-auth', "@nuxt/eslint"],
   css: ['~/assets/css/main.css'],
   auth: {
     provider: {
@@ -12,6 +12,11 @@ export default defineNuxtConfig({
       addDefaultCallbackUrl: true,
     },
     globalAppMiddleware: true,
+  },
+   eslint: {
+    config: {
+      stylistic: true // <---
+    }
   },
   runtimeConfig: {
     app: {},

@@ -79,21 +79,35 @@ const links = ref<CustomNavigationMenuItem[]>([
         canAccess: canAccess({ groups: ['inventory', 'admin'] }),
         children: [
             {
-                label: 'Stock',
-                to: '/inventory/stock',
-                canAccess: canAccess({ groups: ['inventory', 'admin'] })
+                label: "Master",
+                icon: "i-lucide-database",
+
+                canAccess: canAccess({ groups: ['inventory', 'admin'] }),
+                children: [
+                    {
+                        label: 'Product',
+                        to: '/inventory/master/product',
+                        canAccess: canAccess({ groups: ['inventory', 'admin'] })
+                    },
+                    {
+                        label: 'Supplier',
+                        to: '/inventory/master/supplier',
+                        canAccess: canAccess({ groups: ['inventory', 'admin'] })
+                    },
+                    {
+                        label: 'Warehouse',
+                        to: '/inventory/master/warehouse',
+                        canAccess: canAccess({ groups: ['warehouse', 'admin'] })
+                    }
+                ].filter(child => child.canAccess)
             },
             {
-                label: 'Supplier',
-                to: '/inventory/supplier',
+                label: 'Movement',
+                icon: "i-lucide-truck",
+                to: "/inventory/movement",
                 canAccess: canAccess({ groups: ['inventory', 'admin'] })
-            },
-            {
-                label: 'Warehouse',
-                to: '/inventory/warehouse',
-                canAccess: canAccess({ groups: ['warehouse', 'admin'] })
             }
-        ].filter(child => child.canAccess)
+        ],
     },
     {
         label: 'Settings',
