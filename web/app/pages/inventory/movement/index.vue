@@ -9,23 +9,21 @@
             <template #body>
                 <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit" @error="onError">
                     <UFormField label="Type" name="type">
-                        <USelect class="w-full" v-model="state.type" :items="transactionTypes" @change="typeChange" />
+                        <USelect class="w-full" v-model="state.type" :items="transactionTypes" />
                     </UFormField>
                     <UFormField label="Date" name="transaction_date">
                         <UInput class="w-full" v-model="state.transaction_date" type="date" />
                     </UFormField>
-                    <UFormField v-if="showHiddenField.is_supplier" label="Supplier" name="supplier">
+                    <UFormField v-if="showSupplier" label="Supplier" name="supplier">
                         <UInput class="w-full" v-model="state.supplier.name" />
                     </UFormField>
-                    <UFormField v-if="!showHiddenField.is_supplier || showHiddenField.is_customer"
-                        label="Source Warehouse" name="source_warehouse">
+                    <UFormField v-if="showSourceWarehouse" label="Source Warehouse" name="source_warehouse">
                         <UInput class="w-full" v-model="state.source_warehouse.name" />
                     </UFormField>
-                    <UFormField v-if="!showHiddenField.is_customer || showHiddenField.is_supplier"
-                        label="Target Warehouse" name="target_warehouse">
+                    <UFormField v-if="showTargetWarehouse" label="Target Warehouse" name="target_warehouse">
                         <UInput class="w-full" v-model="state.target_warehouse.name" />
                     </UFormField>
-                    <UFormField v-if="showHiddenField.is_customer" label="Customer" name="customer">
+                    <UFormField v-if="showCustomer" label="Customer" name="customer">
                         <UInput class="w-full" v-model="state.customer.name" />
                     </UFormField>
                     <UFormField label="Notes" name="notes">
@@ -54,10 +52,10 @@ const UButton = resolveComponent('UButton')
 const UDropdownMenu = resolveComponent('UDropdownMenu')
 
 const schema = StockSchema
-const showHiddenField = ref({
-    is_supplier: false,
-    is_customer: false,
-})
+const showSupplier = computed(() => state.type === TransactionType.IN);
+const showCustomer = computed(() => state.type === TransactionType.OUT);
+const showSourceWarehouse = computed(() => state.type === TransactionType.OUT || state.type === TransactionType.TRANSFER);
+const showTargetWarehouse = computed(() => state.type === TransactionType.IN || state.type === TransactionType.TRANSFER);
 const toast = useToast()
 const transactionTypes = ref<SelectItem[]>(Object.keys(TransactionType).filter((key) => isNaN(Number(key))).map((key) => ({
     label: key,
@@ -66,6 +64,7 @@ const transactionTypes = ref<SelectItem[]>(Object.keys(TransactionType).filter((
 const state = reactive<Stock>({
     id: "",
     transaction_no: '',
+    transaction_date: new Date(),
     source_warehouse: {
         id: '',
         name: '',
@@ -152,25 +151,6 @@ const stockColumns = ref<TableColumn<Stock>[]>([
 ])
 
 
-function typeChange() {
-    const type = state.type
-    console.log(type == TransactionType.IN)
-    if (type == TransactionType.IN) {
-        showHiddenField.value.is_supplier = true
-        showHiddenField.value.is_customer = false
-    }
-
-    if (type == TransactionType.OUT) {
-        showHiddenField.value.is_supplier = false
-        showHiddenField.value.is_customer = true
-    }
-
-    if (type == TransactionType.TRANSFER) {
-        showHiddenField.value.is_supplier = false
-        showHiddenField.value.is_customer = false
-    }
-}
-
 function getRowActions(row: TableRow<Stock>): DropdownMenuItem[] {
     return [
         {
@@ -197,15 +177,12 @@ async function onSubmit(event: FormSubmitEvent<Stock>) {
     // from your table. Instead of logging `event.data` (which only has schema fields),
     // log the whole `state` to see all your data.
     toast.add({ title: 'Success', description: 'The form has been submitted. Check the console for the data.' })
-
-    console.log('Submitted State:', event.data)
 }
 
 /**
  * This function will run if the form validation fails.
  */
 function onError(event: { errors: FormError[] }) {
-    console.log(event.errors)
     toast.add({ title: 'Validation Error', description: `Please fill in the required fields ${event.errors.map((e) => e.name).join(", ")}.`, color: 'error' });
 }
 

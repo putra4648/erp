@@ -1,9 +1,9 @@
 <template>
     <div>
-        <UModal title="Stock" description="Add Stock">
+        <UModal title="Proudct" description="Add Product">
             <div class="flex justify-between items-center mb-4">
-                <h1 class="text-2xl font-bold">Stock Management</h1>
-                <UButton label="Add Stock" />
+                <h1 class="text-2xl font-bold">Product Management</h1>
+                <UButton label="Add Product" />
             </div>
 
             <template #body>
@@ -33,38 +33,22 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+    layout: 'master-layout',
+    label: "Product"
+})
 
-import type { TableRow, TableColumn, FormSubmitEvent, DropdownMenuItem } from '@nuxt/ui'
-import Joi from 'joi';
+import type { TableRow, TableColumn, FormSubmitEvent, DropdownMenuItem, BreadcrumbItem } from '@nuxt/ui'
 import type { FormError } from '#ui/types';
-import type { Product, UOM } from '~/types/models/product';
-import type { Supplier } from '~/types/models/supplier';
-import type { Warehouse } from '~/types/models/warehouse';
-import { TransactionType } from '~/types/enums/transaction_enum';
+import type { Product } from '~/types/models/product';
+import { ProductSchema } from '~/validations/schemas/product_schema';
 
 const UInput = resolveComponent('UInput')
 const UButton = resolveComponent('UButton')
 const UDropdownMenu = resolveComponent('UDropdownMenu')
 
-
-const schema = Joi.object<Product>({
-    id: Joi.string().allow(''),
-    sku: Joi.string().required(),
-    name: Joi.string().required(),
-    min_stock: Joi.number().required(),
-    category: Joi.object<Product['category']>({
-        id: Joi.string().required(),
-        name: Joi.string().required()
-    }).required(),
-    uom: Joi.object<UOM>({
-        id: Joi.string().required(),
-        name: Joi.string().required()
-    }).required()
-
-})
-
+const schema = ProductSchema
 const toast = useToast()
-
 const state = reactive<Product>({
     id: "",
     sku: '',
@@ -79,8 +63,8 @@ const state = reactive<Product>({
     },
     min_stock: 0
 })
-
 const product = ref<Product[]>([])
+
 const productColumns = ref<TableColumn<Product>[]>([
     {
         accessorKey: "name",
@@ -146,7 +130,7 @@ function getRowActions(row: TableRow<Product>): DropdownMenuItem[] {
         },
         {
             label: 'Remove',
-            onSelect: (event: Event) => {
+            onSelect: () => {
                 product.value = product.value.filter(s => s.id !== row.original.id)
             }
         },
@@ -159,14 +143,12 @@ async function onSubmit(event: FormSubmitEvent<Product>) {
     // log the whole `state` to see all your data.
     toast.add({ title: 'Success', description: 'The form has been submitted. Check the console for the data.' })
 
-    console.log('Submitted State:', event.data)
 }
 
 /**
  * This function will run if the form validation fails.
  */
 function onError(event: { errors: FormError[] }) {
-    console.log(event.errors)
     toast.add({ title: 'Validation Error', description: `Please fill in the required fields ${event.errors.map((e) => e.name).join(", ")}.`, color: 'error' });
 }
 

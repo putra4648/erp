@@ -29,34 +29,17 @@
 </template>
 
 <script setup lang="ts">
-
 import type { TableRow, TableColumn, FormSubmitEvent, DropdownMenuItem } from '@nuxt/ui'
-import Joi from 'joi';
 import type { FormError } from '#ui/types';
 import type { Warehouse, StockLevel } from '~/types/models/warehouse';
-import type Product from '~/types/models/product';
+import { WarehouseSchema } from '~/validations/schemas/warehouse_schema';
 
 const UInput = resolveComponent('UInput')
 const UButton = resolveComponent('UButton')
 const UDropdownMenu = resolveComponent('UDropdownMenu')
 
-
-const schema = Joi.object<Warehouse>({
-  id: Joi.string().allow(''),
-  name: Joi.string().required(),
-  location: Joi.string().required(),
-  is_active: Joi.boolean().required().default(true),
-  stock_levels: Joi.array<StockLevel>().items(Joi.object({
-    id: Joi.string().allow(''),
-    product: Joi.object<Product>({
-      name: Joi.string().required()
-    }),
-    quantity: Joi.number().min(1).required()
-  })).min(1).required()
-})
-
+const schema = WarehouseSchema
 const toast = useToast()
-
 const state = reactive<Warehouse>({
   id: "",
   name: "",
@@ -65,7 +48,6 @@ const state = reactive<Warehouse>({
   stock_levels: []
 
 })
-
 const warehouse = ref<Warehouse[]>([
   {
     id: "1",
@@ -210,15 +192,12 @@ async function onSubmit(event: FormSubmitEvent<Warehouse>) {
   // from your table. Instead of logging `event.data` (which only has schema fields),
   // log the whole `state` to see all your data.
   toast.add({ title: 'Success', description: 'The form has been submitted. Check the console for the data.' })
-
-  console.log('Submitted State:', event.data)
 }
 
 /**
  * This function will run if the form validation fails.
  */
 function onError(event: { errors: FormError[] }) {
-  console.log(event.errors)
   toast.add({ title: 'Validation Error', description: `Please fill in the required fields ${event.errors.map((e) => e.name).join(", ")}.`, color: 'error' });
 }
 

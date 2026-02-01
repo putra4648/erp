@@ -8,7 +8,7 @@
             </div>
 
             <div class="flex-1 overflow-y-auto py-4 px-3">
-                <UNavigationMenu :items="links" orientation="vertical" />
+                <UNavigationMenu :items="links.filter((link) => link.canAccess)" orientation="vertical" />
             </div>
 
             <div class="p-4 border-t border-gray-200 dark:border-gray-800">
@@ -38,7 +38,8 @@
                         </div>
                         <UButton icon="i-heroicons-x-mark" variant="ghost" color="secondary" @click="isOpen = false" />
                     </div>
-                    <UNavigationMenu :items="links" orientation="vertical" @click="isOpen = false" />
+                    <UNavigationMenu :items="links.filter((link) => link.canAccess)" orientation="vertical"
+                        @click="isOpen = false" />
                     <div
                         class="mt-auto pt-4 border-t border-gray-200 dark:border-gray-800 flex justify-between items-center">
                         <span class="text-sm text-gray-500">Theme</span>
@@ -50,17 +51,37 @@
 
         <!-- Main Content -->
         <main class="flex-1 md:ml-64 p-4 md:p-8 pt-20 md:pt-8">
+            <UBreadcrumb :items="items" />
             <slot />
         </main>
     </div>
 </template>
 
 <script setup lang="ts">
+
+const route = useRoute()
 const isOpen = ref(false);
-import type { NavigationMenuItem } from '@nuxt/ui'
+const { canAccess } = useNavAccess()
+import type { NavigationMenuItem, BreadcrumbItem } from '@nuxt/ui'
 
+type CustomNavigationMenuItem = NavigationMenuItem & {
+    canAccess: boolean,
+    children?: (NavigationMenuItem & { canAccess: boolean })[]
+}
 
-const links = ref<NavigationMenuItem[]>([
+const items = computed<BreadcrumbItem[]>(() => [
+    {
+        label: 'Inventory',
+    },
+    {
+        label: 'Master',
+    },
+    {
+        label: (route.meta.label as string),
+        to: route.fullPath
+    }
+])
+const links = ref<CustomNavigationMenuItem[]>([
     {
         label: 'Dashboard',
         icon: 'i-heroicons-home',
@@ -70,35 +91,43 @@ const links = ref<NavigationMenuItem[]>([
     {
         label: 'Inventory',
         icon: 'i-heroicons-archive-box',
+        canAccess: canAccess({ groups: ['inventory', 'admin'] }),
         children: [
             {
                 label: "Master",
                 icon: "i-lucide-database",
+
+                canAccess: canAccess({ groups: ['inventory', 'admin'] }),
                 children: [
                     {
                         label: 'Product',
                         to: '/inventory/master/product',
+                        canAccess: canAccess({ groups: ['inventory', 'admin'] })
                     },
                     {
                         label: 'Supplier',
                         to: '/inventory/master/supplier',
+                        canAccess: canAccess({ groups: ['inventory', 'admin'] })
                     },
                     {
                         label: 'Warehouse',
                         to: '/inventory/master/warehouse',
+                        canAccess: canAccess({ groups: ['warehouse', 'admin'] })
                     }
-                ]
+                ].filter(child => child.canAccess)
             },
             {
                 label: 'Movement',
                 icon: "i-lucide-truck",
                 to: "/inventory/movement",
+                canAccess: canAccess({ groups: ['inventory', 'admin'] })
             }
         ],
     },
     {
         label: 'Settings',
         to: '/settings',
+        canAccess: canAccess({ groups: ['admin'] })
     }
 ])
 

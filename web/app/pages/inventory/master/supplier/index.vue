@@ -33,28 +33,15 @@
 
 <script setup lang="ts">
 import type { TableColumn, TableRow, DropdownMenuItem } from '@nuxt/ui'
-import Joi from 'joi'
 import type { Supplier } from '~/types/models/supplier'
+import { SupplierSchema } from '~/validations/schemas/supplier_schema'
 
 const UDropdownMenu = resolveComponent('UDropdownMenu')
 const UButton = resolveComponent('UButton')
 
-const schema = Joi.object<Supplier>({
-  id: Joi.string().required(),
-  name: Joi.string().required(),
-  contact_person: Joi.string().required(),
-  email: Joi.string().email(),
-  address: Joi.string().required(),
-  is_active: Joi.boolean().required().default(true),
-})
-
+const schema = SupplierSchema
 const state = reactive<Supplier>({ id: "", name: '', contact_person: '', address: '', email: "" })
-
-const suppliers = ref<Supplier[]>([
-  { id: "1", name: 'Supplier A', contact_person: 'John Doe', email: "", address: '123 Main St', is_active: true },
-  { id: "2", name: 'Supplier B', contact_person: 'Jane Smith', email: "", address: '456 Oak Ave', is_active: true },
-  { id: "3", name: 'Supplier C', contact_person: 'Peter Jones', email: "", address: '789 Pine Ln', is_active: true },
-])
+const suppliers = ref<Supplier[]>([])
 
 const columns = ref<TableColumn<Supplier>[]>(
   [

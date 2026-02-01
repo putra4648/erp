@@ -1,5 +1,6 @@
 import Joi from "joi";
 import { TransactionType } from "~/types/enums/transaction_enum";
+import type { Customer } from "~/types/models/customer";
 import type { Stock } from "~/types/models/stock";
 import type { Supplier } from "~/types/models/supplier";
 import type { Warehouse } from "~/types/models/warehouse";
@@ -33,7 +34,7 @@ export const StockSchema = Joi.object<Stock>({
     .allow(null, {})
     .optional()
     .unknown(true),
-  customer: Joi.object<Supplier>({
+  customer: Joi.object<Customer>({
     id: Joi.string().empty("").optional(),
     name: Joi.string().empty("").optional(),
   })

@@ -1,6 +1,5 @@
-// constants/permissions.ts
 export const ROUTE_PERMISSIONS = [
-  { path: "/inventory/adjustment/**", groups: ["IT"], roles: ["ADMIN"] },
+  { path: "/inventory/movement", groups: ["staff", "admin"], roles: [] },
   {
     path: "/inventory/master/**",
     groups: ["inventory", "admin"],

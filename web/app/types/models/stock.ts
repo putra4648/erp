@@ -15,7 +15,7 @@ export interface Stock {
   supplier: Supplier;
   customer: Customer;
   status: Status;
-  transaction_date?: Date;
+  transaction_date: Date;
   notes: string;
 }
 
