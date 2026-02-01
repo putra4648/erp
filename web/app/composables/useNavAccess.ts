@@ -1,30 +1,28 @@
-import { computed } from "vue"
-
-
 export const useNavAccess = () => {
-    const { data } = useAuth()
+  const { data } = useAuth();
 
-    const userGroups = computed(() => data.value?.groups || [])
-    const userRoles = computed(() => data.value?.roles || [])
+  const canAccess = (config: { groups?: string[]; roles?: string[] }) => {
+    const userGroups = data.value?.user?.groups || [];
+    const userRoles = data.value?.user?.roles || [];
 
-    const canAccess = (config: { groups?: string[], roles?: string[] }) => {
-        // Jika tidak ada batasan, izinkan
-        if (!config.groups && !config.roles) return true
+    // 1. Jika rute tidak butuh proteksi apa pun, izinkan (true)
+    if (!config.groups && !config.roles) return true;
 
-        // Cek apakah user memiliki salah satu Group yang dibutuhkan
-        const hasGroup = config.groups
-            ? config.groups.some(g => userGroups.value.includes(g))
-            : true
+    // 2. Cek Groups (jika diminta)
+    const hasGroup =
+      config.groups && config.groups.length > 0
+        ? config.groups.some((g) => userGroups.includes(g))
+        : true; // Jika config tidak minta group, anggap lulus pengecekan group
 
-        // Cek apakah user memiliki salah satu Role yang dibutuhkan
-        const hasRole = config.roles
-            ? config.roles.some(r => userRoles.value.includes(r))
-            : true
+    // 3. Cek Roles (jika diminta)
+    const hasRole =
+      config.roles && config.roles.length > 0
+        ? config.roles.some((r) => userRoles.includes(r))
+        : true; // Jika config tidak minta role, anggap lulus pengecekan role
 
-        // User harus memenuhi kriteria Group DAN Role (Logic AND)
-        // Atau bisa disesuaikan menjadi OR tergantung kebutuhan bisnis Anda
-        return hasGroup && hasRole
-    }
+    // 4. Return: Harus punya group yang sesuai DAN role yang sesuai
+    return hasGroup && hasRole;
+  };
 
-    return { canAccess }
-}
+  return { canAccess };
+};
