@@ -1,9 +1,9 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2025-07-15',
+  compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
-  modules: ['@nuxt/ui', '@sidebase/nuxt-auth', "@nuxt/eslint"],
-  css: ['~/assets/css/main.css'],
+  modules: ["@nuxt/ui", "@sidebase/nuxt-auth", "@nuxt/eslint"],
+  css: ["~/assets/css/main.css"],
   auth: {
     provider: {
       type: "authjs",
@@ -13,16 +13,18 @@ export default defineNuxtConfig({
     },
     globalAppMiddleware: true,
   },
-   eslint: {
+  eslint: {
     config: {
-      stylistic: true // <---
-    }
+      stylistic: true, // <---
+    },
   },
   runtimeConfig: {
     app: {},
     public: {
-      serverUrl: "http://localhost:9000",
-      clientUrl: "http://localhost:3000",
+      // serverUrl: "http://localhost:9000",
+      // clientUrl: "http://localhost:3000",
+      keycloakUrl: process.env.KEYCLOAK_URL,
+      clientId: process.env.KEYCLOAK_CLIENT_ID,
     },
   },
-})
+});

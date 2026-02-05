@@ -93,6 +93,11 @@ const links = ref<NavigationMenuItem[]>([
                 label: 'Movement',
                 icon: "i-lucide-truck",
                 to: "/inventory/movement",
+            },
+            {
+                label: 'Adjustment',
+                icon: "i-lucide-edit",
+                to: "/inventory/adjustment",
             }
         ],
     },
