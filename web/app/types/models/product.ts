@@ -1,6 +1,4 @@
-import type { TransactionType } from "../enums/transaction_enum";
 import type { Audit } from "./audit";
-import type { Warehouse } from "./warehouse";
 
 export interface Product extends Audit {
   id: string;

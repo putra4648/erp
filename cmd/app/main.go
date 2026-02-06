@@ -7,10 +7,10 @@ import (
 	"putra4648/erp/configs/config"
 	"putra4648/erp/configs/database"
 	"putra4648/erp/configs/logger"
+	"putra4648/erp/internal/modules/category" // Added category import
 	"putra4648/erp/internal/modules/inventory"
 	"putra4648/erp/internal/modules/product"
-	"putra4648/erp/internal/modules/category" // Added category import
-	"putra4648/erp/internal/modules/uom"      // Added uom import
+	"putra4648/erp/internal/modules/uom" // Added uom import
 
 	"go.uber.org/dig"
 )
@@ -74,7 +74,7 @@ func main() {
 	}
 
 	if err := container.Invoke(app.Server); err != nil {
-		logger.Log.Fatalf("Failed to start server: %v", err)
+		logger.Log.Fatalf("Failed to start server: %v", err.Error())
 	}
 
 }
