@@ -151,6 +151,8 @@ async function onSubmit(event: FormSubmitEvent<Product>) {
 function onError(event: { errors: FormError[] }) {
     toast.add({ title: 'Validation Error', description: `Please fill in the required fields ${event.errors.map((e) => e.name).join(", ")}.`, color: 'error' });
 }
+const { data } = await useFetch('/api/products')
 
+console.log(data.value)
 
 </script>

@@ -23,6 +23,7 @@ export default defineNuxtConfig({
     public: {
       // serverUrl: "http://localhost:9000",
       // clientUrl: "http://localhost:3000",
+      serverUrl: "http://localhost:8080",
       keycloakUrl: process.env.KEYCLOAK_URL,
       clientId: process.env.KEYCLOAK_CLIENT_ID,
     },

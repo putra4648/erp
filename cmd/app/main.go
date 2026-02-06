@@ -8,6 +8,7 @@ import (
 	"putra4648/erp/configs/database"
 	"putra4648/erp/configs/logger"
 	"putra4648/erp/internal/modules/inventory"
+	"putra4648/erp/internal/modules/product"
 
 	"go.uber.org/dig"
 )
@@ -56,6 +57,10 @@ func main() {
 
 	if err := inventory.Register(container); err != nil {
 		logger.Log.Fatalf("Failed to register inventory module: %v", err)
+	}
+
+	if err := product.Register(container); err != nil {
+		logger.Log.Fatalf("Failed to register product module: %v", err)
 	}
 
 	if err := container.Invoke(app.Server); err != nil {

@@ -1,0 +1,33 @@
+package product
+
+import (
+	product_repository "putra4648/erp/internal/modules/product/repository"
+	product_service "putra4648/erp/internal/modules/product/service"
+
+	"go.uber.org/dig"
+)
+
+func Register(container *dig.Container) error {
+	// Product Repository
+	if err := container.Provide(product_repository.NewProductRepository); err != nil {
+		return err
+	}
+	// UOM Repository
+	if err := container.Provide(product_repository.NewUOMRepository); err != nil {
+		return err
+	}
+
+	// Product Services
+	if err := container.Provide(product_service.NewProductCommandService); err != nil {
+		return err
+	}
+	if err := container.Provide(product_service.NewProductQueryService); err != nil {
+		return err
+	}
+	// UOM Services
+	if err := container.Provide(product_service.NewUOMQueryService); err != nil {
+		return err
+	}
+
+	return nil
+}
