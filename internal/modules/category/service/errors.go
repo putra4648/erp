@@ -1,10 +1,10 @@
 package service
 
-type ProductError struct {
+type CategoryError struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
 }
 
-func (e *ProductError) Error() string {
+func (e *CategoryError) Error() string {
 	return e.Message
 }

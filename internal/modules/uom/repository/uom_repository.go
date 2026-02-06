@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"putra4648/erp/internal/modules/product/model"
+	"putra4648/erp/internal/modules/uom/model"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -19,8 +19,8 @@ type uomRepository struct {
 	db *gorm.DB
 }
 
-func NewUOMRepository(db *gorm.DB) UOMRepository { // Corrected return type
-	return &uomRepository{db: db} // Corrected struct name
+func NewUOMRepository(db *gorm.DB) UOMRepository {
+	return &uomRepository{db: db}
 }
 
 func (r *uomRepository) Create(uom *model.UOM) error {
@@ -50,5 +50,5 @@ func (r *uomRepository) Update(uom *model.UOM) error {
 }
 
 func (r *uomRepository) Delete(id uuid.UUID) error {
-	return r.db.Delete(&model.UOM{}, "id = ?", id).Error // Corrected model to delete
+	return r.db.Delete(&model.UOM{}, "id = ?", id).Error
 }

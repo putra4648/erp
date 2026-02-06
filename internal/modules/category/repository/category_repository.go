@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"putra4648/erp/internal/modules/product/model"
+	"putra4648/erp/internal/modules/category/model"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -50,5 +50,5 @@ func (r *categoryRepository) Update(category *model.Category) error {
 }
 
 func (r *categoryRepository) Delete(id uuid.UUID) error {
-	return r.db.Delete(&model.Product{}, "id = ?", id).Error
+	return r.db.Delete(&model.Category{}, "id = ?", id).Error
 }

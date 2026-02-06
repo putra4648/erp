@@ -8,24 +8,16 @@ import (
 )
 
 func Register(container *dig.Container) error {
-	// Product Repository
+	// Repositories
 	if err := container.Provide(product_repository.NewProductRepository); err != nil {
 		return err
 	}
-	// UOM Repository
-	if err := container.Provide(product_repository.NewUOMRepository); err != nil {
-		return err
-	}
 
-	// Product Services
+	// Services
 	if err := container.Provide(product_service.NewProductCommandService); err != nil {
 		return err
 	}
 	if err := container.Provide(product_service.NewProductQueryService); err != nil {
-		return err
-	}
-	// UOM Services
-	if err := container.Provide(product_service.NewUOMQueryService); err != nil {
 		return err
 	}
 

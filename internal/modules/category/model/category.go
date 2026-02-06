@@ -2,12 +2,13 @@ package model
 
 import (
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type Category struct {
-	ID        uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
-	ProductID uuid.UUID
-	Name      string `gorm:"not null;size:255"`
+	*gorm.Model
+	ID   uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
+	Name string    `gorm:"not null;size:255"`
 }
 
 type CategoryDTO struct {
