@@ -6,11 +6,11 @@ export const ProductSchema = Joi.object<Product>({
   sku: Joi.string().required(),
   name: Joi.string().required(),
   min_stock: Joi.number().required(),
-  category: Joi.object<Product["category"]>({
+  categories: Joi.object<Product["categories"]>({
     id: Joi.string().required(),
     name: Joi.string().required(),
   }).required(),
-  uom: Joi.object<UOM>({
+  uoms: Joi.object<UOM>({
     id: Joi.string().required(),
     name: Joi.string().required(),
   }).required(),

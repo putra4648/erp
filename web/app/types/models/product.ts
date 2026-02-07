@@ -4,8 +4,8 @@ export interface Product extends Audit {
   id: string;
   sku: string;
   name: string;
-  category: Category;
-  uom: UOM;
+  categories: Category[];
+  uoms: UOM[];
   min_stock: number;
 }
 

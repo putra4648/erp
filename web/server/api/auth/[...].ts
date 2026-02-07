@@ -17,19 +17,16 @@ export default NuxtAuthHandler({
     }),
   ],
   callbacks: {
-    async jwt({ token, account, profile }) {
+    async jwt({ token, account, profile, user }) {
       // 1. Login Pertama Kali
-      if (account && profile) {
-        console.log(account.expires_at);
-        return {
-          accessToken: account.access_token,
-          accessTokenExpires: Date.now() + (account.expires_at ?? 0) * 1000,
-          refreshToken: account.refresh_token,
-          idToken: account.id_token,
-          roles: (profile as any).realm_access?.roles || [],
-          groups: (profile as any).groups || [],
-          user: token,
-        };
+      if (account) {
+        token.accessToken = account.access_token;
+        token.accessTokenExpires = account.expires_at;
+        token.refreshToken = account.refresh_token;
+        token.refreshTokenExpires =
+          Date.now() + (account.refresh_expires_in as number) * 1000;
+        token.roles = (profile as any).realm_access?.roles || [];
+        token.groups = (profile as any).groups || [];
       }
 
       // 2. Belum Kadaluarsa (Kita beri buffer 10 detik)
@@ -40,13 +37,17 @@ export default NuxtAuthHandler({
       // 3. Sudah Kadaluarsa -> Refresh!
       return refreshAccessToken(token);
     },
-    async session({ session, token }) {
-      session.idToken = token.idToken;
-      session.user.roles = token.roles;
-      session.user.groups = token.groups;
-      session.accessToken = token.accessToken;
-      session.refreshToken = token.refreshToken;
-      return session;
+    session({ session, token }) {
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          roles: token.roles,
+          groups: token.groups,
+        },
+        accessToken: token.accessToken,
+        refreshToken: token.refreshToken,
+      };
     },
   },
 });
