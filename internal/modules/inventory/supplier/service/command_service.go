@@ -4,6 +4,7 @@ import (
 	"context"
 	"putra4648/erp/internal/modules/inventory/supplier/domain"
 	"putra4648/erp/internal/modules/inventory/supplier/dto"
+	"putra4648/erp/internal/modules/inventory/supplier/repository"
 
 	"github.com/google/uuid"
 )
@@ -15,10 +16,10 @@ type SupplierCommandService interface {
 }
 
 type supplierCommandService struct {
-	repo domain.SupplierRepository
+	repo repository.SupplierRepository
 }
 
-func NewSupplierCommandService(repo domain.SupplierRepository) SupplierCommandService {
+func NewSupplierCommandService(repo repository.SupplierRepository) SupplierCommandService {
 	return &supplierCommandService{repo: repo}
 }
 

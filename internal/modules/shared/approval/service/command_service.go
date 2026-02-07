@@ -1,19 +1,21 @@
 package service
 
 import (
+	"context"
 	"putra4648/erp/internal/modules/shared/approval/domain"
+	"putra4648/erp/internal/modules/shared/approval/repository"
 
 	"github.com/google/uuid"
 	"go.uber.org/dig"
 )
 
 type ApprovalService struct {
-	repository domain.ApprovalRepository
+	repository repository.ApprovalRepository
 }
 
 type ApprovalServiceParams struct {
 	dig.In
-	Repository domain.ApprovalRepository
+	Repository repository.ApprovalRepository
 }
 
 func NewApprovalService(params ApprovalServiceParams) *ApprovalService {
@@ -22,6 +24,6 @@ func NewApprovalService(params ApprovalServiceParams) *ApprovalService {
 	}
 }
 
-func (s *ApprovalService) SubmitApproval(docCode string, referenceID uuid.UUID) (domain.ApprovalTransaction, error) {
-	return s.repository.Create(docCode, referenceID)
+func (s *ApprovalService) SubmitApproval(ctx context.Context, docCode string, referenceID uuid.UUID) (domain.ApprovalTransaction, error) {
+	return s.repository.Create(ctx, docCode, referenceID)
 }

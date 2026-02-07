@@ -14,3 +14,9 @@ type UpdateSupplierRequest struct {
 	Phone   string `json:"phone"`
 	Email   string `json:"email" validate:"email"`
 }
+
+type SupplierFindAllRequest struct {
+	Name string `json:"name"`
+	Page int    `json:"page"`
+	Size int    `json:"size"`
+}

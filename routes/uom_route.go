@@ -1,8 +1,9 @@
 package routes
 
 import (
-	uomModel "putra4648/erp/internal/modules/uom/model"
-	uomService "putra4648/erp/internal/modules/uom/service"
+	"putra4648/erp/internal/modules/uom/domain"
+	"putra4648/erp/internal/modules/uom/dto"
+	"putra4648/erp/internal/modules/uom/service"
 	. "putra4648/erp/utils"
 
 	"github.com/casbin/casbin/v3"
@@ -13,8 +14,8 @@ import (
 func RegisterUOMRoutes(
 	app *fiber.App,
 	api fiber.Router,
-	uomCommandService uomService.UOMCommandService,
-	uomQueryService uomService.UOMQueryService,
+	uomCommandService service.UOMCommandService,
+	uomQueryService service.UOMQueryService,
 	enforcer *casbin.Enforcer,
 ) {
 	uoms := api.Group("/uoms")
@@ -27,16 +28,16 @@ func RegisterUOMRoutes(
 	}
 }
 
-func createUOM(service uomService.UOMCommandService) fiber.Handler {
+func createUOM(s service.UOMCommandService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var req uomModel.UOMDTO
+		var req domain.UOMDTO
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 		}
 
-		response, err := service.CreateUOM(&req)
+		response, err := s.CreateUOM(c.Context(), &req)
 		if err != nil {
-			if uomErr, ok := err.(*uomService.UOMError); ok {
+			if uomErr, ok := err.(*service.UOMError); ok {
 				return c.Status(GetStatusCode(uomErr.Code)).JSON(fiber.Map{"error": uomErr.Message})
 			}
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create UOM"})
@@ -46,16 +47,16 @@ func createUOM(service uomService.UOMCommandService) fiber.Handler {
 	}
 }
 
-func getUOMByID(service uomService.UOMQueryService) fiber.Handler {
+func getUOMByID(s service.UOMQueryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := uuid.Parse(c.Params("id"))
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid UOM ID"})
 		}
 
-		response, err := service.GetUOMByID(id)
+		response, err := s.GetUOMByID(c.Context(), id)
 		if err != nil {
-			if uomErr, ok := err.(*uomService.UOMError); ok {
+			if uomErr, ok := err.(*service.UOMError); ok {
 				return c.Status(GetStatusCode(uomErr.Code)).JSON(fiber.Map{"error": uomErr.Message})
 			}
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve UOM"})
@@ -65,11 +66,15 @@ func getUOMByID(service uomService.UOMQueryService) fiber.Handler {
 	}
 }
 
-func getAllUOMs(service uomService.UOMQueryService) fiber.Handler {
+func getAllUOMs(s service.UOMQueryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		responses, err := service.GetAllUOMs()
+		name := c.Query("name")
+		page := c.QueryInt("page", 1)
+		size := c.QueryInt("size", 10)
+
+		responses, err := s.GetAllUOMs(c.Context(), &dto.UOMRequest{Name: name, Page: page, Size: size})
 		if err != nil {
-			if uomErr, ok := err.(*uomService.UOMError); ok {
+			if uomErr, ok := err.(*service.UOMError); ok {
 				return c.Status(GetStatusCode(uomErr.Code)).JSON(fiber.Map{"error": uomErr.Message})
 			}
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve UOMs"})
@@ -78,21 +83,21 @@ func getAllUOMs(service uomService.UOMQueryService) fiber.Handler {
 	}
 }
 
-func updateUOM(service uomService.UOMCommandService) fiber.Handler {
+func updateUOM(s service.UOMCommandService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := uuid.Parse(c.Params("id"))
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid UOM ID"})
 		}
 
-		var req uomModel.UOMDTO
+		var req domain.UOMDTO
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 		}
 
-		response, err := service.UpdateUOM(id, &req)
+		response, err := s.UpdateUOM(c.Context(), id, &req)
 		if err != nil {
-			if uomErr, ok := err.(*uomService.UOMError); ok {
+			if uomErr, ok := err.(*service.UOMError); ok {
 				return c.Status(GetStatusCode(uomErr.Code)).JSON(fiber.Map{"error": uomErr.Message})
 			}
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update UOM"})
@@ -102,16 +107,16 @@ func updateUOM(service uomService.UOMCommandService) fiber.Handler {
 	}
 }
 
-func deleteUOM(service uomService.UOMCommandService) fiber.Handler {
+func deleteUOM(s service.UOMCommandService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := uuid.Parse(c.Params("id"))
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid UOM ID"})
 		}
 
-		err = service.DeleteUOM(id)
+		err = s.DeleteUOM(c.Context(), id)
 		if err != nil {
-			if uomErr, ok := err.(*uomService.UOMError); ok {
+			if uomErr, ok := err.(*service.UOMError); ok {
 				return c.Status(GetStatusCode(uomErr.Code)).JSON(fiber.Map{"error": uomErr.Message})
 			}
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete UOM"})

@@ -1,7 +1,8 @@
 package routes
 
 import (
-	productModel "putra4648/erp/internal/modules/product/model"
+	productDomain "putra4648/erp/internal/modules/product/domain"
+	"putra4648/erp/internal/modules/product/dto"
 	productService "putra4648/erp/internal/modules/product/service"
 	. "putra4648/erp/utils"
 
@@ -31,13 +32,13 @@ func RegisterProductRoutes(
 // Product handlers
 func createProduct(service productService.ProductCommandService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var req productModel.ProductDTO
+		var req productDomain.ProductDTO
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 		}
 
 		// Create product
-		response, err := service.CreateProduct(&req)
+		response, err := service.CreateProduct(c.Context(), &req)
 		if err != nil {
 			if productErr, ok := err.(*productService.ProductError); ok {
 				return c.Status(GetStatusCode(productErr.Code)).JSON(fiber.Map{"error": productErr.Message})
@@ -57,7 +58,7 @@ func getProductByID(service productService.ProductQueryService) fiber.Handler {
 		}
 
 		// Get product by ID
-		response, err := service.GetProductByID(id)
+		response, err := service.GetProductByID(c.Context(), id)
 		if err != nil {
 			if productErr, ok := err.(*productService.ProductError); ok {
 				return c.Status(GetStatusCode(productErr.Code)).JSON(fiber.Map{"error": productErr.Message})
@@ -71,8 +72,12 @@ func getProductByID(service productService.ProductQueryService) fiber.Handler {
 
 func getAllProducts(service productService.ProductQueryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		page := c.QueryInt("page", 1)
+		size := c.QueryInt("size", 10)
+		name := c.Query("name")
+
 		// Get all products
-		responses, err := service.GetAllProducts()
+		responses, err := service.GetAllProducts(c.Context(), &dto.ProductRequest{Name: name, Page: page, Size: size})
 		if err != nil {
 			if productErr, ok := err.(*productService.ProductError); ok {
 				return c.Status(GetStatusCode(productErr.Code)).JSON(fiber.Map{"error": productErr.Message})
@@ -91,13 +96,13 @@ func updateProduct(service productService.ProductCommandService) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid product ID"})
 		}
 
-		var req productModel.ProductDTO
+		var req productDomain.ProductDTO
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 		}
 
 		// Update product
-		response, err := service.UpdateProduct(id, &req)
+		response, err := service.UpdateProduct(c.Context(), id, &req)
 		if err != nil {
 			if productErr, ok := err.(*productService.ProductError); ok {
 				return c.Status(GetStatusCode(productErr.Code)).JSON(fiber.Map{"error": productErr.Message})
@@ -117,7 +122,7 @@ func deleteProduct(service productService.ProductCommandService) fiber.Handler {
 		}
 
 		// Delete product
-		err = service.DeleteProduct(id)
+		err = service.DeleteProduct(c.Context(), id)
 		if err != nil {
 			if productErr, ok := err.(*productService.ProductError); ok {
 				return c.Status(GetStatusCode(productErr.Code)).JSON(fiber.Map{"error": productErr.Message})

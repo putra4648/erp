@@ -1,30 +1,31 @@
 package service
 
 import (
-	categoryModel "putra4648/erp/internal/modules/category/model"
-	categoryRepository "putra4648/erp/internal/modules/category/repository"
+	"context"
+	"putra4648/erp/internal/modules/category/domain"
+	"putra4648/erp/internal/modules/category/repository"
 
 	"github.com/google/uuid"
 )
 
 type CategoryCommandService interface {
-	CreateCategory(categoryDTO *categoryModel.CategoryDTO) (*categoryModel.CategoryResponse, error)
-	UpdateCategory(id uuid.UUID, categoryDTO *categoryModel.CategoryDTO) (*categoryModel.CategoryResponse, error)
-	DeleteCategory(id uuid.UUID) error
+	CreateCategory(ctx context.Context, categoryDTO *domain.CategoryDTO) (*domain.CategoryResponse, error)
+	UpdateCategory(ctx context.Context, id uuid.UUID, categoryDTO *domain.CategoryDTO) (*domain.CategoryResponse, error)
+	DeleteCategory(ctx context.Context, id uuid.UUID) error
 }
 
 type categoryCommandService struct {
-	categoryRepo categoryRepository.CategoryRepository
+	categoryRepo repository.CategoryRepository
 }
 
-func NewCategoryCommandService(categoryRepo categoryRepository.CategoryRepository) CategoryCommandService {
+func NewCategoryCommandService(categoryRepo repository.CategoryRepository) CategoryCommandService {
 	return &categoryCommandService{categoryRepo: categoryRepo}
 }
 
-func (s *categoryCommandService) CreateCategory(categoryDTO *categoryModel.CategoryDTO) (*categoryModel.CategoryResponse, error) {
+func (s *categoryCommandService) CreateCategory(ctx context.Context, categoryDTO *domain.CategoryDTO) (*domain.CategoryResponse, error) {
 	category := categoryDTO.ToModel()
 
-	err := s.categoryRepo.Create(category)
+	err := s.categoryRepo.Create(ctx, category)
 	if err != nil {
 		return nil, &CategoryError{Code: "DATABASE_ERROR", Message: "Failed to create category"}
 	}
@@ -32,15 +33,15 @@ func (s *categoryCommandService) CreateCategory(categoryDTO *categoryModel.Categ
 	return category.ToResponse(), nil
 }
 
-func (s *categoryCommandService) UpdateCategory(id uuid.UUID, categoryDTO *categoryModel.CategoryDTO) (*categoryModel.CategoryResponse, error) {
-	existingCategory, err := s.categoryRepo.FindByID(id)
+func (s *categoryCommandService) UpdateCategory(ctx context.Context, id uuid.UUID, categoryDTO *domain.CategoryDTO) (*domain.CategoryResponse, error) {
+	existingCategory, err := s.categoryRepo.FindByID(ctx, id)
 	if err != nil {
 		return nil, &CategoryError{Code: "NOT_FOUND", Message: "Category not found"}
 	}
 
 	existingCategory.Name = categoryDTO.Name
 
-	err = s.categoryRepo.Update(existingCategory)
+	err = s.categoryRepo.Update(ctx, existingCategory)
 	if err != nil {
 		return nil, &CategoryError{Code: "DATABASE_ERROR", Message: "Failed to update category"}
 	}
@@ -48,13 +49,13 @@ func (s *categoryCommandService) UpdateCategory(id uuid.UUID, categoryDTO *categ
 	return existingCategory.ToResponse(), nil
 }
 
-func (s *categoryCommandService) DeleteCategory(id uuid.UUID) error {
-	_, err := s.categoryRepo.FindByID(id)
+func (s *categoryCommandService) DeleteCategory(ctx context.Context, id uuid.UUID) error {
+	_, err := s.categoryRepo.FindByID(ctx, id)
 	if err != nil {
 		return &CategoryError{Code: "NOT_FOUND", Message: "Category not found"}
 	}
 
-	err = s.categoryRepo.Delete(id)
+	err = s.categoryRepo.Delete(ctx, id)
 	if err != nil {
 		return &CategoryError{Code: "DATABASE_ERROR", Message: "Failed to delete category"}
 	}

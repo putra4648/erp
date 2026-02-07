@@ -1,20 +1,21 @@
 package service
 
 import (
-	productModel "putra4648/erp/internal/modules/product/model"
-	productRepository "putra4648/erp/internal/modules/product/repository"
+	"context"
+	categoryDomain "putra4648/erp/internal/modules/category/domain"
 	categoryRepository "putra4648/erp/internal/modules/category/repository"
-	categoryModel "putra4648/erp/internal/modules/category/model"
+	productDomain "putra4648/erp/internal/modules/product/domain"
+	productRepository "putra4648/erp/internal/modules/product/repository"
+	uomDomain "putra4648/erp/internal/modules/uom/domain" // Added import
 	uomRepository "putra4648/erp/internal/modules/uom/repository"
-	uomModel "putra4648/erp/internal/modules/uom/model" // Added import
 
 	"github.com/google/uuid"
 )
 
 type ProductCommandService interface {
-	CreateProduct(productDTO *productModel.ProductDTO) (*productModel.ProductResponse, error)
-	UpdateProduct(id uuid.UUID, productDTO *productModel.ProductDTO) (*productModel.ProductResponse, error)
-	DeleteProduct(id uuid.UUID) error
+	CreateProduct(ctx context.Context, req *productDomain.ProductDTO) (*productDomain.ProductResponse, error)
+	UpdateProduct(ctx context.Context, id uuid.UUID, productDTO *productDomain.ProductDTO) (*productDomain.ProductResponse, error)
+	DeleteProduct(ctx context.Context, id uuid.UUID) error
 }
 
 type productCommandService struct {
@@ -35,16 +36,16 @@ func NewProductCommandService(
 	}
 }
 
-func (s *productCommandService) CreateProduct(productDTO *productModel.ProductDTO) (*productModel.ProductResponse, error) {
+func (s *productCommandService) CreateProduct(ctx context.Context, productDTO *productDomain.ProductDTO) (*productDomain.ProductResponse, error) {
 	// Check if SKU already exists
-	if _, err := s.productRepo.FindBySKU(productDTO.SKU); err == nil {
+	if _, err := s.productRepo.FindBySKU(ctx, productDTO.SKU); err == nil {
 		return nil, &ProductError{Code: "DUPLICATE_SKU", Message: "SKU already exists"}
 	}
 
 	// Validate UOMs
-	uoms := make([]*uomModel.UOM, len(productDTO.UOMIDs))
+	uoms := make([]*uomDomain.UOM, len(productDTO.UOMIDs))
 	for i, uomID := range productDTO.UOMIDs {
-		uom, err := s.uomRepo.FindByID(uomID)
+		uom, err := s.uomRepo.FindByID(ctx, uomID)
 		if err != nil {
 			return nil, &ProductError{Code: "NOT_FOUND", Message: "UOM not found"}
 		}
@@ -52,9 +53,9 @@ func (s *productCommandService) CreateProduct(productDTO *productModel.ProductDT
 	}
 
 	// Validate Categories
-	categories := make([]*categoryModel.Category, len(productDTO.CategoryIDs))
+	categories := make([]*categoryDomain.Category, len(productDTO.CategoryIDs))
 	for i, catID := range productDTO.CategoryIDs {
-		category, err := s.categoryRepo.FindByID(catID)
+		category, err := s.categoryRepo.FindByID(ctx, catID)
 		if err != nil {
 			return nil, &ProductError{Code: "NOT_FOUND", Message: "Category not found"}
 		}
@@ -66,14 +67,13 @@ func (s *productCommandService) CreateProduct(productDTO *productModel.ProductDT
 	product.UOMs = uoms
 	product.Categories = categories
 
-
 	// Create product in database
-	if err := s.productRepo.Create(product); err != nil {
+	if err := s.productRepo.Create(ctx, product); err != nil {
 		return nil, &ProductError{Code: "DATABASE_ERROR", Message: "Failed to create product"}
 	}
 
 	// Reload product to get all fields populated, including associations
-	createdProduct, err := s.productRepo.FindByID(product.ID)
+	createdProduct, err := s.productRepo.FindByID(ctx, product.ID)
 	if err != nil {
 		return nil, &ProductError{Code: "DATABASE_ERROR", Message: "Failed to retrieve created product"}
 	}
@@ -82,24 +82,24 @@ func (s *productCommandService) CreateProduct(productDTO *productModel.ProductDT
 	return createdProduct.ToResponse(), nil
 }
 
-func (s *productCommandService) UpdateProduct(id uuid.UUID, productDTO *productModel.ProductDTO) (*productModel.ProductResponse, error) {
+func (s *productCommandService) UpdateProduct(ctx context.Context, id uuid.UUID, productDTO *productDomain.ProductDTO) (*productDomain.ProductResponse, error) {
 	// Find existing product
-	existingProduct, err := s.productRepo.FindByID(id)
+	existingProduct, err := s.productRepo.FindByID(ctx, id)
 	if err != nil {
 		return nil, &ProductError{Code: "NOT_FOUND", Message: "Product not found"}
 	}
 
 	// Check if SKU is being changed and already exists
 	if productDTO.SKU != existingProduct.SKU {
-		if _, err := s.productRepo.FindBySKU(productDTO.SKU); err == nil {
+		if _, err := s.productRepo.FindBySKU(ctx, productDTO.SKU); err == nil {
 			return nil, &ProductError{Code: "DUPLICATE_SKU", Message: "SKU already exists"}
 		}
 	}
 
 	// Validate UOMs
-	uoms := make([]*uomModel.UOM, len(productDTO.UOMIDs))
+	uoms := make([]*uomDomain.UOM, len(productDTO.UOMIDs))
 	for i, uomID := range productDTO.UOMIDs {
-		uom, err := s.uomRepo.FindByID(uomID)
+		uom, err := s.uomRepo.FindByID(ctx, uomID)
 		if err != nil {
 			return nil, &ProductError{Code: "NOT_FOUND", Message: "UOM not found"}
 		}
@@ -107,9 +107,9 @@ func (s *productCommandService) UpdateProduct(id uuid.UUID, productDTO *productM
 	}
 
 	// Validate Categories
-	categories := make([]*categoryModel.Category, len(productDTO.CategoryIDs))
+	categories := make([]*categoryDomain.Category, len(productDTO.CategoryIDs))
 	for i, catID := range productDTO.CategoryIDs {
-		category, err := s.categoryRepo.FindByID(catID)
+		category, err := s.categoryRepo.FindByID(ctx, catID)
 		if err != nil {
 			return nil, &ProductError{Code: "NOT_FOUND", Message: "Category not found"}
 		}
@@ -128,12 +128,12 @@ func (s *productCommandService) UpdateProduct(id uuid.UUID, productDTO *productM
 	existingProduct.UOMs = uoms
 
 	// Save updated product
-	if err := s.productRepo.Update(existingProduct); err != nil {
+	if err := s.productRepo.Update(ctx, existingProduct); err != nil {
 		return nil, &ProductError{Code: "DATABASE_ERROR", Message: "Failed to update product"}
 	}
 
 	// Reload product to get all fields populated, including associations
-	updatedProduct, err := s.productRepo.FindByID(id)
+	updatedProduct, err := s.productRepo.FindByID(ctx, id)
 	if err != nil {
 		return nil, &ProductError{Code: "DATABASE_ERROR", Message: "Failed to retrieve updated product"}
 	}
@@ -142,15 +142,15 @@ func (s *productCommandService) UpdateProduct(id uuid.UUID, productDTO *productM
 	return updatedProduct.ToResponse(), nil
 }
 
-func (s *productCommandService) DeleteProduct(id uuid.UUID) error {
+func (s *productCommandService) DeleteProduct(ctx context.Context, id uuid.UUID) error {
 	// Find product first to ensure it exists
-	_, err := s.productRepo.FindByID(id)
+	_, err := s.productRepo.FindByID(ctx, id)
 	if err != nil {
 		return &ProductError{Code: "NOT_FOUND", Message: "Product not found"}
 	}
 
 	// Delete product
-	err = s.productRepo.Delete(id)
+	err = s.productRepo.Delete(ctx, id)
 	if err != nil {
 		return &ProductError{Code: "DATABASE_ERROR", Message: "Failed to delete product"}
 	}

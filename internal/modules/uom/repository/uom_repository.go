@@ -1,18 +1,20 @@
 package repository
 
 import (
-	"putra4648/erp/internal/modules/uom/model"
+	"context"
+	"putra4648/erp/internal/modules/uom/domain"
+	"putra4648/erp/internal/modules/uom/dto"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type UOMRepository interface {
-	Create(uom *model.UOM) error
-	FindByID(id uuid.UUID) (*model.UOM, error)
-	FindAll() ([]*model.UOM, error)
-	Update(uom *model.UOM) error
-	Delete(id uuid.UUID) error
+	Create(ctx context.Context, uom *domain.UOM) error
+	FindByID(ctx context.Context, id uuid.UUID) (*domain.UOM, error)
+	FindAll(ctx context.Context, req *dto.UOMRequest) ([]*domain.UOM, int64, error)
+	Update(ctx context.Context, uom *domain.UOM) error
+	Delete(ctx context.Context, id uuid.UUID) error
 }
 
 type uomRepository struct {
@@ -23,32 +25,46 @@ func NewUOMRepository(db *gorm.DB) UOMRepository {
 	return &uomRepository{db: db}
 }
 
-func (r *uomRepository) Create(uom *model.UOM) error {
-	return r.db.Create(uom).Error
+func (r *uomRepository) Create(ctx context.Context, uom *domain.UOM) error {
+	return r.db.WithContext(ctx).Create(uom).Error
 }
 
-func (r *uomRepository) FindByID(id uuid.UUID) (*model.UOM, error) {
-	var uom model.UOM
-	err := r.db.Where("id = ?", id).First(&uom).Error
+func (r *uomRepository) FindByID(ctx context.Context, id uuid.UUID) (*domain.UOM, error) {
+	var uom domain.UOM
+	err := r.db.WithContext(ctx).Where("id = ?", id).First(&uom).Error
 	if err != nil {
 		return nil, err
 	}
 	return &uom, nil
 }
 
-func (r *uomRepository) FindAll() ([]*model.UOM, error) {
-	var uoms []*model.UOM
-	err := r.db.Find(&uoms).Error
-	if err != nil {
-		return nil, err
+func (r *uomRepository) FindAll(ctx context.Context, req *dto.UOMRequest) ([]*domain.UOM, int64, error) {
+	var uoms []*domain.UOM
+	var total int64
+	db := r.db.WithContext(ctx).Model(&domain.UOM{})
+
+	if req.Name != "" {
+		db = db.Where("name ILIKE ?", "%"+req.Name+"%")
 	}
-	return uoms, nil
+
+	db.Count(&total)
+
+	if req.Page > 0 && req.Size > 0 {
+		offset := (req.Page - 1) * req.Size
+		db = db.Limit(req.Size).Offset(offset)
+	}
+
+	err := db.Find(&uoms).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	return uoms, total, nil
 }
 
-func (r *uomRepository) Update(uom *model.UOM) error {
-	return r.db.Save(uom).Error
+func (r *uomRepository) Update(ctx context.Context, uom *domain.UOM) error {
+	return r.db.WithContext(ctx).Save(uom).Error
 }
 
-func (r *uomRepository) Delete(id uuid.UUID) error {
-	return r.db.Delete(&model.UOM{}, "id = ?", id).Error
+func (r *uomRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	return r.db.WithContext(ctx).Delete(&domain.UOM{}, "id = ?", id).Error
 }

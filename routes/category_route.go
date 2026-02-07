@@ -1,7 +1,8 @@
 package routes
 
 import (
-	categoryModel "putra4648/erp/internal/modules/category/model"
+	categoryDomain "putra4648/erp/internal/modules/category/domain"
+	"putra4648/erp/internal/modules/category/dto"
 	categoryService "putra4648/erp/internal/modules/category/service"
 	. "putra4648/erp/utils"
 
@@ -29,12 +30,12 @@ func RegisterCategoryRoutes(
 
 func createCategory(service categoryService.CategoryCommandService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var req categoryModel.CategoryDTO
+		var req categoryDomain.CategoryDTO
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 		}
 
-		response, err := service.CreateCategory(&req)
+		response, err := service.CreateCategory(c.Context(), &req)
 		if err != nil {
 			if categoryErr, ok := err.(*categoryService.CategoryError); ok {
 				return c.Status(GetStatusCode(categoryErr.Code)).JSON(fiber.Map{"error": categoryErr.Message})
@@ -53,7 +54,7 @@ func getCategoryByID(service categoryService.CategoryQueryService) fiber.Handler
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid category ID"})
 		}
 
-		response, err := service.GetCategoryByID(id)
+		response, err := service.GetCategoryByID(c.Context(), id)
 		if err != nil {
 			if categoryErr, ok := err.(*categoryService.CategoryError); ok {
 				return c.Status(GetStatusCode(categoryErr.Code)).JSON(fiber.Map{"error": categoryErr.Message})
@@ -67,7 +68,11 @@ func getCategoryByID(service categoryService.CategoryQueryService) fiber.Handler
 
 func getAllCategories(service categoryService.CategoryQueryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		responses, err := service.GetAllCategories()
+		page := c.QueryInt("page", 1)
+		size := c.QueryInt("size", 10)
+		name := c.Query("name")
+
+		responses, err := service.GetAllCategories(c.Context(), &dto.CategoryFindAllRequest{Name: name, Page: page, Size: size})
 		if err != nil {
 			if categoryErr, ok := err.(*categoryService.CategoryError); ok {
 				return c.Status(GetStatusCode(categoryErr.Code)).JSON(fiber.Map{"error": categoryErr.Message})
@@ -86,12 +91,12 @@ func updateCategory(service categoryService.CategoryCommandService) fiber.Handle
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid category ID"})
 		}
 
-		var req categoryModel.CategoryDTO
+		var req categoryDomain.CategoryDTO
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 		}
 
-		response, err := service.UpdateCategory(id, &req)
+		response, err := service.UpdateCategory(c.Context(), id, &req)
 		if err != nil {
 			if categoryErr, ok := err.(*categoryService.CategoryError); ok {
 				return c.Status(GetStatusCode(categoryErr.Code)).JSON(fiber.Map{"error": categoryErr.Message})
@@ -110,7 +115,7 @@ func deleteCategory(service categoryService.CategoryCommandService) fiber.Handle
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid category ID"})
 		}
 
-		err = service.DeleteCategory(id)
+		err = service.DeleteCategory(c.Context(), id)
 		if err != nil {
 			if categoryErr, ok := err.(*categoryService.CategoryError); ok {
 				return c.Status(GetStatusCode(categoryErr.Code)).JSON(fiber.Map{"error": categoryErr.Message})

@@ -8,3 +8,9 @@ type CreateWarehouseRequest struct {
 type UpdateWarehouseRequest struct {
 	Name string `json:"name" validate:"required"`
 }
+
+type WarehouseFindAllRequest struct {
+	Name string `json:"name"`
+	Page int    `json:"page"`
+	Size int    `json:"size"`
+}

@@ -74,8 +74,9 @@ func getAllWarehouses(service warehouseService.WarehouseQueryService) fiber.Hand
 	return func(c *fiber.Ctx) error {
 		page := c.QueryInt("page", 1)
 		size := c.QueryInt("size", 10)
+		name := c.Query("name")
 
-		warehouses, err := service.FindAll(c.Context(), page, size)
+		warehouses, err := service.FindAll(c.Context(), &warehouseDto.WarehouseFindAllRequest{Name: name, Page: page, Size: size})
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
@@ -146,8 +147,9 @@ func getAllSuppliers(service supplierService.SupplierQueryService) fiber.Handler
 	return func(c *fiber.Ctx) error {
 		page := c.QueryInt("page", 1)
 		size := c.QueryInt("size", 10)
+		name := c.Query("name")
 
-		suppliers, err := service.FindAll(c.Context(), page, size)
+		suppliers, err := service.FindAll(c.Context(), &supplierDto.SupplierFindAllRequest{Name: name, Page: page, Size: size})
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
