@@ -1,11 +1,12 @@
 <template>
   <div>
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-2xl font-bold">Warehouse Management</h1>
+      <UButton label="Add Warehouse" @click="addWarehouse" />
+    </div>
+
     <UModal v-model:open="open" :title="isEdit ? 'Edit Warehouse' : 'Add Warehouse'"
       :description="isEdit ? 'Update warehouse details' : 'Create a new warehouse'">
-      <div class="flex justify-between items-center mb-4">
-        <h1 class="text-2xl font-bold">Warehouse Management</h1>
-        <UButton label="Add Warehouse" @click="addWarehouse" />
-      </div>
 
       <template #body>
         <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit" @error="onError">

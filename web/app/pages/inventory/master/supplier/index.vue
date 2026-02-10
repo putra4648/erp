@@ -1,11 +1,12 @@
 <template>
   <div>
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-2xl font-bold">Supplier Management</h1>
+      <UButton label="Add Supplier" @click="addSupplier" />
+    </div>
+
     <UModal v-model:open="open" :title="isEdit ? 'Edit Supplier' : 'Add Supplier'"
       :description="isEdit ? 'Update supplier details' : 'Create a new supplier'">
-      <div class="flex justify-between items-center mb-4">
-        <h1 class="text-2xl font-bold">Supplier Management</h1>
-        <UButton label="Add Supplier" @click="addSupplier" />
-      </div>
 
       <template #body>
         <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit" @error="onError">

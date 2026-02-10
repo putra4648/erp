@@ -1,12 +1,12 @@
 <template>
     <div>
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-2xl font-bold">UOM Management</h1>
+            <UButton label="Add UOM" @click="addUOM" />
+        </div>
+
         <UModal v-model:open="open" :title="isEdit ? 'Edit UOM' : 'Add UOM'"
             :description="isEdit ? 'Update UOM details' : 'Create a new UOM'">
-            <div class="flex justify-between items-center mb-4">
-                <h1 class="text-2xl font-bold">UOM Management</h1>
-                <UButton label="Add UOM" @click="addUOM" />
-            </div>
-
             <template #body>
                 <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit" @error="onError">
                     <UFormField label="Name" name="name">
