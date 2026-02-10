@@ -64,18 +64,26 @@ const { canAccess } = useNavAccess()
 import type { NavigationMenuItem, BreadcrumbItem } from '@nuxt/ui'
 
 
-const items = computed<BreadcrumbItem[]>(() => [
-    {
-        label: 'Inventory',
-    },
-    {
-        label: 'Master',
-    },
-    {
-        label: (route.meta.label as string),
-        to: route.fullPath
+const items = computed<BreadcrumbItem[]>(() => {
+    const crumbs: BreadcrumbItem[] = [
+        {
+            label: 'Inventory',
+        }
+    ]
+
+    const pathParts = route.path.split('/').filter(Boolean)
+    // If path is /inventory/master/product, parts are [inventory, master, product]
+    if (pathParts.includes('master')) {
+        crumbs.push({ label: 'Master' })
     }
-])
+
+    crumbs.push({
+        label: (route.meta.label as string) || 'Page',
+        to: route.fullPath
+    })
+
+    return crumbs
+})
 const links = ref<NavigationMenuItem[]>([
     {
         label: 'Dashboard',
@@ -116,6 +124,11 @@ const links = ref<NavigationMenuItem[]>([
                 label: 'Movement',
                 icon: "i-lucide-truck",
                 to: "/inventory/movement",
+            },
+            {
+                label: 'Adjustment',
+                icon: "i-lucide-edit",
+                to: "/inventory/adjustment",
             }
         ],
     },

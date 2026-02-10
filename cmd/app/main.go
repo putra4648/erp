@@ -10,6 +10,7 @@ import (
 	"putra4648/erp/internal/modules/category" // Added category import
 	"putra4648/erp/internal/modules/inventory"
 	"putra4648/erp/internal/modules/product"
+	"putra4648/erp/internal/modules/stock_adjustment"
 	"putra4648/erp/internal/modules/uom" // Added uom import
 
 	"go.uber.org/dig"
@@ -71,6 +72,10 @@ func main() {
 
 	if err := uom.Register(container); err != nil {
 		logger.Log.Fatalf("Failed to register uom module: %v", err)
+	}
+
+	if err := stock_adjustment.Register(container); err != nil {
+		logger.Log.Fatalf("Failed to register stock_adjustment module: %v", err)
 	}
 
 	if err := container.Invoke(app.Server); err != nil {
