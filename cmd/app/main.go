@@ -7,7 +7,10 @@ import (
 	"putra4648/erp/configs/config"
 	"putra4648/erp/configs/database"
 	"putra4648/erp/configs/logger"
+	"putra4648/erp/internal/modules/category" // Added category import
 	"putra4648/erp/internal/modules/inventory"
+	"putra4648/erp/internal/modules/product"
+	"putra4648/erp/internal/modules/uom" // Added uom import
 
 	"go.uber.org/dig"
 )
@@ -58,8 +61,20 @@ func main() {
 		logger.Log.Fatalf("Failed to register inventory module: %v", err)
 	}
 
+	if err := product.Register(container); err != nil {
+		logger.Log.Fatalf("Failed to register product module: %v", err)
+	}
+
+	if err := category.Register(container); err != nil {
+		logger.Log.Fatalf("Failed to register category module: %v", err)
+	}
+
+	if err := uom.Register(container); err != nil {
+		logger.Log.Fatalf("Failed to register uom module: %v", err)
+	}
+
 	if err := container.Invoke(app.Server); err != nil {
-		logger.Log.Fatalf("Failed to start server: %v", err)
+		logger.Log.Fatalf("Failed to start server: %v", err.Error())
 	}
 
 }

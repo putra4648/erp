@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"putra4648/erp/internal/modules/inventory/stock/domain"
 	"putra4648/erp/internal/modules/inventory/stock/dto"
 
@@ -19,9 +20,9 @@ func NewStockRepository(db *gorm.DB) *stockRepo {
 	return &stockRepo{db}
 }
 
-func (r *stockRepo) CreateStockAdjustment(dto dto.StockRequest, userID uuid.UUID) (domain.StockAdjustment, error) {
+func (r *stockRepo) CreateStockAdjustment(ctx context.Context, dto dto.StockRequest, userID uuid.UUID) (domain.StockAdjustment, error) {
 	var res domain.StockAdjustment
-	err := r.db.Transaction(func(tx *gorm.DB) error {
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		productId, err := uuid.Parse(dto.ProductID)
 		if err != nil {
 			return err

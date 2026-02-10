@@ -4,6 +4,7 @@ import (
 	"context"
 	"putra4648/erp/internal/modules/inventory/warehouse/domain"
 	"putra4648/erp/internal/modules/inventory/warehouse/dto"
+	"putra4648/erp/internal/modules/inventory/warehouse/repository"
 
 	"github.com/google/uuid"
 )
@@ -15,10 +16,10 @@ type WarehouseCommandService interface {
 }
 
 type warehouseCommandService struct {
-	repo domain.WarehouseRepository
+	repo repository.WarehouseRepository
 }
 
-func NewWarehouseCommandService(repo domain.WarehouseRepository) WarehouseCommandService {
+func NewWarehouseCommandService(repo repository.WarehouseRepository) WarehouseCommandService {
 	return &warehouseCommandService{repo: repo}
 }
 

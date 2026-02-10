@@ -3,16 +3,25 @@ package repository
 import (
 	"context"
 	"putra4648/erp/internal/modules/inventory/supplier/domain"
+	"putra4648/erp/internal/modules/inventory/supplier/dto"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
+type SupplierRepository interface {
+	Save(ctx context.Context, supplier *domain.Supplier) error
+	FindByID(ctx context.Context, id uuid.UUID) (*domain.Supplier, error)
+	FindAll(ctx context.Context, req *dto.SupplierFindAllRequest) ([]*domain.Supplier, int64, error)
+	Update(ctx context.Context, supplier *domain.Supplier) error
+	Delete(ctx context.Context, id uuid.UUID) error
+}
+
 type supplierRepository struct {
 	db *gorm.DB
 }
 
-func NewSupplierRepository(db *gorm.DB) domain.SupplierRepository {
+func NewSupplierRepository(db *gorm.DB) SupplierRepository {
 	return &supplierRepository{db: db}
 }
 
@@ -29,14 +38,24 @@ func (r *supplierRepository) FindByID(ctx context.Context, id uuid.UUID) (*domai
 	return &supplier, nil
 }
 
-func (r *supplierRepository) FindAll(ctx context.Context, page, size int) ([]*domain.Supplier, int64, error) {
+func (r *supplierRepository) FindAll(ctx context.Context, req *dto.SupplierFindAllRequest) ([]*domain.Supplier, int64, error) {
 	var suppliers []*domain.Supplier
 	var total int64
 
-	r.db.WithContext(ctx).Model(&domain.Supplier{}).Count(&total)
+	db := r.db.WithContext(ctx).Model(&domain.Supplier{})
 
-	offset := (page - 1) * size
-	err := r.db.WithContext(ctx).Offset(offset).Limit(size).Find(&suppliers).Error
+	if req.Name != "" {
+		db = db.Where("name ILIKE ?", "%"+req.Name+"%")
+	}
+
+	db.Count(&total)
+
+	if req.Page > 0 && req.Size > 0 {
+		offset := (req.Page - 1) * req.Size
+		db = db.Offset(offset).Limit(req.Size)
+	}
+
+	err := db.Find(&suppliers).Error
 	if err != nil {
 		return nil, 0, err
 	}

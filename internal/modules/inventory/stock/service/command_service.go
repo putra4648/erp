@@ -10,16 +10,23 @@ import (
 	"go.uber.org/dig"
 )
 
+type ApprovalRepository interface {
+	Create(docCode string, referenceID uuid.UUID) (*approvalDomain.ApprovalTransaction, error)
+}
+
+type StockRepository interface {
+	CreateStockAdjustment(dto dto.StockRequest, userID uuid.UUID) (*domain.StockAdjustment, error)
+}
 type StockService struct {
-	repository         domain.StockRepository
-	approvalRepository approvalDomain.ApprovalRepository
+	repository         StockRepository
+	approvalRepository ApprovalRepository
 }
 
 type StockServiceParams struct {
 	dig.In
 
-	Repository         domain.StockRepository
-	ApprovalRepository approvalDomain.ApprovalRepository
+	Repository         StockRepository
+	ApprovalRepository ApprovalRepository
 }
 
 func NewStockCommandService(params StockServiceParams) *StockService {

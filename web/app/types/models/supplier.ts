@@ -1,8 +1,9 @@
 export interface Supplier {
-    id: string;
-    name: string
-    contact_person: string
-    email: string;
-    address: string
-    is_active?: boolean
+  id: string;
+  name: string;
+  code: string;
+  address: string;
+  phone: string;
+  email: string;
+  is_active?: boolean;
 }
