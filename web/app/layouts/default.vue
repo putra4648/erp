@@ -50,22 +50,37 @@
 
         <!-- Main Content -->
         <main class="flex-1 md:ml-64 p-4 md:p-8 pt-20 md:pt-8">
+            <UBreadcrumb :items="items" />
             <slot />
         </main>
     </div>
 </template>
 
 <script setup lang="ts">
+
+const route = useRoute()
 const isOpen = ref(false);
-import type { NavigationMenuItem } from '@nuxt/ui'
+const { canAccess } = useNavAccess()
+import type { NavigationMenuItem, BreadcrumbItem } from '@nuxt/ui'
 
 
+const items = computed<BreadcrumbItem[]>(() => [
+    {
+        label: 'Inventory',
+    },
+    {
+        label: 'Master',
+    },
+    {
+        label: (route.meta.label as string),
+        to: route.fullPath
+    }
+])
 const links = ref<NavigationMenuItem[]>([
     {
         label: 'Dashboard',
         icon: 'i-heroicons-home',
         to: '/',
-        canAccess: true
     },
     {
         label: 'Inventory',
@@ -78,6 +93,14 @@ const links = ref<NavigationMenuItem[]>([
                     {
                         label: 'Product',
                         to: '/inventory/master/product',
+                    },
+                    {
+                        label: 'Category',
+                        to: '/inventory/master/category',
+                    },
+                    {
+                        label: 'UOM',
+                        to: '/inventory/master/uom',
                     },
                     {
                         label: 'Supplier',
@@ -93,11 +116,6 @@ const links = ref<NavigationMenuItem[]>([
                 label: 'Movement',
                 icon: "i-lucide-truck",
                 to: "/inventory/movement",
-            },
-            {
-                label: 'Adjustment',
-                icon: "i-lucide-edit",
-                to: "/inventory/adjustment",
             }
         ],
     },

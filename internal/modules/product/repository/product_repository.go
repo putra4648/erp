@@ -32,7 +32,7 @@ func (r *productRepository) Create(ctx context.Context, product *productDomain.P
 
 func (r *productRepository) FindByID(ctx context.Context, id uuid.UUID) (*productDomain.Product, error) {
 	var product productDomain.Product
-	err := r.db.WithContext(ctx).Preload("Categories").Preload("UOMs").Where("id = ?", id).First(&product).Error
+	err := r.db.WithContext(ctx).Preload("Categories.Category").Preload("UOMs.UOM").Where("id = ?", id).First(&product).Error
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (r *productRepository) FindByID(ctx context.Context, id uuid.UUID) (*produc
 func (r *productRepository) FindAll(ctx context.Context, req *dto.ProductRequest) ([]*productDomain.Product, int64, error) {
 	var products []*productDomain.Product
 	var total int64
-	db := r.db.WithContext(ctx).Model(&productDomain.Product{}).Preload("Categories").Preload("UOMs")
+	db := r.db.WithContext(ctx).Model(&productDomain.Product{}).Preload("Categories.Category").Preload("UOMs.UOM")
 
 	if req.Name != "" {
 		db = db.Where("name ILIKE ?", "%"+req.Name+"%")

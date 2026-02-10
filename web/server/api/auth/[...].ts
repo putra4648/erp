@@ -18,10 +18,10 @@ export default NuxtAuthHandler({
   ],
   callbacks: {
     async jwt({ token, account, profile, user }) {
-      // 1. Login Pertama Kali
+      // 1. Initial login
       if (account) {
         token.accessToken = account.access_token;
-        token.accessTokenExpires = account.expires_at;
+        token.accessTokenExpires = (account.expires_at as number) * 1000;
         token.refreshToken = account.refresh_token;
         token.refreshTokenExpires =
           Date.now() + (account.refresh_expires_in as number) * 1000;
@@ -29,12 +29,12 @@ export default NuxtAuthHandler({
         token.groups = (profile as any).groups || [];
       }
 
-      // 2. Belum Kadaluarsa (Kita beri buffer 10 detik)
-      if (Date.now() < (token.accessTokenExpires as number) - 10000) {
+      // 2. Refresh token before 5 minutes of expiration (300,000 ms)
+      if (Date.now() < (token.accessTokenExpires as number) - 300000) {
         return token;
       }
 
-      // 3. Sudah Kadaluarsa -> Refresh!
+      // 3. Expired or near expiration -> Refresh!
       return refreshAccessToken(token);
     },
     session({ session, token }) {
@@ -55,7 +55,7 @@ export default NuxtAuthHandler({
 async function refreshAccessToken(token: any) {
   const config = useRuntimeConfig();
   try {
-    const url = `${config.public.keycloakUrl}/protocol/openid-connect/token`;
+    const url = `${config.public.keycloakUrl}/realms/erp/protocol/openid-connect/token`;
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },

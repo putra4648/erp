@@ -6,6 +6,7 @@ import (
 	"putra4648/erp/internal/modules/category/repository"
 
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 type CategoryCommandService interface {
@@ -16,10 +17,14 @@ type CategoryCommandService interface {
 
 type categoryCommandService struct {
 	categoryRepo repository.CategoryRepository
+	logger       *zap.Logger
 }
 
-func NewCategoryCommandService(categoryRepo repository.CategoryRepository) CategoryCommandService {
-	return &categoryCommandService{categoryRepo: categoryRepo}
+func NewCategoryCommandService(categoryRepo repository.CategoryRepository, logger *zap.Logger) CategoryCommandService {
+	return &categoryCommandService{
+		categoryRepo: categoryRepo,
+		logger:       logger,
+	}
 }
 
 func (s *categoryCommandService) CreateCategory(ctx context.Context, categoryDTO *domain.CategoryDTO) (*domain.CategoryResponse, error) {
@@ -27,6 +32,7 @@ func (s *categoryCommandService) CreateCategory(ctx context.Context, categoryDTO
 
 	err := s.categoryRepo.Create(ctx, category)
 	if err != nil {
+		s.logger.Error("Failed to create category in DB", zap.Error(err), zap.String("name", category.Name))
 		return nil, &CategoryError{Code: "DATABASE_ERROR", Message: "Failed to create category"}
 	}
 
@@ -43,6 +49,7 @@ func (s *categoryCommandService) UpdateCategory(ctx context.Context, id uuid.UUI
 
 	err = s.categoryRepo.Update(ctx, existingCategory)
 	if err != nil {
+		s.logger.Error("Failed to update category in DB", zap.Error(err), zap.String("id", id.String()))
 		return nil, &CategoryError{Code: "DATABASE_ERROR", Message: "Failed to update category"}
 	}
 
@@ -57,6 +64,7 @@ func (s *categoryCommandService) DeleteCategory(ctx context.Context, id uuid.UUI
 
 	err = s.categoryRepo.Delete(ctx, id)
 	if err != nil {
+		s.logger.Error("Failed to delete category in DB", zap.Error(err), zap.String("id", id.String()))
 		return &CategoryError{Code: "DATABASE_ERROR", Message: "Failed to delete category"}
 	}
 

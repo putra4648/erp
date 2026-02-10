@@ -5,8 +5,8 @@ import type { Warehouse, StockLevel } from "~/types/models/warehouse";
 export const WarehouseSchema = Joi.object<Warehouse>({
   id: Joi.string().allow(""),
   name: Joi.string().required(),
-  location: Joi.string().required(),
-  is_active: Joi.boolean().required().default(true),
+  code: Joi.string().required(),
+  is_active: Joi.boolean().default(true),
   stock_levels: Joi.array<StockLevel>()
     .items(
       Joi.object({
@@ -17,6 +17,5 @@ export const WarehouseSchema = Joi.object<Warehouse>({
         quantity: Joi.number().min(1).required(),
       }),
     )
-    .min(1)
-    .required(),
+    .default([]),
 });

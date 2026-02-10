@@ -25,7 +25,6 @@ const signout = async () => {
 
     // 3. Redirect to Keycloak's logout endpoint
     const keycloakLogoutUrl = `${config.public.keycloakUrl}/realms/erp/protocol/openid-connect/logout`
-    console.log(keycloakLogoutUrl)
 
     // Construct the URL with required params
     const url = new URL(keycloakLogoutUrl)

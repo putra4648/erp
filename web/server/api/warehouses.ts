@@ -1,5 +1,4 @@
-import { getServerSession } from "#auth";
-import type { Product } from "~/types/models/product";
+import type { Warehouse } from "~/types/models/warehouse";
 import PaginationResponse from "../utils/pagination_response";
 
 export default defineEventHandler(async (event) => {
@@ -7,7 +6,7 @@ export default defineEventHandler(async (event) => {
 
   if (method === "POST") {
     const body = await readBody(event);
-    const result = await callBackend<Product>(event, "/api/products", {
+    const result = await callBackend<Warehouse>(event, "/api/warehouse", {
       method: "POST",
       body,
     });
@@ -15,9 +14,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const query = getQuery(event);
-  const result = await callBackend<PaginationResponse<Product>>(
+  const result = await callBackend<PaginationResponse<Warehouse>>(
     event,
-    "/api/products",
+    "/api/warehouse",
     {
       method: "GET",
       query: query,

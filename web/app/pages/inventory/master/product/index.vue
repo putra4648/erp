@@ -1,9 +1,10 @@
 <template>
     <div>
-        <UModal title="Proudct" description="Add Product">
+        <UModal v-model:open="open" :title="isEdit ? 'Edit Product' : 'Add Product'"
+            :description="isEdit ? 'Update product details' : 'Create a new product'">
             <div class="flex justify-between items-center mb-4">
                 <h1 class="text-2xl font-bold">Product Management</h1>
-                <UButton label="Add Product" />
+                <UButton label="Add Product" @click="addProduct" />
             </div>
 
             <template #body>
@@ -14,21 +15,28 @@
                     <UFormField label="Name" name="name">
                         <UInput class="w-full" v-model="state.name" />
                     </UFormField>
-                    <UFormField label="Category" name="category">
-                        <UInput class="w-full" v-model="state.category.name" />
+                    <UFormField label="Category" name="categories">
+                        <USelectMenu class="w-full" v-model="state.categories" :items="allCategories" multiple
+                            label-key="name" placeholder="Select categories" />
                     </UFormField>
-                    <UFormField label="UOM" name="uom">
-                        <UInput class="w-full" v-model="state.uom.name" />
+                    <UFormField label="UOM" name="uoms">
+                        <USelectMenu class="w-full" :model-value="state.uoms[0]"
+                            @update:model-value="(val) => state.uoms = (val as Category) ? [val] : []" :items="allUoms"
+                            label-key="name" placeholder="Select UOM" />
                     </UFormField>
                     <UFormField label="Min Stock" name="min_stock">
                         <UInput class="w-full" v-model.number="state.min_stock" />
                     </UFormField>
-                    <UButton type="submit">Save</UButton>
+                    <UButton type="submit">{{ isEdit ? 'Update' : 'Save' }}</UButton>
                 </UForm>
             </template>
         </UModal>
 
-        <UTable :data="product" :columns="productColumns" />
+        <UTable :loading="status === 'pending'" :data="products" :columns="productColumns" />
+
+        <div class="flex justify-end mt-4">
+            <UPagination v-model:page="page" :total="total" :items-per-page="size" />
+        </div>
     </div>
 </template>
 
@@ -40,8 +48,9 @@ definePageMeta({
 
 import type { TableRow, TableColumn, FormSubmitEvent, DropdownMenuItem, BreadcrumbItem } from '@nuxt/ui'
 import type { FormError } from '#ui/types';
-import type { Product } from '~/types/models/product';
+import type { Product, Category, UOM } from '~/types/models/product';
 import { ProductSchema } from '~/validations/schemas/product_schema';
+import type PaginationResponse from '~/../server/utils/pagination_response';
 
 const UInput = resolveComponent('UInput')
 const UButton = resolveComponent('UButton')
@@ -53,17 +62,44 @@ const state = reactive<Product>({
     id: "",
     sku: '',
     name: '',
-    category: {
-        id: '',
-        name: ''
-    },
-    uom: {
-        id: '',
-        name: ''
-    },
+    categories: [],
+    uoms: [],
     min_stock: 0
 })
-const product = ref<Product[]>([])
+const page = ref(1)
+const size = ref(10)
+const open = ref(false)
+const isEdit = ref(false)
+
+const { data, status, refresh } = await useFetch<PaginationResponse<Product>>('/api/products', {
+    query: {
+        page,
+        size
+    },
+    watch: [page, size]
+})
+
+const { data: categoriesData } = await useFetch<PaginationResponse<Category>>('/api/categories', {
+    query: {
+        page,
+        size
+    },
+    watch: [page, size]
+})
+
+const { data: uomsData } = await useFetch<PaginationResponse<UOM>>('/api/uoms', {
+    query: {
+        page,
+        size
+    },
+    watch: [page, size]
+})
+
+const products = computed(() => (data.value?.items || []) as Product[])
+const total = computed(() => data.value?.total || 0)
+
+const allCategories = computed(() => categoriesData.value?.items || [])
+const allUoms = computed(() => uomsData.value?.items || [])
 
 const productColumns = ref<TableColumn<Product>[]>([
     {
@@ -78,14 +114,16 @@ const productColumns = ref<TableColumn<Product>[]>([
         accessorKey: "category",
         header: "Category",
         cell: ({ row }) => {
-            return row.original.category.name
+            if (!row.original.categories) return ""
+            return row.original.categories.map(c => c.name).join(", ")
         }
     },
     {
         accessorKey: "uom",
         header: "UOM",
         cell: ({ row }) => {
-            return row.original.uom.name
+            if (!row.original.uoms) return ""
+            return row.original.uoms.map(c => c.name).join(", ")
         }
     },
     {
@@ -126,33 +164,77 @@ function getRowActions(row: TableRow<Product>): DropdownMenuItem[] {
             type: 'separator'
         },
         {
-            label: 'View customer'
+            label: 'Edit',
+            icon: 'i-lucide-pencil',
+            onSelect: () => {
+                isEdit.value = true
+                state.id = row.original.id
+                state.sku = row.original.sku
+                state.name = row.original.name
+                state.categories = row.original.categories
+                state.uoms = row.original.uoms
+                state.min_stock = row.original.min_stock
+                open.value = true
+            }
         },
         {
             label: 'Remove',
-            onSelect: () => {
-                product.value = product.value.filter(s => s.id !== row.original.id)
+            icon: 'i-lucide-trash',
+            color: 'error',
+            onSelect: async () => {
+                try {
+                    await $fetch(`/api/products/${row.original.id}`, {
+                        method: 'DELETE'
+                    })
+                    toast.add({ title: 'Success', description: 'Product has been removed.' })
+                    refresh()
+                } catch (error: any) {
+                    toast.add({ title: 'Error', description: error.data?.error || 'Failed to remove product', color: 'error' })
+                }
             }
         },
     ]
 }
 
-async function onSubmit(event: FormSubmitEvent<Product>) {
-    // FIX: The submit event is firing! The `state` object now contains the updated values
-    // from your table. Instead of logging `event.data` (which only has schema fields),
-    // log the whole `state` to see all your data.
-    toast.add({ title: 'Success', description: 'The form has been submitted. Check the console for the data.' })
-
+function addProduct() {
+    isEdit.value = false
+    state.id = ""
+    state.sku = ""
+    state.name = ""
+    state.categories = []
+    state.uoms = []
+    state.min_stock = 0
+    open.value = true
 }
 
-/**
- * This function will run if the form validation fails.
- */
+async function onSubmit(event: FormSubmitEvent<Product>) {
+    try {
+        if (isEdit.value) {
+            await $fetch(`/api/products/${state.id}`, {
+                method: 'PUT',
+                body: event.data
+            })
+            toast.add({ title: 'Success', description: 'Product updated successfully.' })
+        } else {
+            await $fetch('/api/products', {
+                method: 'POST',
+                body: event.data
+            })
+            toast.add({ title: 'Success', description: 'Product has been created successfully.' })
+        }
+        open.value = false
+        refresh()
+    } catch (error: any) {
+        toast.add({
+            title: 'Error',
+            description: error.data?.error || 'Failed to save product',
+            color: 'error'
+        })
+    }
+}
+
 function onError(event: { errors: FormError[] }) {
     toast.add({ title: 'Validation Error', description: `Please fill in the required fields ${event.errors.map((e) => e.name).join(", ")}.`, color: 'error' });
 }
-const { data } = await useFetch('/api/products')
-
-console.log(data.value)
 
 </script>

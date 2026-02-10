@@ -1,78 +1,128 @@
 <template>
   <div>
-    <div class="flex justify-between items-center mb-4">
-      <h1 class="text-2xl font-bold">Supplier Management</h1>
-      <UModal title="Supplier" description="Add Supplier">
-        <UButton>New Supplier</UButton>
-        <template #body>
-          <UForm :state="state" :schema="schema" class="space-y-4" @submit="onSubmit">
-            <UFormField label="Name" name="name">
-              <UInput v-model="state.name" class="w-full" />
-            </UFormField>
-            <UFormField label="Email" name="email">
-              <UInput v-model="state.email" class="w-full" />
-            </UFormField>
-            <UFormField label="Contact Person" name="contact_person">
-              <UInput v-model="state.contact_person" class="w-full" />
-            </UFormField>
-            <UFormField label="Address">
-              <UInput v-model="state.address" class="w-full" />
-            </UFormField>
-            <UButton type="submit">Save</UButton>
-          </UForm>
-        </template>
-      </UModal>
+    <UModal v-model:open="open" :title="isEdit ? 'Edit Supplier' : 'Add Supplier'"
+      :description="isEdit ? 'Update supplier details' : 'Create a new supplier'">
+      <div class="flex justify-between items-center mb-4">
+        <h1 class="text-2xl font-bold">Supplier Management</h1>
+        <UButton label="Add Supplier" @click="addSupplier" />
+      </div>
+
+      <template #body>
+        <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit" @error="onError">
+          <UFormField label="Code" name="code">
+            <UInput class="w-full" v-model="state.code" />
+          </UFormField>
+          <UFormField label="Name" name="name">
+            <UInput class="w-full" v-model="state.name" />
+          </UFormField>
+          <UFormField label="Email" name="email">
+            <UInput class="w-full" v-model="state.email" />
+          </UFormField>
+          <UFormField label="Phone" name="phone">
+            <UInput class="w-full" v-model="state.phone" />
+          </UFormField>
+          <UFormField label="Address" name="address">
+            <UInput class="w-full" v-model="state.address" />
+          </UFormField>
+          <UButton type="submit">{{ isEdit ? 'Update' : 'Save' }}</UButton>
+        </UForm>
+      </template>
+    </UModal>
+
+    <UTable :loading="status === 'pending'" :data="suppliers" :columns="supplierColumns" />
+
+    <div class="flex justify-end mt-4">
+      <UPagination v-model:page="page" :total="total" :items-per-page="size" />
     </div>
-
-    <UTable :data="suppliers" :columns="columns" />
-
-
-
   </div>
 </template>
 
 <script setup lang="ts">
-import type { TableColumn, TableRow, DropdownMenuItem } from '@nuxt/ui'
-import type { Supplier } from '~/types/models/supplier'
-import { SupplierSchema } from '~/validations/schemas/supplier_schema'
+definePageMeta({
+  layout: 'master-layout',
+  label: "Supplier"
+})
 
-const UDropdownMenu = resolveComponent('UDropdownMenu')
+import type { TableRow, TableColumn, FormSubmitEvent, DropdownMenuItem } from '@nuxt/ui'
+import type { FormError } from '#ui/types';
+import type { Supplier } from '~/types/models/supplier';
+import { SupplierSchema } from '~/validations/schemas/supplier_schema';
+import type PaginationResponse from '~/../server/utils/pagination_response';
+
+const UInput = resolveComponent('UInput')
 const UButton = resolveComponent('UButton')
+const UDropdownMenu = resolveComponent('UDropdownMenu')
 
 const schema = SupplierSchema
-const state = reactive<Supplier>({ id: "", name: '', contact_person: '', address: '', email: "" })
-const suppliers = ref<Supplier[]>([])
+const toast = useToast()
+const state = reactive<Supplier>({
+  id: "",
+  name: '',
+  code: '',
+  email: '',
+  phone: '',
+  address: '',
+  is_active: true
+})
+const page = ref(1)
+const size = ref(10)
+const open = ref(false)
+const isEdit = ref(false)
 
-const columns = ref<TableColumn<Supplier>[]>(
-  [
-    { accessorKey: 'id', header: 'ID' },
-    { accessorKey: 'name', header: 'Name' },
-    { accessorKey: 'email', header: 'Email' },
-    { accessorKey: 'contact_person', header: 'Contact' },
-    { accessorKey: 'address', header: 'Address' },
-    {
-      accessorKey: 'actions', header: 'Actions', cell: ({ row }) => {
-        return h(
-          UDropdownMenu,
-          {
-            content: {
-              align: 'end'
-            },
-            items: getRowActions(row),
-            'aria-label': 'Actions dropdown'
+const { data, status, refresh } = await useFetch<PaginationResponse<Supplier>>('/api/suppliers', {
+  query: {
+    page,
+    size
+  },
+  watch: [page, size]
+})
+
+const suppliers = computed(() => (data.value?.items || []) as Supplier[])
+const total = computed(() => data.value?.total || 0)
+
+const supplierColumns = ref<TableColumn<Supplier>[]>([
+  {
+    accessorKey: "code",
+    header: "Code",
+  },
+  {
+    accessorKey: "name",
+    header: "Name",
+  },
+  {
+    accessorKey: "email",
+    header: "Email",
+  },
+  {
+    accessorKey: "phone",
+    header: "Phone",
+  },
+  {
+    accessorKey: "address",
+    header: "Address",
+  },
+  {
+    accessorKey: 'actions', header: 'Actions', cell: ({ row }) => {
+      return h(
+        UDropdownMenu,
+        {
+          content: {
+            align: 'end'
           },
-          () =>
-            h(UButton, {
-              icon: 'i-lucide-ellipsis-vertical',
-              color: 'neutral',
-              variant: 'ghost',
-              'aria-label': 'Actions dropdown'
-            })
-        )
-      }
+          items: getRowActions(row),
+          'aria-label': 'Actions dropdown'
+        },
+        () =>
+          h(UButton, {
+            icon: 'i-lucide-ellipsis-vertical',
+            color: 'neutral',
+            variant: 'ghost',
+            'aria-label': 'Actions dropdown'
+          })
+      )
     }
-  ]
-)
+  }
+])
 
 function getRowActions(row: TableRow<Supplier>): DropdownMenuItem[] {
   return [
@@ -84,17 +134,78 @@ function getRowActions(row: TableRow<Supplier>): DropdownMenuItem[] {
       type: 'separator'
     },
     {
+      label: 'Edit',
+      icon: 'i-lucide-pencil',
+      onSelect: () => {
+        isEdit.value = true
+        state.id = row.original.id
+        state.name = row.original.name
+        state.code = row.original.code
+        state.email = row.original.email
+        state.phone = row.original.phone
+        state.address = row.original.address
+        state.is_active = row.original.is_active ?? true
+        open.value = true
+      }
+    },
+    {
       label: 'Remove',
-      onSelect: (event: Event) => {
-        suppliers.value = suppliers.value.filter(s => s.id !== row.original.id)
+      color: 'error',
+      onSelect: async () => {
+        try {
+          await $fetch(`/api/suppliers/${row.original.id}`, {
+            method: 'DELETE'
+          })
+          toast.add({ title: 'Success', description: 'Supplier has been removed.' })
+          refresh()
+        } catch (error: any) {
+          toast.add({ title: 'Error', description: error.data?.error || 'Failed to remove supplier', color: 'error' })
+        }
       }
     },
   ]
 }
 
+function addSupplier() {
+  isEdit.value = false
+  state.id = ""
+  state.name = ""
+  state.code = ""
+  state.email = ""
+  state.phone = ""
+  state.address = ""
+  state.is_active = true
+  open.value = true
+}
 
-async function onSubmit() {
+async function onSubmit(event: FormSubmitEvent<Supplier>) {
+  try {
+    if (isEdit.value) {
+      await $fetch(`/api/suppliers/${state.id}`, {
+        method: 'PUT',
+        body: event.data
+      })
+      toast.add({ title: 'Success', description: 'Supplier updated successfully.' })
+    } else {
+      await $fetch('/api/suppliers', {
+        method: 'POST',
+        body: event.data
+      })
+      toast.add({ title: 'Success', description: 'Supplier has been created successfully.' })
+    }
+    open.value = false
+    refresh()
+  } catch (error: any) {
+    toast.add({
+      title: 'Error',
+      description: error.data?.error || 'Failed to create supplier',
+      color: 'error'
+    })
+  }
+}
 
+function onError(event: { errors: FormError[] }) {
+  toast.add({ title: 'Validation Error', description: `Please fill in the required fields ${event.errors.map((e) => e.name).join(", ")}.`, color: 'error' });
 }
 
 </script>

@@ -1,38 +1,50 @@
 <template>
   <div>
-    <UModal title="Warehouse" description="Add Warehouse">
+    <UModal v-model:open="open" :title="isEdit ? 'Edit Warehouse' : 'Add Warehouse'"
+      :description="isEdit ? 'Update warehouse details' : 'Create a new warehouse'">
       <div class="flex justify-between items-center mb-4">
         <h1 class="text-2xl font-bold">Warehouse Management</h1>
-        <UButton label="Add Warehouse" />
+        <UButton label="Add Warehouse" @click="addWarehouse" />
       </div>
 
       <template #body>
         <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit" @error="onError">
+          <UFormField label="Code" name="code">
+            <UInput class="w-full" v-model="state.code" />
+          </UFormField>
           <UFormField label="Name" name="name">
             <UInput class="w-full" v-model="state.name" />
           </UFormField>
-          <UFormField label="Location" name="location">
-            <UInput class="w-full" v-model="state.location" />
-          </UFormField>
-          <div class="flex flex-row justify-between items-center">
-            <h2 class="font-bold ">Add Stock Level</h2>
-            <UButton @click="addStock">Add Stock</UButton>
-          </div>
-          <UTable :columns="stockLevelColumns" :data="state.stock_levels"></UTable>
-          <UButton type="submit">Save</UButton>
+          <!-- Stock levels are currently not supported by the backend DTO -->
+          <!-- <div class="flex flex-row justify-between items-center">
+                        <h2 class="font-bold ">Add Stock Level</h2>
+                        <UButton @click="addStock">Add Stock</UButton>
+                    </div>
+                    <UTable :columns="stockLevelColumns" :data="state.stock_levels"></UTable> -->
+          <UButton type="submit">{{ isEdit ? 'Update' : 'Save' }}</UButton>
         </UForm>
       </template>
     </UModal>
 
-    <UTable :data="warehouse" :columns="warehouseColumns" />
+    <UTable :loading="status === 'pending'" :data="warehouses" :columns="warehouseColumns" />
+
+    <div class="flex justify-end mt-4">
+      <UPagination v-model:page="page" :total="total" :items-per-page="size" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  layout: 'master-layout',
+  label: "Warehouse"
+})
+
 import type { TableRow, TableColumn, FormSubmitEvent, DropdownMenuItem } from '@nuxt/ui'
 import type { FormError } from '#ui/types';
 import type { Warehouse, StockLevel } from '~/types/models/warehouse';
 import { WarehouseSchema } from '~/validations/schemas/warehouse_schema';
+import type PaginationResponse from '~/../server/utils/pagination_response';
 
 const UInput = resolveComponent('UInput')
 const UButton = resolveComponent('UButton')
@@ -43,28 +55,34 @@ const toast = useToast()
 const state = reactive<Warehouse>({
   id: "",
   name: "",
-  location: "",
+  code: "",
   is_active: true,
   stock_levels: []
-
 })
-const warehouse = ref<Warehouse[]>([
-  {
-    id: "1",
-    name: "Warehouse A",
-    location: "Location A",
-    is_active: true,
-    stock_levels: []
-  }])
+const page = ref(1)
+const size = ref(10)
+const open = ref(false)
+const isEdit = ref(false)
+
+const { data, status, refresh } = await useFetch<PaginationResponse<Warehouse>>('/api/warehouses', {
+  query: {
+    page,
+    size
+  },
+  watch: [page, size]
+})
+
+const warehouses = computed(() => (data.value?.items || []) as Warehouse[])
+const total = computed(() => data.value?.total || 0)
 
 const warehouseColumns = ref<TableColumn<Warehouse>[]>([
   {
-    accessorKey: "name",
-    header: "Name",
+    accessorKey: "code",
+    header: "Code",
   },
   {
-    accessorKey: "location",
-    header: "Location"
+    accessorKey: "name",
+    header: "Name",
   },
   {
     accessorKey: 'actions', header: 'Actions', cell: ({ row }) => {
@@ -89,83 +107,6 @@ const warehouseColumns = ref<TableColumn<Warehouse>[]>([
   }
 ])
 
-const stockLevelColumns = ref<TableColumn<StockLevel>[]>([
-  {
-    accessorKey: "id",
-    header: "ID",
-  },
-  {
-    accessorKey: "product",
-    header: "Product",
-    cell: ({ row }) => {
-      // FIX: Use `modelValue` and `@update:modelValue` (as `'onUpdate:modelValue'`)
-      // to create a two-way binding that updates the state.
-      return h(UInput, {
-        modelValue: row.original.product?.name,
-        'onUpdate:modelValue': (value: string) => {
-          if (row.original.product) {
-            row.original.product.name = value
-          }
-        }
-      })
-    }
-  },
-  {
-    accessorKey: "quantity",
-    header: "Quantity",
-    cell: ({ row }) => {
-      // FIX: The same two-way binding fix is applied here for quantity.
-      return h(UInput, {
-        type: 'number',
-        modelValue: row.original.quantity,
-        'onUpdate:modelValue': (value: string) => {
-          // The input value is a string, so convert it back to a number.
-          row.original.quantity = Number(value)
-        }
-      })
-    }
-  },
-  {
-    accessorKey: 'actions', header: 'Actions', cell: ({ row }) => {
-      return h(
-        UDropdownMenu,
-        {
-          content: {
-            align: 'end'
-          },
-          items: stockLevelActions(row),
-          'aria-label': 'Actions dropdown'
-        },
-        () =>
-          h(UButton, {
-            icon: 'i-lucide-ellipsis-vertical',
-            color: 'neutral',
-            variant: 'ghost',
-            'aria-label': 'Actions dropdown'
-          })
-      )
-    }
-  }
-])
-
-function stockLevelActions(row: TableRow<StockLevel>): DropdownMenuItem[] {
-  return [
-    {
-      type: 'label',
-      label: 'Actions',
-    },
-    {
-      type: 'separator'
-    },
-    {
-      label: 'Remove',
-      onSelect: (event: Event) => {
-        warehouse.value = warehouse.value.filter(s => s.id !== row.original.id)
-      }
-    },
-  ]
-}
-
 function warehouseActions(row: TableRow<Warehouse>): DropdownMenuItem[] {
   return [
     {
@@ -176,40 +117,83 @@ function warehouseActions(row: TableRow<Warehouse>): DropdownMenuItem[] {
       type: 'separator'
     },
     {
-      label: 'View customer'
+      label: 'Edit',
+      icon: 'i-lucide-pencil',
+      onSelect: () => {
+        isEdit.value = true
+        state.id = row.original.id
+        state.name = row.original.name
+        state.code = row.original.code
+        state.is_active = row.original.is_active ?? true
+        open.value = true
+      }
+    },
+    {
+      type: 'separator'
     },
     {
       label: 'Remove',
-      onSelect: (event: Event) => {
-        warehouse.value = warehouse.value.filter(s => s.id !== row.original.id)
+      color: 'error',
+      onSelect: async () => {
+        try {
+          await $fetch(`/api/warehouses/${row.original.id}`, {
+            method: 'DELETE'
+          })
+          toast.add({ title: 'Success', description: 'Warehouse has been removed.' })
+          refresh()
+        } catch (error: any) {
+          toast.add({ title: 'Error', description: error.data?.error || 'Failed to remove warehouse', color: 'error' })
+        }
       }
     },
   ]
 }
 
-async function onSubmit(event: FormSubmitEvent<Warehouse>) {
-  // FIX: The submit event is firing! The `state` object now contains the updated values
-  // from your table. Instead of logging `event.data` (which only has schema fields),
-  // log the whole `state` to see all your data.
-  toast.add({ title: 'Success', description: 'The form has been submitted. Check the console for the data.' })
+function addWarehouse() {
+  isEdit.value = false
+  state.id = ""
+  state.name = ""
+  state.code = ""
+  state.is_active = true
+  open.value = true
 }
 
-/**
- * This function will run if the form validation fails.
- */
+async function onSubmit(event: FormSubmitEvent<Warehouse>) {
+  try {
+    if (isEdit.value) {
+      await $fetch(`/api/warehouses/${state.id}`, {
+        method: 'PUT',
+        body: event.data
+      })
+      toast.add({ title: 'Success', description: 'Warehouse updated successfully.' })
+    } else {
+      await $fetch('/api/warehouses', {
+        method: 'POST',
+        body: event.data
+      })
+      toast.add({ title: 'Success', description: 'Warehouse has been created successfully.' })
+    }
+    open.value = false
+    refresh()
+  } catch (error: any) {
+    toast.add({
+      title: 'Error',
+      description: error.data?.error || 'Failed to create warehouse',
+      color: 'error'
+    })
+  }
+}
+
 function onError(event: { errors: FormError[] }) {
   toast.add({ title: 'Validation Error', description: `Please fill in the required fields ${event.errors.map((e) => e.name).join(", ")}.`, color: 'error' });
 }
 
-
-const addStock = () => {
-  // FIX: When adding a new stock level, initialize the nested `product` object.
-  // This prevents errors when the cell rendering function tries to access `product.name`.
-  state.stock_levels.push({
-    id: "",
-    product: { name: '' }, // Initialize product object
-    quantity: 0
-  } as StockLevel)
-}
+// const addStock = () => {
+//     state.stock_levels.push({
+//         id: "",
+//         product: { name: '' },
+//         quantity: 0
+//     } as StockLevel)
+// }
 
 </script>

@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"putra4648/erp/configs/logger"
 	productDomain "putra4648/erp/internal/modules/product/domain"
 	"putra4648/erp/internal/modules/product/dto"
 	productService "putra4648/erp/internal/modules/product/service"
@@ -34,6 +35,7 @@ func createProduct(service productService.ProductCommandService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var req productDomain.ProductDTO
 		if err := c.BodyParser(&req); err != nil {
+			logger.Log.Error(err.Error())
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 		}
 

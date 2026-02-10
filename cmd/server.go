@@ -79,7 +79,15 @@ func Server(deps AppDependencies) error {
 	sqlDb.SetMaxIdleConns(5)
 	sqlDb.SetMaxOpenConns(20)
 
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		ErrorHandler: middleware.GlobalErrorHandler(deps.ZapLogger),
+	})
+
+	// Recover Middleware
+	app.Use(middleware.RecoverMiddleware(deps.ZapLogger))
+
+	// Logger Middleware
+	app.Use(middleware.LoggerMiddleware(deps.ZapLogger))
 
 	// Public Route
 	app.Get("/api/ping", func(c *fiber.Ctx) error { return c.JSON("pong") })

@@ -8,7 +8,7 @@
             </div>
 
             <div class="flex-1 overflow-y-auto py-4 px-3">
-                <UNavigationMenu :items="links.filter((link) => link.canAccess)" orientation="vertical" />
+                <UNavigationMenu :items="links" orientation="vertical" />
             </div>
 
             <div class="p-4 border-t border-gray-200 dark:border-gray-800">
@@ -38,8 +38,7 @@
                         </div>
                         <UButton icon="i-heroicons-x-mark" variant="ghost" color="secondary" @click="isOpen = false" />
                     </div>
-                    <UNavigationMenu :items="links.filter((link) => link.canAccess)" orientation="vertical"
-                        @click="isOpen = false" />
+                    <UNavigationMenu :items="links" orientation="vertical" @click="isOpen = false" />
                     <div
                         class="mt-auto pt-4 border-t border-gray-200 dark:border-gray-800 flex justify-between items-center">
                         <span class="text-sm text-gray-500">Theme</span>
@@ -64,10 +63,6 @@ const isOpen = ref(false);
 const { canAccess } = useNavAccess()
 import type { NavigationMenuItem, BreadcrumbItem } from '@nuxt/ui'
 
-type CustomNavigationMenuItem = NavigationMenuItem & {
-    canAccess: boolean,
-    children?: (NavigationMenuItem & { canAccess: boolean })[]
-}
 
 const items = computed<BreadcrumbItem[]>(() => [
     {
@@ -81,53 +76,52 @@ const items = computed<BreadcrumbItem[]>(() => [
         to: route.fullPath
     }
 ])
-const links = ref<CustomNavigationMenuItem[]>([
+const links = ref<NavigationMenuItem[]>([
     {
         label: 'Dashboard',
         icon: 'i-heroicons-home',
         to: '/',
-        canAccess: true
     },
     {
         label: 'Inventory',
         icon: 'i-heroicons-archive-box',
-        canAccess: canAccess({ groups: ['inventory', 'admin'] }),
         children: [
             {
                 label: "Master",
                 icon: "i-lucide-database",
-
-                canAccess: canAccess({ groups: ['inventory', 'admin'] }),
                 children: [
                     {
                         label: 'Product',
                         to: '/inventory/master/product',
-                        canAccess: canAccess({ groups: ['inventory', 'admin'] })
+                    },
+                    {
+                        label: 'Category',
+                        to: '/inventory/master/category',
+                    },
+                    {
+                        label: 'UOM',
+                        to: '/inventory/master/uom',
                     },
                     {
                         label: 'Supplier',
                         to: '/inventory/master/supplier',
-                        canAccess: canAccess({ groups: ['inventory', 'admin'] })
                     },
                     {
                         label: 'Warehouse',
                         to: '/inventory/master/warehouse',
-                        canAccess: canAccess({ groups: ['warehouse', 'admin'] })
                     }
-                ].filter(child => child.canAccess)
+                ]
             },
             {
                 label: 'Movement',
                 icon: "i-lucide-truck",
                 to: "/inventory/movement",
-                canAccess: canAccess({ groups: ['inventory', 'admin'] })
             }
         ],
     },
     {
         label: 'Settings',
         to: '/settings',
-        canAccess: canAccess({ groups: ['admin'] })
     }
 ])
 

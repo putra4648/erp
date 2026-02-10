@@ -1,8 +1,6 @@
 package domain
 
 import (
-	categoryDomain "putra4648/erp/internal/modules/category/domain"
-	uomDomain "putra4648/erp/internal/modules/uom/domain"
 	. "putra4648/erp/utils"
 	"time"
 
@@ -11,16 +9,16 @@ import (
 )
 
 type Product struct {
-	ID          uuid.UUID                  `gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
-	Name        string                     `gorm:"not null;size:255"`
-	Description string                     `gorm:"type:text"`
-	SKU         string                     `gorm:"unique;not null;size:100"`
-	Price       decimal.Decimal            `gorm:"not null;precision:19;scale:2"`
-	Cost        decimal.Decimal            `gorm:"not null;precision:19;scale:2"`
-	Quantity    int                        `gorm:"not null;default:0"`
-	Categories  []*categoryDomain.Category `gorm:"many2many:product_categories;"`
-	UOMs        []*uomDomain.UOM           `gorm:"many2many:product_uoms;"`
-	IsActive    bool                       `gorm:"not null;default:true"`
+	ID          uuid.UUID          `gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
+	Name        string             `gorm:"not null;size:255"`
+	Description string             `gorm:"type:text"`
+	SKU         string             `gorm:"unique;not null;size:100"`
+	Price       decimal.Decimal    `gorm:"not null;precision:19;scale:2"`
+	Cost        decimal.Decimal    `gorm:"not null;precision:19;scale:2"`
+	Quantity    int                `gorm:"not null;default:0"`
+	Categories  []*ProductCategory `gorm:"foreignKey:ProductID"`
+	UOMs        []*ProductUOM      `gorm:"foreignKey:ProductID"`
+	IsActive    bool               `gorm:"not null;default:true"`
 }
 
 func (p *Product) ToResponse() *ProductResponse {
@@ -32,50 +30,54 @@ func (p *Product) ToResponse() *ProductResponse {
 		Price:       p.Price,
 		Cost:        p.Cost,
 		Quantity:    p.Quantity,
-		Categories:  MapSlice(p.Categories, func(c *categoryDomain.Category) *categoryDomain.CategoryResponse { return c.ToResponse() }),
-		UOMs:        MapSlice(p.UOMs, func(u *uomDomain.UOM) *uomDomain.UOMResponse { return u.ToResponse() }),
+		Categories:  MapSlice(p.Categories, func(c *ProductCategory) *ProductCategoryResponse { return c.ToResponse() }),
+		UOMs:        MapSlice(p.UOMs, func(u *ProductUOM) *ProductUOMResponse { return u.ToResponse() }),
 		IsActive:    p.IsActive,
 	}
 }
 
 type ProductResponse struct {
-	ID          uuid.UUID                          `json:"id"`
-	Name        string                             `json:"name"`
-	Description string                             `json:"description"`
-	SKU         string                             `json:"sku"`
-	Price       decimal.Decimal                    `json:"price"`
-	Cost        decimal.Decimal                    `json:"cost"`
-	Quantity    int                                `json:"quantity"`
-	Categories  []*categoryDomain.CategoryResponse `json:"categories"`
-	UOMs        []*uomDomain.UOMResponse           `json:"uoms"`
-	IsActive    bool                               `json:"is_active"`
-	CreatedAt   time.Time                          `json:"created_at"`
-	UpdatedAt   time.Time                          `json:"updated_at"`
+	ID          uuid.UUID                  `json:"id"`
+	Name        string                     `json:"name"`
+	Description string                     `json:"description"`
+	SKU         string                     `json:"sku"`
+	Price       decimal.Decimal            `json:"price"`
+	Cost        decimal.Decimal            `json:"cost"`
+	Quantity    int                        `json:"quantity"`
+	Categories  []*ProductCategoryResponse `json:"categories"`
+	UOMs        []*ProductUOMResponse      `json:"uoms"`
+	IsActive    bool                       `json:"is_active"`
+	CreatedAt   time.Time                  `json:"created_at"`
+	UpdatedAt   time.Time                  `json:"updated_at"`
 }
 
 type ProductDTO struct {
-	Name        string          `json:"name" validate:"required,max=255"`
-	Description string          `json:"description" validate:"max:65000"`
-	SKU         string          `json:"sku" validate:"required,max=100,alphanum"`
-	Price       decimal.Decimal `json:"price" validate:"required,gt=0"`
-	Cost        decimal.Decimal `json:"cost" validate:"required,gte=0"`
-	Quantity    int             `json:"quantity" validate:"gte=0"`
-	CategoryIDs []uuid.UUID     `json:"category_ids"`
-	UOMIDs      []uuid.UUID     `json:"uom_ids"`
-	IsActive    bool            `json:"is_active" default:"true"`
+	ID          string               `json:"id"`
+	Name        string               `json:"name" validate:"required,max=255"`
+	Description string               `json:"description" validate:"max:65000"`
+	SKU         string               `json:"sku" validate:"required,max=100,alphanum"`
+	Price       decimal.Decimal      `json:"price" validate:"required,gt=0"`
+	Cost        decimal.Decimal      `json:"cost" validate:"required,gte=0"`
+	Quantity    int                  `json:"quantity" validate:"gte=0"`
+	Categories  []ProductCategoryDTO `json:"categories"`
+	UOMs        []ProductUOMDTO      `json:"uoms"`
+	IsActive    bool                 `json:"is_active" default:"true"`
 }
 
 func (dto *ProductDTO) ToModel() *Product {
-	categories := make([]*categoryDomain.Category, len(dto.CategoryIDs))
-	for i, catID := range dto.CategoryIDs {
-		categories[i] = &categoryDomain.Category{ID: catID}
+	id, _ := uuid.Parse(dto.ID) // Returns uuid.Nil if invalid/empty
+
+	categories := make([]*ProductCategory, len(dto.Categories))
+	for i, cat := range dto.Categories {
+		categories[i] = &ProductCategory{CategoryID: cat.ID, ProductID: id}
 	}
-	uoms := make([]*uomDomain.UOM, len(dto.UOMIDs))
-	for i, uomID := range dto.UOMIDs {
-		uoms[i] = &uomDomain.UOM{ID: uomID}
+	uoms := make([]*ProductUOM, len(dto.UOMs))
+	for i, uom := range dto.UOMs {
+		uoms[i] = &ProductUOM{UOMID: uom.ID, ProductID: id}
 	}
 
 	return &Product{
+		ID:          id,
 		Name:        dto.Name,
 		Description: dto.Description,
 		SKU:         dto.SKU,
