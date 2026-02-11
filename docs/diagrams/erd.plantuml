@@ -1,0 +1,191 @@
+@startuml erd
+' !theme plain
+' skinparam Linetype ortho
+
+' --- ENTITIES ---
+
+entity "CUSTOMER" as CUSTOMER {
+    * id : uuid <<PK>>
+    --
+    * name : string
+    contact_person : string
+    email : string
+    phone : string
+    address : text
+    is_active : boolean
+}
+
+entity "SUPPLIER" as SUPPLIER {
+    * id : uuid <<PK>>
+    --
+    * name : string
+    contact_person : string
+    email : string
+    phone : string
+    address : text
+    is_active : boolean
+}
+
+entity "WAREHOUSE" as WAREHOUSE {
+    * id : uuid <<PK>>
+    --
+    * name : string
+}
+
+entity "PRODUCT" as PRODUCT {
+    * id : uuid <<PK>>
+    --
+    * sku : string <<UK>>
+    * name : string
+    primary_supplier_id : uuid <<FK>>
+    purchase_price : decimal
+    min_stock : decimal
+}
+
+entity "CATEGORY" as CATEGORY {
+    * id : uuid <<PK>>
+    --
+    * name : string
+}
+
+entity "UOM" as UOM {
+    * id : uuid <<PK>>
+    --
+    * name : string "Pcs, Kg, Box"
+}
+
+
+entity "STOCK_TRANSACTION" as STOCK_TRANSACTION {
+    * id : uuid <<PK>>
+    --
+    * transaction_no : string <<UK>>
+    * type : string "IN / OUT / TRANSFER / ADJUST"
+    source_warehouse_id : uuid <<FK>>
+    target_warehouse_id : uuid <<FK>>
+    supplier_id : uuid <<FK>>
+    customer_id : uuid <<FK>>
+    * status : string
+    * transaction_date : timestamp
+    notes : string
+}
+
+entity "STOCK_TRANSACTION_DETAIL" as STOCK_TRANSACTION_DETAIL {
+    * id : uuid <<PK>>
+    --
+    * stock_transaction_id : uuid <<FK>>
+    * product_id : uuid <<FK>>
+    * uom_id : uuid <<FK>>
+    * quantity : decimal
+    unit_cost : decimal
+    reason_code : string
+}
+
+entity "STOCKTAKE_SESSION" as STOCKTAKE_SESSION {
+    * id : uuid <<PK>>
+    --
+    * warehouse_id : uuid <<FK>>
+    * session_no : string <<UK>>
+    * status : string
+    * started_at : timestamp
+    completed_at : timestamp
+    conducted_by : uuid
+}
+
+entity "STOCKTAKE_DETAIL" as STOCKTAKE_DETAIL {
+    * id : uuid <<PK>>
+    --
+    * stocktake_session_id : uuid <<FK>>
+    * product_id : uuid <<FK>>
+    * system_qty : decimal
+    * physical_qty : decimal
+    * discrepancy : decimal
+}
+
+entity "STOCK_ADJUSTMENT" as STOCK_ADJUSTMENT {
+    * id : uuid <<PK>>
+    --
+    * adjustment_no : string <<UK>>
+    * warehouse_id : uuid <<FK>>
+    * transaction_date : date
+    * status : string
+    created_by : uuid
+    approved_by : uuid
+    note : text
+}
+
+entity "STOCK_ADJUSTMENT_ITEM" as STOCK_ADJUSTMENT_ITEM {
+    * id : uuid <<PK>>
+    --
+    * adjustment_id : uuid <<FK>>
+    * product_id : uuid <<FK>>
+    * reason_id : uuid <<FK>>
+    * actual_qty : decimal
+    * system_qty : decimal
+    * adjustment_qty : decimal
+}
+
+entity "ADJUSTMENT_REASON" as ADJUSTMENT_REASON {
+    * id : uuid <<PK>>
+    --
+    * name : string
+    account_code : string
+}
+
+entity  STOCK_MOVEMENT {
+    * uuid id PK
+    ---
+    * string movement_no UK "MOV-2026-0001"
+    * string type "IN / OUT / TRANSFER"
+    * uuid origin_warehouse_id FK "Nullable for IN"
+    * uuid destination_warehouse_id FK "Nullable for OUT"
+    string reference_no "PO-001 / SO-001"
+    string status "DRAFT / COMPLETED / CANCELLED"
+    date transaction_date
+    text note
+}
+
+entity STOCK_MOVEMENT_ITEM {
+    * uuid id PK
+    ---
+    * uuid movement_id FK
+    * uuid product_id FK
+    * decimal quantity
+    string note "Batch info, etc"
+}
+
+' --- RELATIONS ---
+
+' Many-to-Many Connections
+PRODUCT ||--o{ PRODUCT_CATEGORY
+CATEGORY ||--o{ PRODUCT_CATEGORY
+
+' Master Data to Transactions
+SUPPLIER ||--o{ PRODUCT
+SUPPLIER ||--o{ STOCK_TRANSACTION
+CUSTOMER ||--o{ STOCK_TRANSACTION
+WAREHOUSE ||--o{ STOCK_TRANSACTION
+
+' Stock Transaction
+STOCK_TRANSACTION ||--o{ STOCK_TRANSACTION_DETAIL
+PRODUCT ||--o{ STOCK_TRANSACTION_DETAIL
+UOM ||--o{ STOCK_TRANSACTION_DETAIL
+
+' Stocktaking
+WAREHOUSE ||--o{ STOCKTAKE_SESSION
+STOCKTAKE_SESSION ||--o{ STOCKTAKE_DETAIL
+PRODUCT ||--o{ STOCKTAKE_DETAIL
+
+' Adjustment
+STOCK_ADJUSTMENT ||--o{ STOCK_ADJUSTMENT_ITEM
+PRODUCT ||--o{ STOCK_ADJUSTMENT_ITEM
+ADJUSTMENT_REASON ||--o{ STOCK_ADJUSTMENT_ITEM
+
+' Adjustment Link to Master Transaction
+STOCK_ADJUSTMENT_ITEM ||--o{ STOCK_TRANSACTION
+
+STOCK_MOVEMENT ||--o{ STOCK_MOVEMENT_ITEM 
+WAREHOUSE ||--o{ STOCK_MOVEMENT 
+PRODUCT ||--o{ STOCK_MOVEMENT_ITEM  
+STOCK_MOVEMENT_ITEM ||--o{ STOCK_TRANSACTION 
+
+@enduml

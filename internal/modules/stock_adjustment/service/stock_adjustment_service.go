@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"putra4648/erp/internal/modules/shared/enums"
 	"putra4648/erp/internal/modules/stock_adjustment/domain"
 	"putra4648/erp/internal/modules/stock_adjustment/dto"
 	"time"
@@ -38,7 +39,7 @@ func (s *stockAdjustmentService) Create(ctx context.Context, req *dto.CreateStoc
 		AdjustmentNo:    fmt.Sprintf("SA-%d", time.Now().Unix()),
 		WarehouseID:     req.WarehouseID,
 		TransactionDate: transactionDate,
-		Status:          "DRAFT",
+		Status:          enums.StatusDraft,
 		Note:            req.Note,
 		CreatedBy:       userID,
 	}
@@ -94,7 +95,7 @@ func (s *stockAdjustmentService) Update(ctx context.Context, id uuid.UUID, req *
 		return nil, err
 	}
 
-	if adjustment.Status != "DRAFT" {
+	if adjustment.Status != enums.StatusDraft {
 		return nil, fmt.Errorf("only draft adjustment can be updated")
 	}
 
@@ -140,11 +141,11 @@ func (s *stockAdjustmentService) Approve(ctx context.Context, id uuid.UUID, user
 		return nil, err
 	}
 
-	if adjustment.Status != "DRAFT" {
+	if adjustment.Status != enums.StatusDraft {
 		return nil, fmt.Errorf("only draft adjustment can be approved")
 	}
 
-	adjustment.Status = "APPROVED"
+	adjustment.Status = enums.StatusApproved
 	adjustment.ApprovedBy = &userID
 
 	if err := s.repo.Update(ctx, adjustment); err != nil {
@@ -165,11 +166,11 @@ func (s *stockAdjustmentService) Void(ctx context.Context, id uuid.UUID) (*dto.S
 		return nil, err
 	}
 
-	if adjustment.Status != "DRAFT" && adjustment.Status != "APPROVED" {
+	if adjustment.Status != enums.StatusDraft && adjustment.Status != enums.StatusApproved {
 		return nil, fmt.Errorf("only draft or approved adjustment can be voided")
 	}
 
-	adjustment.Status = "VOID"
+	adjustment.Status = enums.StatusVoid
 
 	if err := s.repo.Update(ctx, adjustment); err != nil {
 		return nil, err

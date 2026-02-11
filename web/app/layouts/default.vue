@@ -4,7 +4,7 @@
         <aside
             class="w-64 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 flex-col fixed h-full z-10 hidden md:flex">
             <div class="h-16 flex items-center px-6 border-b border-gray-200 dark:border-gray-800">
-                <span class="ml-3 font-bold text-xl text-gray-900 dark:text-white">WMS PRO</span>
+                <span class="ml-3 font-bold text-xl text-gray-900 dark:text-white">My ERP</span>
             </div>
 
             <div class="flex-1 overflow-y-auto py-4 px-3">
@@ -23,7 +23,7 @@
         <div
             class="md:hidden fixed w-full z-20 bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-4 h-16">
             <div class="flex items-center">
-                <span class="ml-2 font-bold text-lg">WMS PRO</span>
+                <span class="ml-2 font-bold text-lg">My ERP</span>
             </div>
             <UButton icon="i-heroicons-bars-3" variant="ghost" color="secondary" @click="isOpen = true" />
         </div>
@@ -34,7 +34,7 @@
                 <div class="p-4 flex-1 flex flex-col h-full bg-white dark:bg-gray-950">
                     <div class="flex items-center justify-between mb-6">
                         <div class="flex items-center">
-                            <span class="ml-2 font-bold text-xl">WMS PRO</span>
+                            <span class="ml-2 font-bold text-xl">My ERP</span>
                         </div>
                         <UButton icon="i-heroicons-x-mark" variant="ghost" color="secondary" @click="isOpen = false" />
                     </div>

@@ -42,16 +42,24 @@ func (s *productCommandService) CreateProduct(ctx context.Context, productDTO *p
 		return nil, &ProductError{Code: "DUPLICATE_SKU", Message: "SKU already exists"}
 	}
 
-	// Validate UOMs (Wait, are we still validating them? Yes, it's good practice)
-	for _, uom := range productDTO.UOMs {
-		if _, err := s.uomRepo.FindByID(ctx, uom.ID); err != nil {
+	// Validate UOMs
+	for _, uomDTO := range productDTO.UOMs {
+		uomID, err := uuid.Parse(uomDTO.ID)
+		if err != nil {
+			return nil, &ProductError{Code: "INVALID_ID", Message: "Invalid UOM ID"}
+		}
+		if _, err := s.uomRepo.FindByID(ctx, uomID); err != nil {
 			return nil, &ProductError{Code: "NOT_FOUND", Message: "UOM not found"}
 		}
 	}
 
 	// Validate Categories
-	for _, cat := range productDTO.Categories {
-		if _, err := s.categoryRepo.FindByID(ctx, cat.ID); err != nil {
+	for _, catDTO := range productDTO.Categories {
+		catID, err := uuid.Parse(catDTO.ID)
+		if err != nil {
+			return nil, &ProductError{Code: "INVALID_ID", Message: "Invalid Category ID"}
+		}
+		if _, err := s.categoryRepo.FindByID(ctx, catID); err != nil {
 			return nil, &ProductError{Code: "NOT_FOUND", Message: "Category not found"}
 		}
 	}
@@ -91,15 +99,23 @@ func (s *productCommandService) UpdateProduct(ctx context.Context, id uuid.UUID,
 	}
 
 	// Validate UOMs
-	for _, uom := range productDTO.UOMs {
-		if _, err := s.uomRepo.FindByID(ctx, uom.ID); err != nil {
+	for _, uomDTO := range productDTO.UOMs {
+		uomID, err := uuid.Parse(uomDTO.ID)
+		if err != nil {
+			return nil, &ProductError{Code: "INVALID_ID", Message: "Invalid UOM ID"}
+		}
+		if _, err := s.uomRepo.FindByID(ctx, uomID); err != nil {
 			return nil, &ProductError{Code: "NOT_FOUND", Message: "UOM not found"}
 		}
 	}
 
 	// Validate Categories
-	for _, cat := range productDTO.Categories {
-		if _, err := s.categoryRepo.FindByID(ctx, cat.ID); err != nil {
+	for _, catDTO := range productDTO.Categories {
+		catID, err := uuid.Parse(catDTO.ID)
+		if err != nil {
+			return nil, &ProductError{Code: "INVALID_ID", Message: "Invalid Category ID"}
+		}
+		if _, err := s.categoryRepo.FindByID(ctx, catID); err != nil {
 			return nil, &ProductError{Code: "NOT_FOUND", Message: "Category not found"}
 		}
 	}

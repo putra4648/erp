@@ -7,6 +7,7 @@ import (
 	categoryService "putra4648/erp/internal/modules/category/service"
 	productService "putra4648/erp/internal/modules/product/service"
 	stockAdjustmentService "putra4648/erp/internal/modules/stock_adjustment/service"
+	stockMovementService "putra4648/erp/internal/modules/stock_movement/service"
 	supplierService "putra4648/erp/internal/modules/supplier/service"
 	uomService "putra4648/erp/internal/modules/uom/service"
 	warehouseService "putra4648/erp/internal/modules/warehouse/service"
@@ -40,6 +41,9 @@ type AppDependencies struct {
 
 	StockAdjustmentService  stockAdjustmentService.StockAdjustmentService
 	AdjustmentReasonService stockAdjustmentService.AdjustmentReasonService
+
+	StockMovementCommandService stockMovementService.StockMovementCommandService
+	StockMovementQueryService   stockMovementService.StockMovementQueryService
 }
 
 func Server(deps AppDependencies) error {
@@ -108,6 +112,7 @@ func Server(deps AppDependencies) error {
 	routes.RegisterCategoryRoutes(app, api, deps.CategoryCommandService, deps.CategoryQueryService, deps.Enforcer)
 	routes.RegisterUOMRoutes(app, api, deps.UOMCommandService, deps.UOMQueryService, deps.Enforcer)
 	routes.RegisterStockAdjustmentRoutes(api, deps.StockAdjustmentService, deps.AdjustmentReasonService)
+	routes.RegisterStockMovementRoutes(api, deps.StockMovementCommandService, deps.StockMovementQueryService)
 
 	return app.Listen(":" + deps.Config.Port)
 }
