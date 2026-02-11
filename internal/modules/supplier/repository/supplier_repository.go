@@ -2,8 +2,8 @@ package repository
 
 import (
 	"context"
-	"putra4648/erp/internal/modules/inventory/supplier/domain"
-	"putra4648/erp/internal/modules/inventory/supplier/dto"
+	"putra4648/erp/internal/modules/supplier/domain"
+	"putra4648/erp/internal/modules/supplier/dto"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"

@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
-	"putra4648/erp/internal/modules/inventory/supplier/domain"
-	supplierDto "putra4648/erp/internal/modules/inventory/supplier/dto"
-	"putra4648/erp/internal/modules/inventory/supplier/repository"
+	"putra4648/erp/internal/modules/supplier/domain"
+	supplierDto "putra4648/erp/internal/modules/supplier/dto"
+	"putra4648/erp/internal/modules/supplier/repository"
 
 	"putra4648/erp/internal/modules/shared/dto"
 

@@ -5,11 +5,11 @@ import (
 	"putra4648/erp/configs/logger"
 	"putra4648/erp/configs/middleware"
 	categoryService "putra4648/erp/internal/modules/category/service"
-	supplierService "putra4648/erp/internal/modules/inventory/supplier/service"
-	warehouseService "putra4648/erp/internal/modules/inventory/warehouse/service"
 	productService "putra4648/erp/internal/modules/product/service"
 	stockAdjustmentService "putra4648/erp/internal/modules/stock_adjustment/service"
+	supplierService "putra4648/erp/internal/modules/supplier/service"
 	uomService "putra4648/erp/internal/modules/uom/service"
+	warehouseService "putra4648/erp/internal/modules/warehouse/service"
 	"putra4648/erp/routes"
 
 	"github.com/casbin/casbin/v3"
@@ -102,7 +102,8 @@ func Server(deps AppDependencies) error {
 
 	routes.RegisterAdminRoutes(app, api, deps.Enforcer)
 	routes.RegisterUserProfile(app, api)
-	routes.RegisterInventoryRoutes(app, api, deps.WarehouseCommandService, deps.WarehouseQueryService, deps.SupplierCommandService, deps.SupplierQueryService)
+	routes.RegisterWarehouseRoutes(api, deps.WarehouseCommandService, deps.WarehouseQueryService)
+	routes.RegisterSupplierRoutes(api, deps.SupplierCommandService, deps.SupplierQueryService)
 	routes.RegisterProductRoutes(app, api, deps.ProductCommandService, deps.ProductQueryService, deps.Enforcer)
 	routes.RegisterCategoryRoutes(app, api, deps.CategoryCommandService, deps.CategoryQueryService, deps.Enforcer)
 	routes.RegisterUOMRoutes(app, api, deps.UOMCommandService, deps.UOMQueryService, deps.Enforcer)
