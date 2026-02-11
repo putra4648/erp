@@ -89,7 +89,7 @@ func main() {
 	}
 
 	if err := container.Invoke(app.Server); err != nil {
-		log.Fatalf("Failed to start server: %v", err.Error())
+                logger.Log.Fatalf("Failed to start server: %v", err.Error())
 	}
 
 }
