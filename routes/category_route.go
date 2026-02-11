@@ -4,7 +4,7 @@ import (
 	categoryDomain "putra4648/erp/internal/modules/category/domain"
 	"putra4648/erp/internal/modules/category/dto"
 	categoryService "putra4648/erp/internal/modules/category/service"
-	. "putra4648/erp/utils"
+	. "putra4648/erp/internal/modules/shared/utils"
 
 	"github.com/casbin/casbin/v3"
 	"github.com/gofiber/fiber/v2"

@@ -2,6 +2,7 @@ package domain
 
 import (
 	domainProduct "putra4648/erp/internal/modules/product/domain"
+	"putra4648/erp/internal/modules/shared/enums"
 	"putra4648/erp/internal/modules/stock_adjustment/dto"
 	domainWarehouse "putra4648/erp/internal/modules/warehouse/domain"
 	"time"
@@ -16,7 +17,7 @@ type StockAdjustment struct {
 	WarehouseID     uuid.UUID                 `gorm:"type:uuid;not null" json:"warehouse_id"`
 	Warehouse       domainWarehouse.Warehouse `gorm:"foreignKey:WarehouseID" json:"warehouse"`
 	TransactionDate time.Time                 `gorm:"type:timestamp;not null" json:"transaction_date"`
-	Status          string                    `gorm:"type:varchar(20);default:'DRAFT'" json:"status"`
+	Status          enums.Status              `gorm:"type:varchar(20);default:'DRAFT'" json:"status"`
 	Note            string                    `gorm:"type:text" json:"note"`
 	CreatedBy       uuid.UUID                 `gorm:"type:uuid;not null" json:"created_by"`
 	ApprovedBy      *uuid.UUID                `gorm:"type:uuid" json:"approved_by"`
@@ -46,7 +47,7 @@ func (s *StockAdjustment) ToResponse() *dto.StockAdjustmentResponse {
 		AdjustmentNo:    s.AdjustmentNo,
 		WarehouseID:     s.WarehouseID,
 		TransactionDate: s.TransactionDate,
-		Status:          s.Status,
+		Status:          string(s.Status),
 		Note:            s.Note,
 		CreatedBy:       s.CreatedBy,
 		ApprovedBy:      s.ApprovedBy,

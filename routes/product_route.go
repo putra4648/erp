@@ -5,7 +5,7 @@ import (
 	productDomain "putra4648/erp/internal/modules/product/domain"
 	"putra4648/erp/internal/modules/product/dto"
 	productService "putra4648/erp/internal/modules/product/service"
-	. "putra4648/erp/utils"
+	. "putra4648/erp/internal/modules/shared/utils"
 
 	"github.com/casbin/casbin/v3"
 	"github.com/gofiber/fiber/v2"
