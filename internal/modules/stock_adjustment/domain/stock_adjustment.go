@@ -1,9 +1,9 @@
 package domain
 
 import (
-	domainProduct "putra4648/erp/internal/modules/inventory/stock/domain"
-	domainWarehouse "putra4648/erp/internal/modules/inventory/warehouse/domain"
+	domainProduct "putra4648/erp/internal/modules/product/domain"
 	"putra4648/erp/internal/modules/stock_adjustment/dto"
+	domainWarehouse "putra4648/erp/internal/modules/warehouse/domain"
 	"time"
 
 	"github.com/google/uuid"

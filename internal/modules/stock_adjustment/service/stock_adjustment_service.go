@@ -14,6 +14,9 @@ type StockAdjustmentService interface {
 	Create(ctx context.Context, req *dto.CreateStockAdjustmentRequest, userID uuid.UUID) (*dto.StockAdjustmentResponse, error)
 	FindByID(ctx context.Context, id uuid.UUID) (*dto.StockAdjustmentResponse, error)
 	FindAll(ctx context.Context, page, size int) ([]*dto.StockAdjustmentResponse, int64, error)
+	Update(ctx context.Context, id uuid.UUID, req *dto.CreateStockAdjustmentRequest) (*dto.StockAdjustmentResponse, error)
+	Approve(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*dto.StockAdjustmentResponse, error)
+	Void(ctx context.Context, id uuid.UUID) (*dto.StockAdjustmentResponse, error)
 }
 
 type stockAdjustmentService struct {
@@ -83,4 +86,99 @@ func (s *stockAdjustmentService) FindAll(ctx context.Context, page, size int) ([
 		responses = append(responses, adj.ToResponse())
 	}
 	return responses, total, nil
+}
+
+func (s *stockAdjustmentService) Update(ctx context.Context, id uuid.UUID, req *dto.CreateStockAdjustmentRequest) (*dto.StockAdjustmentResponse, error) {
+	adjustment, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if adjustment.Status != "DRAFT" {
+		return nil, fmt.Errorf("only draft adjustment can be updated")
+	}
+
+	transactionDate, err := time.Parse("2006-01-02", req.TransactionDate)
+	if err != nil {
+		return nil, err
+	}
+
+	adjustment.WarehouseID = req.WarehouseID
+	adjustment.TransactionDate = transactionDate
+	adjustment.Note = req.Note
+
+	// Replace items
+	var items []domain.StockAdjustmentItem
+	for _, itemReq := range req.Items {
+		items = append(items, domain.StockAdjustmentItem{
+			ID:                uuid.New(),
+			StockAdjustmentID: id,
+			ProductID:         itemReq.ProductID,
+			ReasonID:          itemReq.ReasonID,
+			ActualQty:         itemReq.ActualQty,
+			SystemQty:         itemReq.SystemQty,
+			AdjustmentQty:     itemReq.ActualQty.Sub(itemReq.SystemQty),
+		})
+	}
+	adjustment.Items = items
+
+	if err := s.repo.Update(ctx, adjustment); err != nil {
+		return nil, err
+	}
+
+	saved, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return saved.ToResponse(), nil
+}
+
+func (s *stockAdjustmentService) Approve(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*dto.StockAdjustmentResponse, error) {
+	adjustment, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if adjustment.Status != "DRAFT" {
+		return nil, fmt.Errorf("only draft adjustment can be approved")
+	}
+
+	adjustment.Status = "APPROVED"
+	adjustment.ApprovedBy = &userID
+
+	if err := s.repo.Update(ctx, adjustment); err != nil {
+		return nil, err
+	}
+
+	saved, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return saved.ToResponse(), nil
+}
+
+func (s *stockAdjustmentService) Void(ctx context.Context, id uuid.UUID) (*dto.StockAdjustmentResponse, error) {
+	adjustment, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if adjustment.Status != "DRAFT" && adjustment.Status != "APPROVED" {
+		return nil, fmt.Errorf("only draft or approved adjustment can be voided")
+	}
+
+	adjustment.Status = "VOID"
+
+	if err := s.repo.Update(ctx, adjustment); err != nil {
+		return nil, err
+	}
+
+	saved, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return saved.ToResponse(), nil
 }

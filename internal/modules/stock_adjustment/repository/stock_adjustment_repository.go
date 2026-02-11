@@ -51,9 +51,14 @@ func (r *stockAdjustmentRepository) FindAll(ctx context.Context, page, size int)
 }
 
 func (r *stockAdjustmentRepository) Update(ctx context.Context, adjustment *domain.StockAdjustment) error {
-	// Full update including items might be complex depending on use case.
-	// For now, using Save which handles associations if configured.
-	return r.db.WithContext(ctx).Save(adjustment).Error
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// Use OMIT to not update created_by or other protected fields if necessary
+		if err := tx.Save(adjustment).Error; err != nil {
+			return err
+		}
+		// Replace items association to handle deletions of items not in the list
+		return tx.Model(adjustment).Association("Items").Replace(adjustment.Items)
+	})
 }
 
 func (r *stockAdjustmentRepository) Delete(ctx context.Context, id uuid.UUID) error {

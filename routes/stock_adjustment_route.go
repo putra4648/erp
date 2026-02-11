@@ -19,6 +19,9 @@ func RegisterStockAdjustmentRoutes(
 		adjustment.Post("/", createStockAdjustment(sas))
 		adjustment.Get("/:id", getStockAdjustmentByID(sas))
 		adjustment.Get("/", getAllStockAdjustments(sas))
+		adjustment.Put("/:id", updateStockAdjustment(sas))
+		adjustment.Post("/:id/approve", approveStockAdjustment(sas))
+		adjustment.Post("/:id/void", voidStockAdjustment(sas))
 	}
 
 	// Adjustment Reason routes
@@ -98,6 +101,62 @@ func createAdjustmentReason(s service.AdjustmentReasonService) fiber.Handler {
 func getAllAdjustmentReasons(s service.AdjustmentReasonService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		res, err := s.FindAll(c.Context())
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
+		return c.JSON(res)
+	}
+}
+
+func updateStockAdjustment(s service.StockAdjustmentService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		id, err := uuid.Parse(c.Params("id"))
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
+		}
+
+		var req dto.CreateStockAdjustmentRequest
+		if err := c.BodyParser(&req); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		}
+
+		res, err := s.Update(c.Context(), id, &req)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
+		return c.JSON(res)
+	}
+}
+
+func approveStockAdjustment(s service.StockAdjustmentService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		id, err := uuid.Parse(c.Params("id"))
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
+		}
+
+		userIDStr := c.Locals("user_id").(string)
+		userID, err := uuid.Parse(userIDStr)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "failed to parse user id"})
+		}
+
+		res, err := s.Approve(c.Context(), id, userID)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
+		return c.JSON(res)
+	}
+}
+
+func voidStockAdjustment(s service.StockAdjustmentService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		id, err := uuid.Parse(c.Params("id"))
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
+		}
+
+		res, err := s.Void(c.Context(), id)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}

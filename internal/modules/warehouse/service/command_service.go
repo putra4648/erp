@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
-	"putra4648/erp/internal/modules/inventory/warehouse/domain"
-	"putra4648/erp/internal/modules/inventory/warehouse/dto"
-	"putra4648/erp/internal/modules/inventory/warehouse/repository"
+	"putra4648/erp/internal/modules/warehouse/domain"
+	"putra4648/erp/internal/modules/warehouse/dto"
+	"putra4648/erp/internal/modules/warehouse/repository"
 
 	"github.com/google/uuid"
 )

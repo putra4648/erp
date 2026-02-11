@@ -7,11 +7,12 @@ import (
 	"putra4648/erp/configs/config"
 	"putra4648/erp/configs/database"
 	"putra4648/erp/configs/logger"
-	"putra4648/erp/internal/modules/category" // Added category import
-	"putra4648/erp/internal/modules/inventory"
+	"putra4648/erp/internal/modules/category"
 	"putra4648/erp/internal/modules/product"
 	"putra4648/erp/internal/modules/stock_adjustment"
-	"putra4648/erp/internal/modules/uom" // Added uom import
+	"putra4648/erp/internal/modules/supplier"
+	"putra4648/erp/internal/modules/uom"
+	"putra4648/erp/internal/modules/warehouse"
 
 	"go.uber.org/dig"
 )
@@ -58,8 +59,12 @@ func main() {
 		}
 	}
 
-	if err := inventory.Register(container); err != nil {
-		logger.Log.Fatalf("Failed to register inventory module: %v", err)
+	if err := warehouse.Register(container); err != nil {
+		logger.Log.Fatalf("Failed to register warehouse module: %v", err)
+	}
+
+	if err := supplier.Register(container); err != nil {
+		logger.Log.Fatalf("Failed to register supplier module: %v", err)
 	}
 
 	if err := product.Register(container); err != nil {

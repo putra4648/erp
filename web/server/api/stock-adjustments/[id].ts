@@ -4,6 +4,19 @@ export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, "id");
   const method = getMethod(event);
 
+  if (method === "PUT") {
+    const body = await readBody(event);
+    const result = await callBackend<StockAdjustment>(
+      event,
+      `/api/stock-adjustment/${id}`,
+      {
+        method: "PUT",
+        body,
+      },
+    );
+    return result;
+  }
+
   if (method === "GET") {
     const result = await callBackend<StockAdjustment>(
       event,

@@ -37,9 +37,7 @@ export const StockAdjustmentSchema = Joi.object<StockAdjustment>({
         system_qty: Joi.number().required().messages({
           "any.required": "System quantity is required",
         }),
-        adjustment_qty: Joi.number().required().messages({
-          "any.required": "Adjustment quantity is required",
-        }),
+        adjustment_qty: Joi.number().optional().allow(""),
       }),
     )
     .min(1)

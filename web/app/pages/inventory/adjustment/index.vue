@@ -5,8 +5,9 @@
             <UButton label="Add Adjustment" @click="addAdjustment" />
         </div>
 
-        <UModal v-model:open="open" :title="isEdit ? 'Stock Adjustment Details' : 'Add Stock Adjustment'"
-            :description="isEdit ? 'View adjustment details' : 'Create a new stock adjustment'"
+        <UModal v-model:open="open"
+            :title="isEdit ? 'Stock Adjustment Details' : (state.id ? 'Edit Stock Adjustment' : 'Add Stock Adjustment')"
+            :description="isEdit ? 'View adjustment details' : (state.id ? 'Modify existing adjustment' : 'Create a new stock adjustment')"
             :ui="{ content: 'sm:max-w-4xl' }">
 
             <template #body>
@@ -27,6 +28,14 @@
                         <div>
                             <p class="text-sm text-gray-500">Status</p>
                             <p class="font-medium">{{ state.status }}</p>
+                        </div>
+                        <div v-if="state.created_by">
+                            <p class="text-sm text-gray-500">Created By</p>
+                            <p class="font-medium">{{ state.created_by }}</p>
+                        </div>
+                        <div v-if="state.approved_by">
+                            <p class="text-sm text-gray-500">Approved By</p>
+                            <p class="font-medium">{{ state.approved_by }}</p>
                         </div>
                     </div>
                     <div>
@@ -52,7 +61,7 @@
                         </UFormField>
                         <UFormField label="Status" name="status">
                             <USelectMenu class="w-full" v-model="(state.status)" :items="allStatus" value-key="id"
-                                label-key="name" placeholder="Select status" />
+                                label-key="name" placeholder="Select status" disabled />
                         </UFormField>
                     </div>
 
@@ -88,12 +97,6 @@
                                 </UFormField>
                                 <UFormField label="Actual Qty" :name="`items.${index}.actual_qty`">
                                     <UInput type="number" class="w-full" v-model.number="item.actual_qty" />
-                                </UFormField>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-4">
-                                <UFormField label="Adjustment Qty" :name="`items.${index}.adjustment_qty`">
-                                    <UInput type="number" class="w-full" v-model.number="item.adjustment_qty" />
                                 </UFormField>
                             </div>
                         </div>
@@ -133,6 +136,11 @@ import { Status } from '~/types/enums/status_enum';
 const UInput = resolveComponent('UInput')
 const UButton = resolveComponent('UButton')
 const UDropdownMenu = resolveComponent('UDropdownMenu')
+const { data: authData } = useAuth()
+
+const userRoles = computed(() => authData.value?.user.groups || []);
+const isSupervisor = computed(() => userRoles.value.includes('supervisor'))
+const isStaff = computed(() => userRoles.value.includes('staff'))
 
 const schema = StockAdjustmentSchema
 const toast = useToast()
@@ -191,6 +199,19 @@ const adjustmentColumns = ref<TableColumn<StockAdjustment>[]>([
     {
         accessorKey: "status",
         header: "Status",
+        cell: ({ row }) => {
+            const status = row.original.status
+            let color: 'neutral' | 'primary' | 'success' | 'warning' | 'error' = 'neutral'
+            if (status === 'DRAFT') color = 'warning'
+            else if (status === 'APPROVED') color = 'success'
+            else if (status === 'VOID') color = 'error'
+
+            return h(resolveComponent('UBadge'), {
+                label: status,
+                color: color,
+                variant: 'subtle'
+            })
+        }
     },
     {
         accessorKey: "note",
@@ -247,7 +268,8 @@ const itemDisplayColumns = ref<TableColumn<StockAdjustmentItem>[]>([
 ])
 
 function getRowActions(row: TableRow<StockAdjustment>): DropdownMenuItem[] {
-    return [
+    const status = row.original.status
+    const actions: DropdownMenuItem[] = [
         {
             type: 'label',
             label: 'Actions',
@@ -270,6 +292,73 @@ function getRowActions(row: TableRow<StockAdjustment>): DropdownMenuItem[] {
             }
         }
     ]
+
+    if (status === 'DRAFT') {
+        // Staff and Supervisor can edit if DRAFT
+        actions.push({
+            label: 'Edit',
+            icon: 'i-lucide-edit',
+            onSelect: async () => {
+                try {
+                    const data = await $fetch<StockAdjustment>(`/api/stock-adjustments/${row.original.id}`)
+                    isEdit.value = false // Use form mode
+                    Object.assign(state, data)
+                    open.value = true
+                } catch (error) {
+                    toast.add({ title: 'Error', description: 'Failed to fetch details', color: 'error' })
+                }
+            }
+        })
+
+        // Supervisor can approve
+        if (isSupervisor.value) {
+            actions.push({
+                label: 'Approve',
+                icon: 'i-lucide-check-circle',
+                color: 'success',
+                onSelect: () => handleApprove(row.original.id)
+            })
+        }
+
+        // Both can void
+        actions.push({
+            label: 'Void',
+            icon: 'i-lucide-ban',
+            color: 'error',
+            onSelect: () => handleVoid(row.original.id)
+        })
+    }
+
+    if (status === 'APPROVED' && isSupervisor.value) {
+        actions.push({
+            label: 'Void Approval',
+            icon: 'i-lucide-ban',
+            color: 'error',
+            onSelect: () => handleVoid(row.original.id)
+        })
+    }
+
+    return actions
+}
+
+async function handleApprove(id: string) {
+    try {
+        await $fetch(`/api/stock-adjustments/${id}/approve`, { method: 'POST' })
+        toast.add({ title: 'Success', description: 'Adjustment approved successfully' })
+        refresh()
+    } catch (error: any) {
+        toast.add({ title: 'Error', description: error.data?.error || 'Failed to approve', color: 'error' })
+    }
+}
+
+async function handleVoid(id: string) {
+    try {
+        await $fetch(`/api/stock-adjustments/${id}/void`, { method: 'POST' })
+        toast.add({ title: 'Success', description: 'Adjustment voided successfully' })
+        refresh()
+    } catch (error: any) {
+        toast.add({ title: 'Error', description: error.data?.error || 'Failed to void', color: 'error' })
+    }
 }
 
 function addAdjustment() {
@@ -305,11 +394,19 @@ function removeItem(index: number) {
 
 async function onSubmit(event: FormSubmitEvent<StockAdjustment>) {
     try {
-        await $fetch('/api/stock-adjustments', {
-            method: 'POST',
-            body: event.data
-        })
-        toast.add({ title: 'Success', description: 'Stock adjustment has been created.' })
+        if (state.id) {
+            await $fetch(`/api/stock-adjustments/${state.id}`, {
+                method: 'PUT',
+                body: event.data
+            })
+            toast.add({ title: 'Success', description: 'Stock adjustment has been updated.' })
+        } else {
+            await $fetch('/api/stock-adjustments', {
+                method: 'POST',
+                body: event.data
+            })
+            toast.add({ title: 'Success', description: 'Stock adjustment has been created.' })
+        }
         open.value = false
         refresh()
     } catch (error: any) {
