@@ -20,7 +20,7 @@
       "type": "chrome",
       "url": "http://localhost:3000",
       "webRoot": "${workspaceFolder}/frontend/app",
-      "runtimeExecutable": "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe"
+      // "runtimeExecutable": "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe"
     },
     {
       "type": "node",
