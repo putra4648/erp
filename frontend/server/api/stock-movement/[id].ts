@@ -2,7 +2,7 @@ import type { StockMovement } from "~/types/models/stock_movement";
 
 export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, "id");
-  const method = getMethod(event);
+  const method = event.method;
 
   if (method === "DELETE") {
     const result = await callBackend(event, `/api/stock-movement/${id}`, {

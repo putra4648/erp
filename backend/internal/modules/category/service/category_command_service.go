@@ -2,18 +2,13 @@ package service
 
 import (
 	"context"
-	"putra4648/erp/internal/modules/category/domain"
+	"putra4648/erp/internal/modules/category/dto"
+	"putra4648/erp/internal/modules/category/mapper"
 	"putra4648/erp/internal/modules/category/repository"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
-
-type CategoryCommandService interface {
-	CreateCategory(ctx context.Context, categoryDTO *domain.CategoryDTO) (*domain.CategoryResponse, error)
-	UpdateCategory(ctx context.Context, id uuid.UUID, categoryDTO *domain.CategoryDTO) (*domain.CategoryResponse, error)
-	DeleteCategory(ctx context.Context, id uuid.UUID) error
-}
 
 type categoryCommandService struct {
 	categoryRepo repository.CategoryRepository
@@ -27,8 +22,8 @@ func NewCategoryCommandService(categoryRepo repository.CategoryRepository, logge
 	}
 }
 
-func (s *categoryCommandService) CreateCategory(ctx context.Context, categoryDTO *domain.CategoryDTO) (*domain.CategoryResponse, error) {
-	category := categoryDTO.ToModel()
+func (s *categoryCommandService) CreateCategory(ctx context.Context, categoryDTO *dto.CategoryDTO) (*dto.CategoryDTO, error) {
+	category := mapper.ToCategory(categoryDTO)
 
 	err := s.categoryRepo.Create(ctx, category)
 	if err != nil {
@@ -36,10 +31,10 @@ func (s *categoryCommandService) CreateCategory(ctx context.Context, categoryDTO
 		return nil, &CategoryError{Code: "DATABASE_ERROR", Message: "Failed to create category"}
 	}
 
-	return category.ToResponse(), nil
+	return mapper.ToCategoryDTO(category), nil
 }
 
-func (s *categoryCommandService) UpdateCategory(ctx context.Context, id uuid.UUID, categoryDTO *domain.CategoryDTO) (*domain.CategoryResponse, error) {
+func (s *categoryCommandService) UpdateCategory(ctx context.Context, id uuid.UUID, categoryDTO *dto.CategoryDTO) (*dto.CategoryDTO, error) {
 	existingCategory, err := s.categoryRepo.FindByID(ctx, id)
 	if err != nil {
 		return nil, &CategoryError{Code: "NOT_FOUND", Message: "Category not found"}
@@ -53,7 +48,7 @@ func (s *categoryCommandService) UpdateCategory(ctx context.Context, id uuid.UUI
 		return nil, &CategoryError{Code: "DATABASE_ERROR", Message: "Failed to update category"}
 	}
 
-	return existingCategory.ToResponse(), nil
+	return mapper.ToCategoryDTO(existingCategory), nil
 }
 
 func (s *categoryCommandService) DeleteCategory(ctx context.Context, id uuid.UUID) error {

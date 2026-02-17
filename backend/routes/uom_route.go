@@ -2,7 +2,6 @@ package routes
 
 import (
 	. "putra4648/erp/internal/modules/shared/utils"
-	"putra4648/erp/internal/modules/uom/domain"
 	"putra4648/erp/internal/modules/uom/dto"
 	"putra4648/erp/internal/modules/uom/service"
 
@@ -30,7 +29,7 @@ func RegisterUOMRoutes(
 
 func createUOM(s service.UOMCommandService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var req domain.UOMDTO
+		var req dto.UOMDTO
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 		}
@@ -90,7 +89,7 @@ func updateUOM(s service.UOMCommandService) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid UOM ID"})
 		}
 
-		var req domain.UOMDTO
+		var req dto.UOMDTO
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 		}

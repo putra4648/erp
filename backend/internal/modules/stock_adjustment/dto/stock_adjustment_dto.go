@@ -26,19 +26,19 @@ type UpdateStockAdjustmentRequest struct {
 	Items []CreateStockAdjustmentItemRequest `json:"items" validate:"dive,required"`
 }
 
-type StockAdjustmentResponse struct {
-	ID              uuid.UUID                     `json:"id"`
-	AdjustmentNo    string                        `json:"adjustment_no"`
-	WarehouseID     uuid.UUID                     `json:"warehouse_id"`
-	TransactionDate time.Time                     `json:"transaction_date"`
-	Status          string                        `json:"status"`
-	Note            string                        `json:"note"`
-	CreatedBy       uuid.UUID                     `json:"created_by"`
-	ApprovedBy      *uuid.UUID                    `json:"approved_by,omitempty"`
-	Items           []StockAdjustmentItemResponse `json:"items"`
+type StockAdjustmentDto struct {
+	ID              uuid.UUID                `json:"id"`
+	AdjustmentNo    string                   `json:"adjustment_no"`
+	WarehouseID     uuid.UUID                `json:"warehouse_id"`
+	TransactionDate time.Time                `json:"transaction_date"`
+	Status          string                   `json:"status"`
+	Note            string                   `json:"note"`
+	CreatedBy       uuid.UUID                `json:"created_by"`
+	ApprovedBy      *uuid.UUID               `json:"approved_by,omitempty"`
+	Items           []StockAdjustmentItemDto `json:"items"`
 }
 
-type StockAdjustmentItemResponse struct {
+type StockAdjustmentItemDto struct {
 	ID            uuid.UUID       `json:"id"`
 	ProductID     uuid.UUID       `json:"product_id"`
 	ProductName   string          `json:"product_name"`
@@ -47,9 +47,4 @@ type StockAdjustmentItemResponse struct {
 	ActualQty     decimal.Decimal `json:"actual_qty"`
 	SystemQty     decimal.Decimal `json:"system_qty"`
 	AdjustmentQty decimal.Decimal `json:"adjustment_qty"`
-}
-
-type AdjustmentReasonRequest struct {
-	Name        string `json:"name" validate:"required"`
-	AccountCode string `json:"account_code" validate:"required"`
 }

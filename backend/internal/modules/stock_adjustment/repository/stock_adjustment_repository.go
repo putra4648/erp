@@ -12,7 +12,7 @@ type stockAdjustmentRepository struct {
 	db *gorm.DB
 }
 
-func NewStockAdjustmentRepository(db *gorm.DB) domain.StockAdjustmentRepository {
+func NewStockAdjustmentRepository(db *gorm.DB) StockAdjustmentRepository {
 	return &stockAdjustmentRepository{db: db}
 }
 

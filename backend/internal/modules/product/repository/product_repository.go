@@ -2,21 +2,12 @@ package repository
 
 import (
 	"context"
-	productDomain "putra4648/erp/internal/modules/product/domain"
+	"putra4648/erp/internal/modules/product/domain"
 	"putra4648/erp/internal/modules/product/dto"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
-
-type ProductRepository interface {
-	Create(ctx context.Context, product *productDomain.Product) error
-	FindByID(ctx context.Context, id uuid.UUID) (*productDomain.Product, error)
-	FindAll(ctx context.Context, req *dto.ProductRequest) ([]*productDomain.Product, int64, error)
-	Update(ctx context.Context, product *productDomain.Product) error
-	Delete(ctx context.Context, id uuid.UUID) error
-	FindBySKU(ctx context.Context, sku string) (*productDomain.Product, error)
-}
 
 type productRepository struct {
 	db *gorm.DB
@@ -26,12 +17,12 @@ func NewProductRepository(db *gorm.DB) ProductRepository {
 	return &productRepository{db: db}
 }
 
-func (r *productRepository) Create(ctx context.Context, product *productDomain.Product) error {
+func (r *productRepository) Create(ctx context.Context, product *domain.Product) error {
 	return r.db.WithContext(ctx).Create(product).Error
 }
 
-func (r *productRepository) FindByID(ctx context.Context, id uuid.UUID) (*productDomain.Product, error) {
-	var product productDomain.Product
+func (r *productRepository) FindByID(ctx context.Context, id uuid.UUID) (*domain.Product, error) {
+	var product domain.Product
 	err := r.db.WithContext(ctx).Preload("Categories").Preload("UOMs").Where("id = ?", id).First(&product).Error
 	if err != nil {
 		return nil, err
@@ -39,10 +30,10 @@ func (r *productRepository) FindByID(ctx context.Context, id uuid.UUID) (*produc
 	return &product, nil
 }
 
-func (r *productRepository) FindAll(ctx context.Context, req *dto.ProductRequest) ([]*productDomain.Product, int64, error) {
-	var products []*productDomain.Product
+func (r *productRepository) FindAll(ctx context.Context, req *dto.ProductRequest) ([]*domain.Product, int64, error) {
+	var products []*domain.Product
 	var total int64
-	db := r.db.WithContext(ctx).Model(&productDomain.Product{}).Preload("Categories").Preload("UOMs")
+	db := r.db.WithContext(ctx).Model(&domain.Product{}).Preload("Categories").Preload("UOMs")
 
 	if req.Name != "" {
 		db = db.Where("name ILIKE ?", "%"+req.Name+"%")
@@ -62,7 +53,7 @@ func (r *productRepository) FindAll(ctx context.Context, req *dto.ProductRequest
 	return products, total, nil
 }
 
-func (r *productRepository) Update(ctx context.Context, product *productDomain.Product) error {
+func (r *productRepository) Update(ctx context.Context, product *domain.Product) error {
 	tx := r.db.WithContext(ctx).Begin()
 	if err := tx.Model(&product).Association("Categories").Replace(product.Categories); err != nil {
 		tx.Rollback()
@@ -80,11 +71,11 @@ func (r *productRepository) Update(ctx context.Context, product *productDomain.P
 }
 
 func (r *productRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	return r.db.WithContext(ctx).Delete(&productDomain.Product{}, "id = ?", id).Error
+	return r.db.WithContext(ctx).Delete(&domain.Product{}, "id = ?", id).Error
 }
 
-func (r *productRepository) FindBySKU(ctx context.Context, sku string) (*productDomain.Product, error) {
-	var product productDomain.Product
+func (r *productRepository) FindBySKU(ctx context.Context, sku string) (*domain.Product, error) {
+	var product domain.Product
 	err := r.db.WithContext(ctx).Where("sku = ?", sku).First(&product).Error
 	if err != nil {
 		return nil, err

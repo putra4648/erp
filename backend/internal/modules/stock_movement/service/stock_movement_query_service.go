@@ -4,41 +4,36 @@ import (
 	"context"
 	"putra4648/erp/internal/modules/stock_movement/domain"
 	"putra4648/erp/internal/modules/stock_movement/dto"
-	"putra4648/erp/internal/modules/stock_movement/repository"
+	"putra4648/erp/internal/modules/stock_movement/mapper"
 
 	"github.com/google/uuid"
 )
 
-type StockMovementQueryService interface {
-	FindByID(ctx context.Context, id uuid.UUID) (*domain.StockMovementResponse, error)
-	FindAll(ctx context.Context, req *dto.StockMovementRequest) ([]*domain.StockMovementResponse, int64, error)
-}
-
 type stockMovementQueryService struct {
-	repo repository.StockMovementRepository
+	repo domain.StockMovementRepository
 }
 
-func NewStockMovementQueryService(repo repository.StockMovementRepository) StockMovementQueryService {
+func NewStockMovementQueryService(repo domain.StockMovementRepository) StockMovementQueryService {
 	return &stockMovementQueryService{repo: repo}
 }
 
-func (s *stockMovementQueryService) FindByID(ctx context.Context, id uuid.UUID) (*domain.StockMovementResponse, error) {
+func (s *stockMovementQueryService) FindByID(ctx context.Context, id uuid.UUID) (*dto.StockMovementDTO, error) {
 	model, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	return model.ToResponse(), nil
+	return mapper.ToDTO(model), nil
 }
 
-func (s *stockMovementQueryService) FindAll(ctx context.Context, req *dto.StockMovementRequest) ([]*domain.StockMovementResponse, int64, error) {
+func (s *stockMovementQueryService) FindAll(ctx context.Context, req *dto.StockMovementRequest) ([]*dto.StockMovementDTO, int64, error) {
 	models, total, err := s.repo.FindAll(ctx, req)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	responses := make([]*domain.StockMovementResponse, len(models))
+	responses := make([]*dto.StockMovementDTO, len(models))
 	for i, m := range models {
-		responses[i] = m.ToResponse()
+		responses[i] = mapper.ToDTO(m)
 	}
 
 	return responses, total, nil

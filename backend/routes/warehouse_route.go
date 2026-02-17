@@ -25,7 +25,7 @@ func RegisterWarehouseRoutes(
 
 func createWarehouse(service warehouseService.WarehouseCommandService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var req warehouseDto.CreateWarehouseRequest
+		var req warehouseDto.WarehouseDto
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
@@ -71,14 +71,16 @@ func updateWarehouse(service warehouseService.WarehouseCommandService) fiber.Han
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
 		}
-		var req warehouseDto.UpdateWarehouseRequest
+		var req warehouseDto.WarehouseDto
+		req.ID = id.String()
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
-		if err := service.Update(c.Context(), id, &req); err != nil {
+		dto, err := service.Update(c.Context(), &req)
+		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
-		return c.SendStatus(fiber.StatusNoContent)
+		return c.JSON(dto)
 	}
 }
 
@@ -88,9 +90,10 @@ func deleteWarehouse(service warehouseService.WarehouseCommandService) fiber.Han
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
 		}
-		if err := service.Delete(c.Context(), id); err != nil {
+		dto, err := service.Delete(c.Context(), id)
+		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
-		return c.SendStatus(fiber.StatusNoContent)
+		return c.JSON(dto)
 	}
 }

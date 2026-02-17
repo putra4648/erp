@@ -1,8 +1,8 @@
 package routes
 
 import (
-	categoryDomain "putra4648/erp/internal/modules/category/domain"
 	"putra4648/erp/internal/modules/category/dto"
+	categoryDto "putra4648/erp/internal/modules/category/dto"
 	categoryService "putra4648/erp/internal/modules/category/service"
 	. "putra4648/erp/internal/modules/shared/utils"
 
@@ -30,7 +30,7 @@ func RegisterCategoryRoutes(
 
 func createCategory(service categoryService.CategoryCommandService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var req categoryDomain.CategoryDTO
+		var req categoryDto.CategoryDTO
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 		}
@@ -72,7 +72,7 @@ func getAllCategories(service categoryService.CategoryQueryService) fiber.Handle
 		size := c.QueryInt("size", 10)
 		name := c.Query("name")
 
-		responses, err := service.GetAllCategories(c.Context(), &dto.CategoryFindAllRequest{Name: name, Page: page, Size: size})
+		responses, err := service.GetAllCategories(c.Context(), &dto.CategoryRequest{Name: name, Page: page, Size: size})
 		if err != nil {
 			if categoryErr, ok := err.(*categoryService.CategoryError); ok {
 				return c.Status(GetStatusCode(categoryErr.Code)).JSON(fiber.Map{"error": categoryErr.Message})
@@ -91,7 +91,7 @@ func updateCategory(service categoryService.CategoryCommandService) fiber.Handle
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid category ID"})
 		}
 
-		var req categoryDomain.CategoryDTO
+		var req categoryDto.CategoryDTO
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 		}

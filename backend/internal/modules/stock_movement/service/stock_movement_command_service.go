@@ -5,32 +5,27 @@ import (
 	"fmt"
 	"putra4648/erp/internal/modules/shared/enums"
 	"putra4648/erp/internal/modules/stock_movement/domain"
-	"putra4648/erp/internal/modules/stock_movement/repository"
+	"putra4648/erp/internal/modules/stock_movement/dto"
+	"putra4648/erp/internal/modules/stock_movement/mapper"
 	"time"
 
 	"github.com/google/uuid"
 )
 
-type StockMovementCommandService interface {
-	Create(ctx context.Context, dto *domain.StockMovementDTO) (*domain.StockMovementResponse, error)
-	Update(ctx context.Context, id uuid.UUID, dto *domain.StockMovementDTO) (*domain.StockMovementResponse, error)
-	Delete(ctx context.Context, id uuid.UUID) error
-}
-
 type stockMovementCommandService struct {
-	repo repository.StockMovementRepository
+	repo domain.StockMovementRepository
 }
 
-func NewStockMovementCommandService(repo repository.StockMovementRepository) StockMovementCommandService {
+func NewStockMovementCommandService(repo domain.StockMovementRepository) StockMovementCommandService {
 	return &stockMovementCommandService{repo: repo}
 }
 
-func (s *stockMovementCommandService) Create(ctx context.Context, dto *domain.StockMovementDTO) (*domain.StockMovementResponse, error) {
+func (s *stockMovementCommandService) Create(ctx context.Context, dto *dto.StockMovementDTO) (*dto.StockMovementDTO, error) {
 	dto.ID = uuid.New().String()
 	// Generate Movement Number sa-yyyy-mm-dd-xxxx
 	dto.MovementNo = fmt.Sprintf("MOV-%s-%d", time.Now().Format("20060102"), time.Now().UnixNano()%10000)
 
-	model := dto.ToModel()
+	model := mapper.ToModel(dto)
 	model.MovementNo = dto.MovementNo // MovementNo is generated server-side usually
 
 	if err := s.repo.Create(ctx, model); err != nil {
@@ -42,10 +37,10 @@ func (s *stockMovementCommandService) Create(ctx context.Context, dto *domain.St
 		return nil, err
 	}
 
-	return created.ToResponse(), nil
+	return mapper.ToDTO(created), nil
 }
 
-func (s *stockMovementCommandService) Update(ctx context.Context, id uuid.UUID, dto *domain.StockMovementDTO) (*domain.StockMovementResponse, error) {
+func (s *stockMovementCommandService) Update(ctx context.Context, id uuid.UUID, dto *dto.StockMovementDTO) (*dto.StockMovementDTO, error) {
 	existing, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -56,7 +51,7 @@ func (s *stockMovementCommandService) Update(ctx context.Context, id uuid.UUID, 
 	}
 
 	dto.ID = id.String()
-	model := dto.ToModel()
+	model := mapper.ToModel(dto)
 	model.MovementNo = existing.MovementNo
 
 	if err := s.repo.Update(ctx, model); err != nil {
@@ -68,7 +63,7 @@ func (s *stockMovementCommandService) Update(ctx context.Context, id uuid.UUID, 
 		return nil, err
 	}
 
-	return updated.ToResponse(), nil
+	return mapper.ToDTO(updated), nil
 }
 
 func (s *stockMovementCommandService) Delete(ctx context.Context, id uuid.UUID) error {

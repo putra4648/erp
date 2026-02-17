@@ -5,3 +5,8 @@ type UOMRequest struct {
 	Page int    `json:"page"`
 	Size int    `json:"size"`
 }
+
+type UOMDTO struct {
+	ID   string `json:"id"`
+	Name string `json:"name" validate:"required,max=255"`
+}

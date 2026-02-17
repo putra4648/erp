@@ -9,14 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type CategoryRepository interface {
-	Create(ctx context.Context, category *domain.Category) error
-	FindByID(ctx context.Context, id uuid.UUID) (*domain.Category, error)
-	FindAll(ctx context.Context, req *dto.CategoryFindAllRequest) ([]*domain.Category, int64, error)
-	Update(ctx context.Context, category *domain.Category) error
-	Delete(ctx context.Context, id uuid.UUID) error
-}
-
 type categoryRepository struct {
 	db *gorm.DB
 }
@@ -38,7 +30,7 @@ func (r *categoryRepository) FindByID(ctx context.Context, id uuid.UUID) (*domai
 	return &category, nil
 }
 
-func (r *categoryRepository) FindAll(ctx context.Context, req *dto.CategoryFindAllRequest) ([]*domain.Category, int64, error) {
+func (r *categoryRepository) FindAll(ctx context.Context, req *dto.CategoryRequest) ([]*domain.Category, int64, error) {
 	var categories []*domain.Category
 	var total int64
 	db := r.db.WithContext(ctx).Model(&domain.Category{})

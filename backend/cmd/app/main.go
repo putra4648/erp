@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	app "putra4648/erp/cmd"
 	"putra4648/erp/configs/auth"
 	"putra4648/erp/configs/config"
@@ -89,7 +88,7 @@ func main() {
 	}
 
 	if err := container.Invoke(app.Server); err != nil {
-                logger.Log.Fatalf("Failed to start server: %v", err.Error())
+		logger.Log.Fatalf("Failed to start server: %v", err.Error())
 	}
 
 }

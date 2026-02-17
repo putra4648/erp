@@ -2,18 +2,13 @@ package service
 
 import (
 	"context"
-	uomDomain "putra4648/erp/internal/modules/uom/domain"
+	uomDto "putra4648/erp/internal/modules/uom/dto"
+	"putra4648/erp/internal/modules/uom/mapper"
 	uomRepository "putra4648/erp/internal/modules/uom/repository"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
-
-type UOMCommandService interface {
-	CreateUOM(ctx context.Context, uomDTO *uomDomain.UOMDTO) (*uomDomain.UOMResponse, error)
-	UpdateUOM(ctx context.Context, id uuid.UUID, uomDTO *uomDomain.UOMDTO) (*uomDomain.UOMResponse, error)
-	DeleteUOM(ctx context.Context, id uuid.UUID) error
-}
 
 type uomCommandService struct {
 	uomRepo uomRepository.UOMRepository
@@ -27,8 +22,8 @@ func NewUOMCommandService(uomRepo uomRepository.UOMRepository, logger *zap.Logge
 	}
 }
 
-func (s *uomCommandService) CreateUOM(ctx context.Context, uomDTO *uomDomain.UOMDTO) (*uomDomain.UOMResponse, error) {
-	uom := uomDTO.ToModel()
+func (s *uomCommandService) CreateUOM(ctx context.Context, uomDTO *uomDto.UOMDTO) (*uomDto.UOMDTO, error) {
+	uom := mapper.ToUOM(uomDTO)
 
 	err := s.uomRepo.Create(ctx, uom)
 	if err != nil {
@@ -36,10 +31,10 @@ func (s *uomCommandService) CreateUOM(ctx context.Context, uomDTO *uomDomain.UOM
 		return nil, &UOMError{Code: "DATABASE_ERROR", Message: "Failed to create UOM"}
 	}
 
-	return uom.ToResponse(), nil
+	return mapper.ToUOMDTO(uom), nil
 }
 
-func (s *uomCommandService) UpdateUOM(ctx context.Context, id uuid.UUID, uomDTO *uomDomain.UOMDTO) (*uomDomain.UOMResponse, error) {
+func (s *uomCommandService) UpdateUOM(ctx context.Context, id uuid.UUID, uomDTO *uomDto.UOMDTO) (*uomDto.UOMDTO, error) {
 	existingUOM, err := s.uomRepo.FindByID(ctx, id)
 	if err != nil {
 		return nil, &UOMError{Code: "NOT_FOUND", Message: "UOM not found"}
@@ -53,7 +48,7 @@ func (s *uomCommandService) UpdateUOM(ctx context.Context, id uuid.UUID, uomDTO 
 		return nil, &UOMError{Code: "DATABASE_ERROR", Message: "Failed to update UOM"}
 	}
 
-	return existingUOM.ToResponse(), nil
+	return mapper.ToUOMDTO(existingUOM), nil
 }
 
 func (s *uomCommandService) DeleteUOM(ctx context.Context, id uuid.UUID) error {

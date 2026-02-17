@@ -9,19 +9,11 @@ import (
 	"gorm.io/gorm"
 )
 
-type StockMovementRepository interface {
-	Create(ctx context.Context, movement *domain.StockMovement) error
-	FindByID(ctx context.Context, id uuid.UUID) (*domain.StockMovement, error)
-	FindAll(ctx context.Context, req *dto.StockMovementRequest) ([]*domain.StockMovement, int64, error)
-	Update(ctx context.Context, movement *domain.StockMovement) error
-	Delete(ctx context.Context, id uuid.UUID) error
-}
-
 type stockMovementRepository struct {
 	db *gorm.DB
 }
 
-func NewStockMovementRepository(db *gorm.DB) StockMovementRepository {
+func NewStockMovementRepository(db *gorm.DB) domain.StockMovementRepository {
 	return &stockMovementRepository{db: db}
 }
 

@@ -126,6 +126,11 @@ const links = ref<NavigationMenuItem[]>([
                 to: "/inventory/movement",
             },
             {
+                label: 'Stock Level',
+                icon: "i-lucide-truck",
+                to: "/inventory/stock-level",
+            },
+            {
                 label: 'Adjustment',
                 icon: "i-lucide-edit",
                 to: "/inventory/adjustment",

@@ -2,13 +2,13 @@ import type { StockMovement } from "~/types/models/stock_movement";
 import type PaginationResponse from "../utils/pagination_response";
 
 export default defineEventHandler(async (event) => {
-  const method = getMethod(event);
+  const method = event.method;
 
   if (method === "POST") {
     const body = await readBody(event);
     const result = await callBackend<StockMovement>(
       event,
-      "/api/stock-movement",
+      "/api/stock-levels",
       {
         method: "POST",
         body,
@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event);
   const result = await callBackend<PaginationResponse<StockMovement>>(
     event,
-    "/api/stock-movement",
+    "/api/stock-levels",
     {
       method: "GET",
       query: query,

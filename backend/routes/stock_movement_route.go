@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"putra4648/erp/internal/modules/stock_movement/domain"
 	"putra4648/erp/internal/modules/stock_movement/dto"
 	"putra4648/erp/internal/modules/stock_movement/service"
 
@@ -26,7 +25,7 @@ func RegisterStockMovementRoutes(
 
 func createStockMovement(s service.StockMovementCommandService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var req domain.StockMovementDTO
+		var req dto.StockMovementDTO
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
@@ -85,7 +84,7 @@ func updateStockMovement(s service.StockMovementCommandService) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
 		}
 
-		var req domain.StockMovementDTO
+		var req dto.StockMovementDTO
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}

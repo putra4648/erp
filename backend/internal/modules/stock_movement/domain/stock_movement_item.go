@@ -15,28 +15,3 @@ type StockMovementItem struct {
 	Quantity        decimal.Decimal       `gorm:"type:decimal(19,4);not null"`
 	Note            string                `gorm:"type:text"`
 }
-
-type StockMovementItemResponse struct {
-	ID        uuid.UUID                     `json:"id"`
-	ProductID uuid.UUID                     `json:"product_id"`
-	Product   productDomain.ProductResponse `json:"product"`
-	Quantity  decimal.Decimal               `json:"quantity"`
-	Note      string                        `json:"note"`
-}
-
-type StockMovementItemDTO struct {
-	ID        string          `json:"id"`
-	ProductID string          `json:"product_id" validate:"required"`
-	Quantity  decimal.Decimal `json:"quantity" validate:"required,gt=0"`
-	Note      string          `json:"note"`
-}
-
-func (i *StockMovementItem) ToResponse() *StockMovementItemResponse {
-	return &StockMovementItemResponse{
-		ID:        i.ID,
-		ProductID: i.ProductID,
-		Product:   *i.Product.ToResponse(),
-		Quantity:  i.Quantity,
-		Note:      i.Note,
-	}
-}
