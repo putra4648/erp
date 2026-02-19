@@ -7,6 +7,7 @@ import (
 	categoryService "putra4648/erp/internal/modules/category/service"
 	productService "putra4648/erp/internal/modules/product/service"
 	stockAdjustmentService "putra4648/erp/internal/modules/stock_adjustment/service"
+	stockLevelService "putra4648/erp/internal/modules/stock_level/service"
 	stockMovementService "putra4648/erp/internal/modules/stock_movement/service"
 	supplierService "putra4648/erp/internal/modules/supplier/service"
 	uomService "putra4648/erp/internal/modules/uom/service"
@@ -39,8 +40,12 @@ type AppDependencies struct {
 	CategoryQueryService    categoryService.CategoryQueryService
 	CategoryCommandService  categoryService.CategoryCommandService
 
-	StockAdjustmentService  stockAdjustmentService.StockAdjustmentService
-	AdjustmentReasonService stockAdjustmentService.AdjustmentReasonService
+	StockAdjustmentQueryService    stockAdjustmentService.StockAdjustmentQueryService
+	StockAdjustmentCommandService  stockAdjustmentService.StockAdjustmentCommandService
+	AdjustmentReasonQueryService   stockAdjustmentService.AdjustmentReasonQueryService
+	AdjustmentReasonCommandService stockAdjustmentService.AdjustmentReasonCommandService
+
+	StockLevelService stockLevelService.StockLevelQueryService
 
 	StockMovementCommandService stockMovementService.StockMovementCommandService
 	StockMovementQueryService   stockMovementService.StockMovementQueryService
@@ -111,8 +116,9 @@ func Server(deps AppDependencies) error {
 	routes.RegisterProductRoutes(app, api, deps.ProductCommandService, deps.ProductQueryService, deps.Enforcer)
 	routes.RegisterCategoryRoutes(app, api, deps.CategoryCommandService, deps.CategoryQueryService, deps.Enforcer)
 	routes.RegisterUOMRoutes(app, api, deps.UOMCommandService, deps.UOMQueryService, deps.Enforcer)
-	routes.RegisterStockAdjustmentRoutes(api, deps.StockAdjustmentService, deps.AdjustmentReasonService)
+	routes.RegisterStockAdjustmentRoutes(api, deps.StockAdjustmentQueryService, deps.StockAdjustmentCommandService, deps.AdjustmentReasonQueryService, deps.AdjustmentReasonCommandService)
 	routes.RegisterStockMovementRoutes(api, deps.StockMovementCommandService, deps.StockMovementQueryService)
+	routes.RegisterStockLevelRoutes(app, api, deps.StockLevelService, deps.Enforcer)
 
 	return app.Listen(":" + deps.Config.Port)
 }

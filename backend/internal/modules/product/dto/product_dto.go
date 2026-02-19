@@ -23,5 +23,6 @@ type ProductDTO struct {
 	Quantity    int                        `json:"quantity" validate:"gte=0"`
 	Categories  []*categoryDto.CategoryDTO `json:"categories"`
 	UOMs        []*uomDto.UOMDTO           `json:"uoms"`
+	SupplierID  string                     `json:"supplier_id" validate:"required"`
 	IsActive    bool                       `json:"is_active" default:"true"`
 }

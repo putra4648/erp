@@ -3,10 +3,13 @@ package mapper
 import (
 	"putra4648/erp/internal/modules/uom/domain"
 	"putra4648/erp/internal/modules/uom/dto"
+
+	"github.com/google/uuid"
 )
 
 func ToUOM(uomDTO *dto.UOMDTO) *domain.UOM {
 	return &domain.UOM{
+		ID:   uuid.MustParse(uomDTO.ID),
 		Name: uomDTO.Name,
 	}
 }

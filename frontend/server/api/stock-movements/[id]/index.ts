@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
   const method = event.method;
 
   if (method === "DELETE") {
-    const result = await callBackend(event, `/api/stock-movement/${id}`, {
+    const result = await callBackend(event, `/api/stock-movements/${id}`, {
       method: "DELETE",
     });
     return result;
@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event);
     const result = await callBackend<StockMovement>(
       event,
-      `/api/stock-movement/${id}`,
+      `/api/stock-movements/${id}`,
       {
         method: "PUT",
         body,
@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
   if (method === "GET") {
     const result = await callBackend<StockMovement>(
       event,
-      `/api/stock-movement/${id}`,
+      `/api/stock-movements/${id}`,
       {
         method: "GET",
       },

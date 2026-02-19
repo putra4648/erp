@@ -2,7 +2,12 @@
     <div>
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-2xl font-bold">Stock Movement</h1>
-            <UButton label="Add Movement" @click="addMovement" />
+            <div class="flex gap-2">
+                <UInput v-model="search" placeholder="Search..." icon="i-lucide-search" />
+                <USelectMenu v-model="typeFilter" :items="['', 'IN', 'OUT', 'TRANSFER']" placeholder="Type"
+                    class="w-32" />
+                <UButton label="Add Movement" @click="addMovement" />
+            </div>
         </div>
 
         <UModal v-model:open="open" :title="isEdit ? 'Edit Movement' : 'Add Movement'"
@@ -86,6 +91,11 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+    layout: 'master-layout',
+    label: 'Stock Movement'
+})
+
 import type { TableRow, TableColumn, FormSubmitEvent, DropdownMenuItem } from '@nuxt/ui'
 import type { FormError } from '#ui/types';
 import { Status } from '~/types/enums/status_enum';
@@ -95,9 +105,12 @@ import type { Product } from '~/types/models/product';
 import { StockMovementSchema } from '~/validations/schemas/stock_movement_schema';
 import type PaginationResponse from '~/../server/utils/pagination_response';
 
+const UInput = resolveComponent('UInput')
 const UButton = resolveComponent('UButton')
 const UDropdownMenu = resolveComponent('UDropdownMenu')
 const UBadge = resolveComponent('UBadge')
+const USelectMenu = resolveComponent('USelectMenu')
+const UTextarea = resolveComponent('UTextarea')
 
 const schema = StockMovementSchema
 const toast = useToast()
@@ -117,6 +130,8 @@ const initialState: StockMovementDTO = {
 const state = reactive<StockMovementDTO>({ ...initialState })
 const page = ref(1)
 const size = ref(10)
+const search = ref('')
+const typeFilter = ref('')
 const open = ref(false)
 const isEdit = ref(false)
 const selectedId = ref("")
@@ -124,9 +139,9 @@ const selectedId = ref("")
 const availableStatuses = Object.values(Status)
 
 // Fetch Data
-const { data, status, refresh } = await useFetch<PaginationResponse<StockMovement>>('/api/stock-movement', {
-    query: { page, size },
-    watch: [page, size]
+const { data, status, refresh } = await useFetch<PaginationResponse<StockMovement>>('/api/stock-movements', {
+    query: { page, size, search, type: typeFilter },
+    watch: [page, size, search, typeFilter]
 })
 
 const { data: warehouseData } = await useFetch<PaginationResponse<Warehouse>>('/api/warehouses', {
@@ -174,8 +189,8 @@ const columns = ref<TableColumn<StockMovement>[]>([
         accessorKey: "status",
         header: "Status",
         cell: ({ row }) => {
-            const colors: Record<string, any> = { DRAFT: 'neutral', APPROVED: 'success', CANCELLED: 'error', VOID: 'error' }
-            return h(UBadge, { color: colors[row.original.status] || 'neutral' }, () => row.original.status)
+            const colors: Record<string, any> = { DRAFT: 'warning', COMPLETED: 'success', CANCELLED: 'error', VOID: 'error' }
+            return h(UBadge, { color: colors[row.original.status] || 'neutral', variant: 'subtle' }, () => row.original.status)
         }
     },
     {
@@ -199,16 +214,49 @@ const columns = ref<TableColumn<StockMovement>[]>([
 ])
 
 function getRowActions(row: TableRow<StockMovement>): DropdownMenuItem[] {
-    return [
-        { label: 'Edit', icon: 'i-lucide-pencil', onSelect: () => editMovement(row.original) },
+    const actions: DropdownMenuItem[] = [
         {
+            type: 'label',
+            label: 'Actions',
+        },
+        {
+            type: 'separator'
+        }
+    ]
+
+    if (row.original.status === Status.DRAFT) {
+        actions.push({
+            label: 'Approve',
+            icon: 'i-lucide-check-circle',
+            color: 'success',
+            onSelect: async () => {
+                if (confirm('Are you sure you want to approve this movement? This will update stock levels.')) {
+                    try {
+                        await $fetch(`/api/stock-movements/${row.original.id}/approve`, { method: 'POST' })
+                        toast.add({ title: 'Success', description: 'Movement approved and stock updated.' })
+                        refresh()
+                    } catch (error: any) {
+                        toast.add({ title: 'Error', description: error.data?.error || 'Failed to approve', color: 'error' })
+                    }
+                }
+            }
+        })
+        actions.push({
+            label: 'Edit',
+            icon: 'i-lucide-pencil',
+            onSelect: () => editMovement(row.original)
+        })
+        actions.push({
+            type: 'separator'
+        })
+        actions.push({
             label: 'Remove',
             icon: 'i-lucide-trash',
             color: 'error',
             onSelect: async () => {
                 if (confirm('Are you sure you want to remove this movement?')) {
                     try {
-                        await $fetch(`/api/stock-movement/${row.original.id}`, { method: 'DELETE' })
+                        await $fetch(`/api/stock-movements/${row.original.id}`, { method: 'DELETE' })
                         toast.add({ title: 'Success', description: 'Movement removed.' })
                         refresh()
                     } catch (error: any) {
@@ -216,8 +264,10 @@ function getRowActions(row: TableRow<StockMovement>): DropdownMenuItem[] {
                     }
                 }
             }
-        }
-    ]
+        })
+    }
+
+    return actions
 }
 
 function addMovement() {
@@ -265,21 +315,26 @@ function removeItem(index: number) {
 async function onSubmit(event: FormSubmitEvent<StockMovementDTO>) {
     loading.value = true
     try {
-        const url = isEdit.value ? `/api/stock-movement/${selectedId.value}` : '/api/stock-movement'
-        const method = isEdit.value ? 'PUT' : 'POST'
+        if (isEdit.value) {
+            await $fetch(`/api/stock-movements/${selectedId.value}`, {
+                method: 'PUT',
+                body: event.data
+            })
+            toast.add({ title: 'Success', description: 'Movement updated successfully.' })
+        } else {
+            await $fetch('/api/stock-movements', {
+                method: 'POST',
+                body: event.data
+            })
+            toast.add({ title: 'Success', description: 'Movement has been created successfully.' })
+        }
 
-        await $fetch(url, {
-            method,
-            body: event.data
-        })
-
-        toast.add({ title: 'Success', description: `Movement ${isEdit.value ? 'updated' : 'created'} successfully.` })
         open.value = false
         refresh()
     } catch (error: any) {
         toast.add({
             title: 'Error',
-            description: error.data?.error || 'Failed to save movement',
+            description: error.data?.error || `Failed to ${isEdit.value ? 'update' : 'create'} movement`,
             color: 'error'
         })
     } finally {
@@ -288,6 +343,6 @@ async function onSubmit(event: FormSubmitEvent<StockMovementDTO>) {
 }
 
 function onError(event: { errors: FormError[] }) {
-    toast.add({ title: 'Validation Error', description: 'Please check your input.', color: 'error' });
+    toast.add({ title: 'Validation Error', description: `Please fill in the required fields ${event.errors.map((e) => e.name).join(", ")}.`, color: 'error' });
 }
 </script>

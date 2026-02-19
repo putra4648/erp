@@ -1,4 +1,4 @@
-import type { StockMovement } from "~/types/models/stock_movement";
+import type { StockLevelResponse } from "~/types/models/stock_level";
 import type PaginationResponse from "../utils/pagination_response";
 
 export default defineEventHandler(async (event) => {
@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
 
   if (method === "POST") {
     const body = await readBody(event);
-    const result = await callBackend<StockMovement>(
+    const result = await callBackend<StockLevelResponse>(
       event,
       "/api/stock-levels",
       {
@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const query = getQuery(event);
-  const result = await callBackend<PaginationResponse<StockMovement>>(
+  const result = await callBackend<PaginationResponse<StockLevelResponse>>(
     event,
     "/api/stock-levels",
     {

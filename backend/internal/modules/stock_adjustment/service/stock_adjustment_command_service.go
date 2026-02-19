@@ -13,15 +13,15 @@ import (
 	"github.com/google/uuid"
 )
 
-type stockAdjustmentService struct {
+type stockAdjustmentCommandService struct {
 	repo repository.StockAdjustmentRepository
 }
 
-func NewStockAdjustmentService(repo repository.StockAdjustmentRepository) StockAdjustmentService {
-	return &stockAdjustmentService{repo: repo}
+func NewStockAdjustmentCommandService(repo repository.StockAdjustmentRepository) StockAdjustmentCommandService {
+	return &stockAdjustmentCommandService{repo: repo}
 }
 
-func (s *stockAdjustmentService) Create(ctx context.Context, req *dto.CreateStockAdjustmentRequest, userID uuid.UUID) (*dto.StockAdjustmentDto, error) {
+func (s *stockAdjustmentCommandService) Create(ctx context.Context, req *dto.CreateStockAdjustmentRequest, userID uuid.UUID) (*dto.StockAdjustmentDto, error) {
 	transactionDate, err := time.Parse("2006-01-02", req.TransactionDate)
 	if err != nil {
 		return nil, err
@@ -61,28 +61,7 @@ func (s *stockAdjustmentService) Create(ctx context.Context, req *dto.CreateStoc
 	return mapper.ToStockAdjustmentDto(saved), nil
 }
 
-func (s *stockAdjustmentService) FindByID(ctx context.Context, id uuid.UUID) (*dto.StockAdjustmentDto, error) {
-	adjustment, err := s.repo.FindByID(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	return mapper.ToStockAdjustmentDto(adjustment), nil
-}
-
-func (s *stockAdjustmentService) FindAll(ctx context.Context, page, size int) ([]*dto.StockAdjustmentDto, int64, error) {
-	adjustments, total, err := s.repo.FindAll(ctx, page, size)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	var responses []*dto.StockAdjustmentDto
-	for _, adj := range adjustments {
-		responses = append(responses, mapper.ToStockAdjustmentDto(adj))
-	}
-	return responses, total, nil
-}
-
-func (s *stockAdjustmentService) Update(ctx context.Context, id uuid.UUID, req *dto.CreateStockAdjustmentRequest) (*dto.StockAdjustmentDto, error) {
+func (s *stockAdjustmentCommandService) Update(ctx context.Context, id uuid.UUID, req *dto.CreateStockAdjustmentRequest) (*dto.StockAdjustmentDto, error) {
 	adjustment, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -128,7 +107,7 @@ func (s *stockAdjustmentService) Update(ctx context.Context, id uuid.UUID, req *
 	return mapper.ToStockAdjustmentDto(saved), nil
 }
 
-func (s *stockAdjustmentService) Approve(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*dto.StockAdjustmentDto, error) {
+func (s *stockAdjustmentCommandService) Approve(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*dto.StockAdjustmentDto, error) {
 	adjustment, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -153,7 +132,7 @@ func (s *stockAdjustmentService) Approve(ctx context.Context, id uuid.UUID, user
 	return mapper.ToStockAdjustmentDto(saved), nil
 }
 
-func (s *stockAdjustmentService) Void(ctx context.Context, id uuid.UUID) (*dto.StockAdjustmentDto, error) {
+func (s *stockAdjustmentCommandService) Void(ctx context.Context, id uuid.UUID) (*dto.StockAdjustmentDto, error) {
 	adjustment, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err

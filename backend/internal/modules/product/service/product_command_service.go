@@ -7,6 +7,7 @@ import (
 	"putra4648/erp/internal/modules/product/mapper"
 	"putra4648/erp/internal/modules/product/repository"
 	productRepository "putra4648/erp/internal/modules/product/repository"
+	supplierRepository "putra4648/erp/internal/modules/supplier/repository"
 	uomRepository "putra4648/erp/internal/modules/uom/repository"
 
 	"github.com/google/uuid"
@@ -17,18 +18,21 @@ type productCommandService struct {
 	productRepo  repository.ProductRepository
 	categoryRepo categoryRepository.CategoryRepository
 	uomRepo      uomRepository.UOMRepository
+	supplierRepo supplierRepository.SupplierRepository
 }
 
 func NewProductCommandService(
 	productRepo productRepository.ProductRepository,
 	categoryRepo categoryRepository.CategoryRepository,
 	uomRepo uomRepository.UOMRepository,
+	supplierRepo supplierRepository.SupplierRepository,
 	logger *zap.Logger,
 ) ProductCommandService {
 	return &productCommandService{
 		productRepo:  productRepo,
 		categoryRepo: categoryRepo,
 		uomRepo:      uomRepo,
+		supplierRepo: supplierRepo,
 	}
 }
 
@@ -58,6 +62,15 @@ func (s *productCommandService) CreateProduct(ctx context.Context, productDTO *p
 		if _, err := s.categoryRepo.FindByID(ctx, catID); err != nil {
 			return nil, &ProductError{Code: "NOT_FOUND", Message: "Category not found"}
 		}
+	}
+
+	// Validate Supplier
+	supplierID, err := uuid.Parse(productDTO.SupplierID)
+	if err != nil {
+		return nil, &ProductError{Code: "INVALID_ID", Message: "Invalid Supplier ID"}
+	}
+	if _, err := s.supplierRepo.FindByID(ctx, supplierID); err != nil {
+		return nil, &ProductError{Code: "NOT_FOUND", Message: "Supplier not found"}
 	}
 
 	product := mapper.ToProduct(productDTO)
@@ -110,6 +123,15 @@ func (s *productCommandService) UpdateProduct(ctx context.Context, id uuid.UUID,
 		if _, err := s.categoryRepo.FindByID(ctx, catID); err != nil {
 			return nil, &ProductError{Code: "NOT_FOUND", Message: "Category not found"}
 		}
+	}
+
+	// Validate Supplier
+	supplierID, err := uuid.Parse(productDTO.SupplierID)
+	if err != nil {
+		return nil, &ProductError{Code: "INVALID_ID", Message: "Invalid Supplier ID"}
+	}
+	if _, err := s.supplierRepo.FindByID(ctx, supplierID); err != nil {
+		return nil, &ProductError{Code: "NOT_FOUND", Message: "Supplier not found"}
 	}
 
 	updatedProduct := mapper.ToProduct(productDTO)

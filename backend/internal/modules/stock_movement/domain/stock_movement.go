@@ -20,5 +20,5 @@ type StockMovement struct {
 	Status                 enums.Status               `gorm:"type:varchar(255)"`
 	TransactionDate        time.Time                  `gorm:"type:timestamp"`
 	Note                   string                     `gorm:"type:text"`
-	Items                  []StockMovementItem        `gorm:"foreignKey:StockMovementID"`
+	Items                  []*StockMovementItem       `gorm:"foreignKey:StockMovementID"`
 }

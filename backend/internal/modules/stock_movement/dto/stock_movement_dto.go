@@ -7,9 +7,10 @@ import (
 )
 
 type StockMovementRequest struct {
-	Type string `json:"type"`
-	Page int    `json:"page"`
-	Size int    `json:"size"`
+	Type   string `json:"type" query:"type"`
+	Search string `json:"search" query:"search"`
+	Page   int    `json:"page" query:"page"`
+	Size   int    `json:"size" query:"size"`
 }
 
 type StockMovementItemDTO struct {
@@ -20,14 +21,14 @@ type StockMovementItemDTO struct {
 }
 
 type StockMovementDTO struct {
-	ID                     string                 `json:"id"`
-	MovementNo             string                 `json:"movement_no"`
-	Type                   string                 `json:"type" validate:"required"`
-	OriginWarehouseID      string                 `json:"origin_warehouse_id"`
-	DestinationWarehouseID string                 `json:"destination_warehouse_id"`
-	ReferenceNo            string                 `json:"reference_no"`
-	Status                 enums.Status           `json:"status" default:"DRAFT"`
-	TransactionDate        string                 `json:"transaction_date"`
-	Note                   string                 `json:"note"`
-	Items                  []StockMovementItemDTO `json:"items" validate:"required,min=1"`
+	ID                     string                  `json:"id"`
+	MovementNo             string                  `json:"movement_no"`
+	Type                   string                  `json:"type" validate:"required"`
+	OriginWarehouseID      string                  `json:"origin_warehouse_id"`
+	DestinationWarehouseID string                  `json:"destination_warehouse_id"`
+	ReferenceNo            string                  `json:"reference_no"`
+	Status                 enums.Status            `json:"status" default:"DRAFT"`
+	TransactionDate        string                  `json:"transaction_date"`
+	Note                   string                  `json:"note"`
+	Items                  []*StockMovementItemDTO `json:"items" validate:"required,min=1"`
 }

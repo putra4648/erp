@@ -54,7 +54,8 @@
                     <div class="grid grid-cols-2 gap-4">
                         <UFormField label="Warehouse" name="warehouse_id">
                             <USelectMenu class="w-full" v-model="(state.warehouse_id)" :items="allWarehouses"
-                                value-key="id" label-key="name" placeholder="Select warehouse" />
+                                value-key="id" label-key="name" placeholder="Select warehouse"
+                                @update:model-value="updateAllSystemQtys" />
                         </UFormField>
                         <UFormField label="Transaction Date" name="transaction_date">
                             <UInput type="date" class="w-full" v-model="state.transaction_date" />
@@ -83,7 +84,8 @@
                             <div class="grid grid-cols-2 gap-4">
                                 <UFormField label="Product" :name="`items.${index}.product_id`">
                                     <USelectMenu class="w-full" v-model="item.product_id" :items="allProducts"
-                                        value-key="id" label-key="name" placeholder="Select product" />
+                                        value-key="id" label-key="name" placeholder="Select product"
+                                        @update:model-value="() => fetchSystemQty(index)" />
                                 </UFormField>
                                 <UFormField label="Reason" :name="`items.${index}.reason_id`">
                                     <USelectMenu class="w-full" v-model="item.reason_id" :items="allReasons"
@@ -93,7 +95,8 @@
 
                             <div class="grid grid-cols-2 gap-4">
                                 <UFormField label="System Qty" :name="`items.${index}.system_qty`">
-                                    <UInput type="number" class="w-full" v-model.number="item.system_qty" />
+                                    <UInput type="number" class="w-full" v-model.number="item.system_qty" readonly
+                                        color="neutral" />
                                 </UFormField>
                                 <UFormField label="Actual Qty" :name="`items.${index}.actual_qty`">
                                     <UInput type="number" class="w-full" v-model.number="item.actual_qty" />
@@ -127,6 +130,7 @@ definePageMeta({
 import type { TableRow, TableColumn, FormSubmitEvent, DropdownMenuItem } from '@nuxt/ui'
 import type { FormError } from '#ui/types';
 import type { StockAdjustment, StockAdjustmentItem, AdjustmentReason } from '~/types/models/stock_adjustment';
+import type { StockLevelResponse } from '~/types/models/stock_level';
 import type { Warehouse } from '~/types/models/warehouse';
 import type { Product } from '~/types/models/product';
 import { StockAdjustmentSchema } from '~/validations/schemas/stock_adjustment_schema';
@@ -390,6 +394,34 @@ function addItem() {
 
 function removeItem(index: number) {
     state.items.splice(index, 1)
+}
+
+async function fetchSystemQty(itemIndex: number) {
+    const item = state.items[itemIndex]
+    if (!item || !state.warehouse_id || !item.product_id) return
+
+    try {
+        const response = await $fetch<PaginationResponse<StockLevelResponse>>('/api/stock-levels', {
+            query: {
+                warehouse_id: state.warehouse_id,
+                product_id: item.product_id,
+                size: 1
+            }
+        })
+        const firstItem = response.items[0]
+        if (firstItem) {
+            item.system_qty = parseFloat(firstItem.quantity.toString())
+        } else {
+            item.system_qty = 0
+        }
+    } catch (error) {
+        console.error('Failed to fetch system qty:', error)
+        item.system_qty = 0
+    }
+}
+
+function updateAllSystemQtys() {
+    state.items.forEach((_, index) => fetchSystemQty(index))
 }
 
 async function onSubmit(event: FormSubmitEvent<StockAdjustment>) {

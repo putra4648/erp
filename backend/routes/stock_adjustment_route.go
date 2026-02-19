@@ -10,29 +10,31 @@ import (
 
 func RegisterStockAdjustmentRoutes(
 	api fiber.Router,
-	sas service.StockAdjustmentService,
-	ars service.AdjustmentReasonService,
+	saqs service.StockAdjustmentQueryService,
+	sacs service.StockAdjustmentCommandService,
+	arqs service.AdjustmentReasonQueryService,
+	arcs service.AdjustmentReasonCommandService,
 ) {
 	// Stock Adjustment routes
 	adjustment := api.Group("/stock-adjustment")
 	{
-		adjustment.Post("/", createStockAdjustment(sas))
-		adjustment.Get("/:id", getStockAdjustmentByID(sas))
-		adjustment.Get("/", getAllStockAdjustments(sas))
-		adjustment.Put("/:id", updateStockAdjustment(sas))
-		adjustment.Post("/:id/approve", approveStockAdjustment(sas))
-		adjustment.Post("/:id/void", voidStockAdjustment(sas))
+		adjustment.Post("/", createStockAdjustment(sacs))
+		adjustment.Get("/:id", getStockAdjustmentByID(saqs))
+		adjustment.Get("/", getAllStockAdjustments(saqs))
+		adjustment.Put("/:id", updateStockAdjustment(sacs))
+		adjustment.Post("/:id/approve", approveStockAdjustment(sacs))
+		adjustment.Post("/:id/void", voidStockAdjustment(sacs))
 	}
 
 	// Adjustment Reason routes
 	reason := api.Group("/adjustment-reason")
 	{
-		reason.Post("/", createAdjustmentReason(ars))
-		reason.Get("/", getAllAdjustmentReasons(ars))
+		reason.Post("/", createAdjustmentReason(arcs))
+		reason.Get("/", getAllAdjustmentReasons(arqs))
 	}
 }
 
-func createStockAdjustment(s service.StockAdjustmentService) fiber.Handler {
+func createStockAdjustment(s service.StockAdjustmentCommandService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var req dto.CreateStockAdjustmentRequest
 		if err := c.BodyParser(&req); err != nil {
@@ -53,7 +55,7 @@ func createStockAdjustment(s service.StockAdjustmentService) fiber.Handler {
 	}
 }
 
-func getStockAdjustmentByID(s service.StockAdjustmentService) fiber.Handler {
+func getStockAdjustmentByID(s service.StockAdjustmentQueryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := uuid.Parse(c.Params("id"))
 		if err != nil {
@@ -67,7 +69,7 @@ func getStockAdjustmentByID(s service.StockAdjustmentService) fiber.Handler {
 	}
 }
 
-func getAllStockAdjustments(s service.StockAdjustmentService) fiber.Handler {
+func getAllStockAdjustments(s service.StockAdjustmentQueryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		page := c.QueryInt("page", 1)
 		size := c.QueryInt("size", 10)
@@ -84,7 +86,7 @@ func getAllStockAdjustments(s service.StockAdjustmentService) fiber.Handler {
 	}
 }
 
-func createAdjustmentReason(s service.AdjustmentReasonService) fiber.Handler {
+func createAdjustmentReason(s service.AdjustmentReasonCommandService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var req dto.AdjustmentReasonRequest
 		if err := c.BodyParser(&req); err != nil {
@@ -98,7 +100,7 @@ func createAdjustmentReason(s service.AdjustmentReasonService) fiber.Handler {
 	}
 }
 
-func getAllAdjustmentReasons(s service.AdjustmentReasonService) fiber.Handler {
+func getAllAdjustmentReasons(s service.AdjustmentReasonQueryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		res, err := s.FindAll(c.Context())
 		if err != nil {
@@ -108,7 +110,7 @@ func getAllAdjustmentReasons(s service.AdjustmentReasonService) fiber.Handler {
 	}
 }
 
-func updateStockAdjustment(s service.StockAdjustmentService) fiber.Handler {
+func updateStockAdjustment(s service.StockAdjustmentCommandService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := uuid.Parse(c.Params("id"))
 		if err != nil {
@@ -128,7 +130,7 @@ func updateStockAdjustment(s service.StockAdjustmentService) fiber.Handler {
 	}
 }
 
-func approveStockAdjustment(s service.StockAdjustmentService) fiber.Handler {
+func approveStockAdjustment(s service.StockAdjustmentCommandService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := uuid.Parse(c.Params("id"))
 		if err != nil {
@@ -149,7 +151,7 @@ func approveStockAdjustment(s service.StockAdjustmentService) fiber.Handler {
 	}
 }
 
-func voidStockAdjustment(s service.StockAdjustmentService) fiber.Handler {
+func voidStockAdjustment(s service.StockAdjustmentCommandService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := uuid.Parse(c.Params("id"))
 		if err != nil {

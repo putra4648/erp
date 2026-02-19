@@ -134,6 +134,11 @@ const links = ref<NavigationMenuItem[]>([
                 label: 'Adjustment',
                 icon: "i-lucide-edit",
                 to: "/inventory/adjustment",
+            },
+            {
+                label: 'Stock Transaction',
+                icon: "i-lucide-history",
+                to: "/inventory/stock-transaction",
             }
         ],
     },

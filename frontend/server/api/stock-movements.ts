@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event);
     const result = await callBackend<StockMovement>(
       event,
-      "/api/stock-movement",
+      "/api/stock-movements",
       {
         method: "POST",
         body,
@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event);
   const result = await callBackend<PaginationResponse<StockMovement>>(
     event,
-    "/api/stock-movement",
+    "/api/stock-movements",
     {
       method: "GET",
       query: query,

@@ -4,20 +4,26 @@ import (
 	"context"
 	"fmt"
 	"putra4648/erp/internal/modules/shared/enums"
+	stockLevelService "putra4648/erp/internal/modules/stock_level/service"
 	"putra4648/erp/internal/modules/stock_movement/domain"
 	"putra4648/erp/internal/modules/stock_movement/dto"
 	"putra4648/erp/internal/modules/stock_movement/mapper"
+	"putra4648/erp/internal/modules/stock_movement/repository"
 	"time"
 
 	"github.com/google/uuid"
 )
 
 type stockMovementCommandService struct {
-	repo domain.StockMovementRepository
+	repo              repository.StockMovementRepository
+	stockLevelService stockLevelService.StockLevelCommandService
 }
 
-func NewStockMovementCommandService(repo domain.StockMovementRepository) StockMovementCommandService {
-	return &stockMovementCommandService{repo: repo}
+func NewStockMovementCommandService(repo repository.StockMovementRepository, stockLevelService stockLevelService.StockLevelCommandService) StockMovementCommandService {
+	return &stockMovementCommandService{
+		repo:              repo,
+		stockLevelService: stockLevelService,
+	}
 }
 
 func (s *stockMovementCommandService) Create(ctx context.Context, dto *dto.StockMovementDTO) (*dto.StockMovementDTO, error) {
@@ -77,4 +83,63 @@ func (s *stockMovementCommandService) Delete(ctx context.Context, id uuid.UUID) 
 	}
 
 	return s.repo.Delete(ctx, id)
+}
+
+func (s *stockMovementCommandService) Approve(ctx context.Context, id uuid.UUID) error {
+	movement, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	// ... validasi status movement ...
+
+	for _, item := range movement.Items {
+		// PROSES OUTGOING (Gudang Asal)
+		if movement.OriginWarehouseID != nil {
+			// 1. Update Stock Level (Atomic UPDATE quantity = quantity + delta)
+			err := s.stockLevelService.AdjustStock(ctx, item.ProductID, *movement.OriginWarehouseID, item.Quantity.Neg())
+			if err != nil {
+				return err
+			}
+
+			// 2. Insert Transaction (Memicu Trigger AFTER INSERT)
+			transaction := &domain.StockTransaction{
+				ID:          uuid.New(),
+				ProductID:   item.ProductID,
+				WarehouseID: *movement.OriginWarehouseID,
+				SupplierID:  item.Product.SupplierID,
+				Type:        "OUT",
+				Quantity:    item.Quantity.Neg(),
+				ReferenceNo: movement.MovementNo,
+			}
+			if err := s.repo.CreateTransaction(ctx, transaction); err != nil {
+				return err
+			}
+		}
+
+		// PROSES INCOMING (Gudang Tujuan)
+		if movement.DestinationWarehouseID != nil {
+			// 1. Update Stock Level
+			err := s.stockLevelService.AdjustStock(ctx, item.ProductID, *movement.DestinationWarehouseID, item.Quantity)
+			if err != nil {
+				return err
+			}
+
+			// 2. Insert Transaction (Memicu Trigger AFTER INSERT)
+			transaction := &domain.StockTransaction{
+				ID:          uuid.New(),
+				ProductID:   item.ProductID,
+				WarehouseID: *movement.DestinationWarehouseID,
+				SupplierID:  item.Product.SupplierID,
+				Type:        "IN",
+				Quantity:    item.Quantity,
+				ReferenceNo: movement.MovementNo,
+			}
+			if err := s.repo.CreateTransaction(ctx, transaction); err != nil {
+				return err
+			}
+		}
+	}
+
+	return s.repo.CompletedMovement(ctx, id)
 }
