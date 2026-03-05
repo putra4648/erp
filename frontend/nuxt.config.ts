@@ -19,6 +19,8 @@ export default defineNuxtConfig({
     },
   },
   runtimeConfig: {
+    keycloakClientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
+    keycloakIssuer: process.env.KEYCLOAK_ISSUER,
     app: {},
     public: {
       // serverUrl: "http://localhost:9000",
