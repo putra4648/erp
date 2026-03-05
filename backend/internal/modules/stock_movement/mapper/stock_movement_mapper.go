@@ -68,16 +68,13 @@ func ToModelItem(dto *dto.StockMovementItemDTO) *domain.StockMovementItem {
 }
 
 func ToDTO(model *domain.StockMovement) *dto.StockMovementDTO {
-	originWarehouseID := ""
+	var originWarehouseID, destinationWarehouseID string
 	if model.OriginWarehouseID != nil {
 		originWarehouseID = model.OriginWarehouseID.String()
 	}
-
-	destinationWarehouseID := ""
 	if model.DestinationWarehouseID != nil {
 		destinationWarehouseID = model.DestinationWarehouseID.String()
 	}
-
 	return &dto.StockMovementDTO{
 		ID:                     model.ID.String(),
 		MovementNo:             model.MovementNo,

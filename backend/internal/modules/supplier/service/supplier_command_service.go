@@ -50,11 +50,15 @@ func (s *supplierCommandService) Update(ctx context.Context, req *dto.SupplierDt
 }
 
 func (s *supplierCommandService) Delete(ctx context.Context, id string) (*dto.SupplierDto, error) {
-	supplier, err := s.repo.FindByID(ctx, uuid.Must(uuid.Parse(id)))
+	supplierID, err := uuid.Parse(id)
 	if err != nil {
 		return nil, err
 	}
-	if err := s.repo.Delete(ctx, uuid.Must(uuid.Parse(id))); err != nil {
+	supplier, err := s.repo.FindByID(ctx, supplierID)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.repo.Delete(ctx, supplierID); err != nil {
 		return nil, err
 	}
 	return mapper.ToSupplierDto(supplier), nil

@@ -21,9 +21,9 @@ func ToWarehouseDto(warehouse *domain.Warehouse) *dto.WarehouseDto {
 }
 
 func ToWarehouseDtos(warehouses []*domain.Warehouse) []*dto.WarehouseDto {
-	var warehouseDtos []*dto.WarehouseDto
-	for _, warehouse := range warehouses {
-		warehouseDtos = append(warehouseDtos, ToWarehouseDto(warehouse))
+	warehouseDtos := make([]*dto.WarehouseDto, len(warehouses))
+	for i, warehouse := range warehouses {
+		warehouseDtos[i] = ToWarehouseDto(warehouse)
 	}
 	return warehouseDtos
 }

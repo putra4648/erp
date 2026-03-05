@@ -35,18 +35,9 @@ func ToProductDTO(product *domain.Product) *dto.ProductDTO {
 }
 
 func ToProductDTOs(products []*domain.Product) []*dto.ProductDTO {
-	var productDTOs []*dto.ProductDTO
-	for _, product := range products {
-		productDTOs = append(productDTOs, &dto.ProductDTO{
-			ID:   product.ID.String(),
-			Name: product.Name,
-			// Description: product.Description,
-			Price:      product.Price,
-			SKU:        product.SKU,
-			SupplierID: product.SupplierID.String(),
-			Categories: categoryMapper.ToCategoryDTOs(product.Categories),
-			UOMs:       uomMapper.ToUOMDTOs(product.UOMs),
-		})
+	productDTOs := make([]*dto.ProductDTO, len(products))
+	for i, product := range products {
+		productDTOs[i] = ToProductDTO(product)
 	}
 	return productDTOs
 }

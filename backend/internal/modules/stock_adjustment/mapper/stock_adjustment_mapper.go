@@ -6,6 +6,10 @@ import (
 )
 
 func ToStockAdjustmentDto(stockAdjustment *domain.StockAdjustment) *dto.StockAdjustmentDto {
+	items := make([]dto.StockAdjustmentItemDto, len(stockAdjustment.Items))
+	for i, item := range stockAdjustment.Items {
+		items[i] = *ToStockAdjustmentItemDto(&item)
+	}
 	return &dto.StockAdjustmentDto{
 		ID:              stockAdjustment.ID,
 		AdjustmentNo:    stockAdjustment.AdjustmentNo,
@@ -15,6 +19,7 @@ func ToStockAdjustmentDto(stockAdjustment *domain.StockAdjustment) *dto.StockAdj
 		Note:            stockAdjustment.Note,
 		CreatedBy:       stockAdjustment.CreatedBy,
 		ApprovedBy:      stockAdjustment.ApprovedBy,
+		Items:           items,
 	}
 }
 

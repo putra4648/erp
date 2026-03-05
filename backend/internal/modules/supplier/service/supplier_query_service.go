@@ -20,7 +20,11 @@ func NewSupplierQueryService(repo repository.SupplierRepository) SupplierQuerySe
 }
 
 func (s *supplierQueryService) FindByID(ctx context.Context, id string) (*dto.SupplierDto, error) {
-	supplier, err := s.repo.FindByID(ctx, uuid.Must(uuid.Parse(id)))
+	supplierID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, err
+	}
+	supplier, err := s.repo.FindByID(ctx, supplierID)
 	if err != nil {
 		return nil, err
 	}
