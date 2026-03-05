@@ -27,7 +27,13 @@
       </template>
     </UModal>
 
-    <UTable :loading="status === 'pending'" :data="warehouses" :columns="warehouseColumns" />
+    <UTable :loading="status === 'pending'" :data="warehouses" :columns="warehouseColumns">
+      <template #actions-cell="{ row }">
+        <UDropdownMenu :items="getRowActions(row)" :ui="{ item: 'cursor-pointer' }">
+          <UButton icon="i-lucide-ellipsis-vertical" color="neutral" variant="subtle" />
+        </UDropdownMenu>
+      </template>
+    </UTable>
 
     <div class="flex justify-end mt-4">
       <UPagination v-model:page="page" :total="total" :items-per-page="size" />
@@ -45,10 +51,6 @@ import type { FormError } from '#ui/types';
 import type { Warehouse, StockLevel } from '~/types/models/warehouse';
 import { WarehouseSchema } from '~/validations/schemas/warehouse_schema';
 import type PaginationResponse from '~/../server/utils/pagination_response';
-
-const UInput = resolveComponent('UInput')
-const UButton = resolveComponent('UButton')
-const UDropdownMenu = resolveComponent('UDropdownMenu')
 
 const schema = WarehouseSchema
 const toast = useToast()
@@ -85,29 +87,11 @@ const warehouseColumns = ref<TableColumn<Warehouse>[]>([
     header: "Name",
   },
   {
-    accessorKey: 'actions', header: 'Actions', cell: ({ row }) => {
-      return h(
-        UDropdownMenu,
-        {
-          content: {
-            align: 'end'
-          },
-          items: warehouseActions(row),
-          'aria-label': 'Actions dropdown'
-        },
-        () =>
-          h(UButton, {
-            icon: 'i-lucide-ellipsis-vertical',
-            color: 'neutral',
-            variant: 'ghost',
-            'aria-label': 'Actions dropdown'
-          })
-      )
-    }
+    id: 'actions',
   }
 ])
 
-function warehouseActions(row: TableRow<Warehouse>): DropdownMenuItem[] {
+function getRowActions(row: TableRow<Warehouse>): DropdownMenuItem[] {
   return [
     {
       type: 'label',

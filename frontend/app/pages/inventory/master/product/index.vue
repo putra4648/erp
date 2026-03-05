@@ -18,16 +18,16 @@
                     </UFormField>
                     <UFormField label="Supplier" name="supplier_id">
                         <USelectMenu class="w-full" v-model="state.supplier_id" :items="allSuppliers" value-key="id"
-                            label-key="name" placeholder="Select supplier" searchable />
+                            label-key="name" placeholder="Select supplier" searchable clear />
                     </UFormField>
                     <UFormField label="Category" name="categories">
                         <USelectMenu class="w-full" v-model="state.categories" :items="allCategories" multiple
-                            label-key="name" placeholder="Select categories" />
+                            label-key="name" placeholder="Select categories" clear />
                     </UFormField>
                     <UFormField label="UOM" name="uoms">
                         <USelectMenu class="w-full" :model-value="state.uoms[0]"
                             @update:model-value="(val) => state.uoms = (val as Category) ? [val] : []" :items="allUoms"
-                            label-key="name" placeholder="Select UOM" />
+                            label-key="name" placeholder="Select UOM" clear />
                     </UFormField>
                     <UFormField label="Min Stock" name="min_stock">
                         <UInput class="w-full" v-model.number="state.min_stock" />
@@ -37,7 +37,13 @@
             </template>
         </UModal>
 
-        <UTable :loading="status === 'pending'" :data="products" :columns="productColumns" />
+        <UTable :loading="status === 'pending'" :data="products" :columns="productColumns">
+            <template #actions-cell="{ row }">
+                <UDropdownMenu :items="getRowActions(row)" :ui="{ item: 'cursor-pointer' }">
+                    <UButton icon="i-lucide-ellipsis-vertical" color="neutral" variant="subtle" />
+                </UDropdownMenu>
+            </template>
+        </UTable>
 
         <div class="flex justify-end mt-4">
             <UPagination v-model:page="page" :total="total" :items-per-page="size" />
@@ -56,10 +62,6 @@ import type { Product, Category, UOM } from '~/types/models/product';
 import type { Supplier } from '~/types/models/supplier';
 import { ProductSchema } from '~/validations/schemas/product_schema';
 import type PaginationResponse from '~/../server/utils/pagination_response';
-
-const UInput = resolveComponent('UInput')
-const UButton = resolveComponent('UButton')
-const UDropdownMenu = resolveComponent('UDropdownMenu')
 
 const schema = ProductSchema
 const toast = useToast()
@@ -148,25 +150,7 @@ const productColumns = ref<TableColumn<Product>[]>([
     },
 
     {
-        accessorKey: 'actions', header: 'Actions', cell: ({ row }) => {
-            return h(
-                UDropdownMenu,
-                {
-                    content: {
-                        align: 'end'
-                    },
-                    items: getRowActions(row),
-                    'aria-label': 'Actions dropdown'
-                },
-                () =>
-                    h(UButton, {
-                        icon: 'i-lucide-ellipsis-vertical',
-                        color: 'neutral',
-                        variant: 'ghost',
-                        'aria-label': 'Actions dropdown'
-                    })
-            )
-        }
+        id: 'actions',
     }
 ])
 

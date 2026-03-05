@@ -17,7 +17,7 @@
                 <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit" @error="onError">
                     <div class="grid grid-cols-2 gap-4">
                         <UFormField label="Type" name="type">
-                            <USelectMenu class="w-full" v-model="state.type" :items="['IN', 'OUT', 'TRANSFER']" />
+                            <USelectMenu class="w-full" v-model="state.type" :items="['IN', 'OUT', 'TRANSFER']" clear />
                         </UFormField>
                         <UFormField label="Date" name="transaction_date">
                             <UInput class="w-full" v-model="state.transaction_date" type="date" />
@@ -28,12 +28,12 @@
                         <UFormField v-if="state.type === 'OUT' || state.type === 'TRANSFER'" label="Origin Warehouse"
                             name="origin_warehouse_id">
                             <USelectMenu class="w-full" v-model="state.origin_warehouse_id" :items="allWarehouses"
-                                value-key="id" label-key="name" placeholder="Select origin warehouse" />
+                                value-key="id" label-key="name" placeholder="Select origin warehouse" clear />
                         </UFormField>
                         <UFormField v-if="state.type === 'IN' || state.type === 'TRANSFER'"
                             label="Destination Warehouse" name="destination_warehouse_id">
                             <USelectMenu class="w-full" v-model="state.destination_warehouse_id" :items="allWarehouses"
-                                value-key="id" label-key="name" placeholder="Select destination warehouse" />
+                                value-key="id" label-key="name" placeholder="Select destination warehouse" clear />
                         </UFormField>
                     </div>
 
@@ -42,7 +42,8 @@
                             <UInput class="w-full" v-model="state.reference_no" />
                         </UFormField>
                         <UFormField label="Status" name="status">
-                            <USelectMenu class="w-full" v-model="state.status" :items="availableStatuses" disabled />
+                            <USelectMenu class="w-full" v-model="state.status" :items="availableStatuses" disabled
+                                clear />
                         </UFormField>
                     </div>
 
@@ -53,14 +54,14 @@
                     <div class="space-y-2">
                         <div class="flex justify-between items-center">
                             <h3 class="font-medium text-sm">Items</h3>
-                            <UButton icon="i-lucide-plus" size="xs" color="neutral" variant="ghost" @click="addItem" />
+                            <UButton icon="i-lucide-plus" size="xs" color="neutral" variant="subtle" @click="addItem" />
                         </div>
 
                         <div v-for="(item, index) in state.items" :key="index"
                             class="grid grid-cols-12 gap-2 items-start">
                             <div class="col-span-6">
                                 <USelectMenu v-model="item.product_id" :items="allProducts" value-key="id"
-                                    label-key="name" placeholder="Select product" class="w-full" />
+                                    label-key="name" placeholder="Select product" class="w-full" clear />
                             </div>
                             <div class="col-span-3">
                                 <UInput v-model.number="item.quantity" type="number" placeholder="Qty" class="w-full" />
@@ -69,7 +70,7 @@
                                 <UInput v-model="item.note" placeholder="Item Note" class="w-full" />
                             </div>
                             <div class="col-span-1 flex justify-center pt-1">
-                                <UButton icon="i-lucide-trash" size="xs" color="error" variant="ghost"
+                                <UButton icon="i-lucide-trash" size="xs" color="error" variant="subtle"
                                     @click="removeItem(index)" />
                             </div>
                         </div>
@@ -82,7 +83,19 @@
             </template>
         </UModal>
 
-        <UTable :loading="status === 'pending'" :data="movements" :columns="columns" />
+        <UTable :loading="status === 'pending'" :data="movements" :columns="columns">
+            <template #type-cell="{ row }">
+                <StockMovementBadge :type="row.original.type" />
+            </template>
+            <template #status-cell="{ row }">
+                <StatusBadge :status="row.original.status" />
+            </template>
+            <template #actions-cell="{ row }">
+                <UDropdownMenu :items="getRowActions(row)" :ui="{ item: 'cursor-pointer' }">
+                    <UButton icon="i-lucide-ellipsis-vertical" color="neutral" variant="subtle" />
+                </UDropdownMenu>
+            </template>
+        </UTable>
 
         <div class="flex justify-end mt-4">
             <UPagination v-model:page="page" :total="total" :items-per-page="size" />
@@ -104,12 +117,6 @@ import type { Product } from '~/types/models/product';
 import { StockMovementSchema } from '~/validations/schemas/stock_movement_schema';
 import type PaginationResponse from '~/../server/utils/pagination_response';
 
-const UInput = resolveComponent('UInput')
-const UButton = resolveComponent('UButton')
-const UDropdownMenu = resolveComponent('UDropdownMenu')
-const UBadge = resolveComponent('UBadge')
-const USelectMenu = resolveComponent('USelectMenu')
-const UTextarea = resolveComponent('UTextarea')
 
 const schema = StockMovementSchema
 const toast = useToast()
@@ -164,10 +171,6 @@ const columns = ref<TableColumn<StockMovement>[]>([
     {
         accessorKey: "type",
         header: "Type",
-        cell: ({ row }) => {
-            const colors: Record<string, any> = { IN: 'success', OUT: 'error', TRANSFER: 'primary' }
-            return h(UBadge, { color: colors[row.original.type] || 'neutral', variant: 'subtle' }, () => row.original.type)
-        }
     },
     {
         accessorKey: "origin_warehouse",
@@ -187,28 +190,9 @@ const columns = ref<TableColumn<StockMovement>[]>([
     {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => {
-            const colors: Record<string, any> = { DRAFT: 'warning', COMPLETED: 'success', CANCELLED: 'error', VOID: 'error' }
-            return h(UBadge, { color: colors[row.original.status] || 'neutral', variant: 'subtle' }, () => row.original.status)
-        }
     },
     {
-        accessorKey: 'actions',
-        header: 'Actions',
-        cell: ({ row }) => {
-            return h(
-                UDropdownMenu,
-                {
-                    content: { align: 'end' },
-                    items: getRowActions(row),
-                },
-                () => h(UButton, {
-                    icon: 'i-lucide-ellipsis-vertical',
-                    color: 'neutral',
-                    variant: 'ghost',
-                })
-            )
-        }
+        id: 'actions',
     }
 ])
 

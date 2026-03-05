@@ -7,11 +7,15 @@
                     placeholder="Product" class="w-48" clear />
                 <USelectMenu v-model="warehouseFilter" :items="allWarehouses" value-key="id" label-key="name"
                     placeholder="Warehouse" class="w-48" clear />
-                <UButton icon="i-lucide-refresh-cw" color="neutral" variant="ghost" @click="refresh" />
+                <UButton icon="i-lucide-refresh-cw" color="neutral" variant="subtle" @click="refresh" />
             </div>
         </div>
 
-        <UTable :loading="status === 'pending'" :data="transactions" :columns="columns" />
+        <UTable :loading="status === 'pending'" :data="transactions" :columns="columns">
+            <template #type-cell="{ row }">
+                <TransactionBadge :type="row.original.type" />
+            </template>
+        </UTable>
 
         <div class="flex justify-end mt-4">
             <UPagination v-model:page="page" :total="total" :items-per-page="size" />
@@ -30,17 +34,17 @@ import type { Product } from '~/types/models/product'
 import type { StockTransactionResponse } from '~/types/models/stock_transaction'
 import type PaginationResponse from '~/../server/utils/pagination_response'
 
-const UButton = resolveComponent('UButton')
-const USelectMenu = resolveComponent('USelectMenu')
-const UBadge = resolveComponent('UBadge')
-
 const page = ref(1)
 const size = ref(10)
 const productFilter = ref<string>('')
 const warehouseFilter = ref<string>('')
 
+const refresh = () => {
+    refreshStockTransactions()
+}
+
 // Fetch Stock Transactions
-const { data, status, refresh } = await useFetch<PaginationResponse<StockTransactionResponse>>('/api/stock-movements/transactions', {
+const { data, status, refresh: refreshStockTransactions } = await useFetch<PaginationResponse<StockTransactionResponse>>('/api/stock-movements/transactions', {
     query: {
         page,
         size,
@@ -77,10 +81,7 @@ const columns = ref<TableColumn<StockTransactionResponse>[]>([
     {
         accessorKey: "type",
         header: "Type",
-        cell: ({ row }) => {
-            const colors: Record<string, any> = { IN: 'success', OUT: 'error', ADJUST: 'warning' }
-            return h(UBadge, { color: colors[row.original.type] || 'neutral', variant: 'subtle' }, () => row.original.type)
-        }
+
     },
     {
         accessorKey: "product_name",

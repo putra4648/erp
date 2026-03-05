@@ -30,7 +30,13 @@
       </template>
     </UModal>
 
-    <UTable :loading="status === 'pending'" :data="suppliers" :columns="supplierColumns" />
+    <UTable :loading="status === 'pending'" :data="suppliers" :columns="supplierColumns">
+      <template #actions-cell="{ row }">
+        <UDropdownMenu :items="getRowActions(row)" :ui="{ item: 'cursor-pointer' }">
+          <UButton icon="i-lucide-ellipsis-vertical" color="neutral" variant="subtle" />
+        </UDropdownMenu>
+      </template>
+    </UTable>
 
     <div class="flex justify-end mt-4">
       <UPagination v-model:page="page" :total="total" :items-per-page="size" />
@@ -48,10 +54,6 @@ import type { FormError } from '#ui/types';
 import type { Supplier } from '~/types/models/supplier';
 import { SupplierSchema } from '~/validations/schemas/supplier_schema';
 import type PaginationResponse from '~/../server/utils/pagination_response';
-
-const UInput = resolveComponent('UInput')
-const UButton = resolveComponent('UButton')
-const UDropdownMenu = resolveComponent('UDropdownMenu')
 
 const schema = SupplierSchema
 const toast = useToast()
@@ -102,25 +104,7 @@ const supplierColumns = ref<TableColumn<Supplier>[]>([
     header: "Address",
   },
   {
-    accessorKey: 'actions', header: 'Actions', cell: ({ row }) => {
-      return h(
-        UDropdownMenu,
-        {
-          content: {
-            align: 'end'
-          },
-          items: getRowActions(row),
-          'aria-label': 'Actions dropdown'
-        },
-        () =>
-          h(UButton, {
-            icon: 'i-lucide-ellipsis-vertical',
-            color: 'neutral',
-            variant: 'ghost',
-            'aria-label': 'Actions dropdown'
-          })
-      )
-    }
+    id: 'actions',
   }
 ])
 

@@ -22,7 +22,7 @@
                     color: 'primary',
                     position: 'top-right'
                 }" :description="data?.user?.email ?? ''" />
-                <UButton color="error" @click="signout" variant="ghost" icon="i-lucide-square-arrow-right-exit">
+                <UButton color="error" @click="signout" variant="subtle" icon="i-lucide-square-arrow-right-exit">
                 </UButton>
             </div>
 
@@ -42,7 +42,7 @@
             <div class="flex items-center">
                 <span class="ml-2 font-bold text-lg">My ERP</span>
             </div>
-            <UButton icon="i-heroicons-bars-3" variant="ghost" color="secondary" @click="isOpen = true" />
+            <UButton icon="i-heroicons-bars-3" variant="subtle" color="secondary" @click="isOpen = true" />
         </div>
 
         <!-- Mobile Sidebar Drawer -->
@@ -53,7 +53,7 @@
                         <div class="flex items-center">
                             <span class="ml-2 font-bold text-xl">My ERP</span>
                         </div>
-                        <UButton icon="i-heroicons-x-mark" variant="ghost" color="secondary" @click="isOpen = false" />
+                        <UButton icon="i-heroicons-x-mark" variant="subtle" color="secondary" @click="isOpen = false" />
                     </div>
                     <UNavigationMenu :items="links" orientation="vertical" @click="isOpen = false" />
                     <!-- User Profile -->
@@ -66,7 +66,8 @@
                             color: 'primary',
                             position: 'top-right'
                         }" :description="data?.user?.email ?? ''" />
-                        <UButton color="error" @click="signout" variant="ghost" icon="i-lucide-square-arrow-right-exit">
+                        <UButton color="error" @click="signout" variant="subtle"
+                            icon="i-lucide-square-arrow-right-exit">
                         </UButton>
                     </div>
                     <div class="pt-4 border-t border-gray-200 dark:border-gray-800 flex justify-between items-center">

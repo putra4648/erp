@@ -57,8 +57,9 @@
                             <p class="text-[10px] text-gray-400">Qty Remaining</p>
                         </div>
                     </div>
-                    <UButton v-if="lowStockItems.length > 5" to="/inventory/stock-level" variant="ghost" block
-                        size="sm">View All Alerts
+                    <UButton v-if="lowStockItems.length > 5" to="/inventory/stock-level" variant="subtle" block
+                        size="sm">View All
+                        Alerts
                     </UButton>
                 </div>
             </UCard>
@@ -74,14 +75,11 @@
                 </template>
 
                 <UTable :data="recentMovements" :columns="movementColumns" class="w-full">
-                    <template #type-data="{ row: { original: { type } } }">
-                        <UBadge :color="getMovementColor(type)" variant="subtle" class="capitalize">{{
-                            type.replace('_', ' ') }}</UBadge>
+                    <template #type-cell="{ row }">
+                        <StockMovementBadge :type="row.original.type" />
                     </template>
-                    <template #status-data="{ row: { original: { status } } }">
-                        <UBadge :color="status === Status.COMPLETED ? 'primary' : 'warning'" variant="solid" size="sm">
-                            {{
-                                status }}</UBadge>
+                    <template #status-cell="{ row }">
+                        <StatusBadge :status="row.original.status" />
                     </template>
                 </UTable>
             </UCard>
@@ -103,7 +101,6 @@
 </template>
 
 <script setup lang="ts">
-import { Status } from '~/types/enums/status_enum'
 import type { TableColumn } from '@nuxt/ui'
 import type { StockLevelResponse } from '~/types/models/stock_level'
 import type { StockMovement } from '~/types/models/stock_movement'
@@ -194,15 +191,6 @@ const movementColumns: TableColumn<StockMovement>[] = [
         header: 'Status'
     }
 ]
-
-const getMovementColor = (type: string) => {
-    switch (type.toLowerCase()) {
-        case 'inbound': return 'primary'
-        case 'outbound': return 'error'
-        case 'transfer': return 'warning'
-        default: return 'neutral'
-    }
-}
 
 // Quick Actions Navigation
 const quickActions = [

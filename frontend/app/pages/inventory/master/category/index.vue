@@ -18,7 +18,13 @@
             </template>
         </UModal>
 
-        <UTable :loading="status === 'pending'" :data="categories" :columns="columns" />
+        <UTable :loading="status === 'pending'" :data="categories" :columns="columns">
+            <template #actions-cell="{ row }">
+                <UDropdownMenu :items="getRowActions(row)" :ui="{ item: 'cursor-pointer' }">
+                    <UButton icon="i-lucide-ellipsis-vertical" color="neutral" variant="subtle" />
+                </UDropdownMenu>
+            </template>
+        </UTable>
 
         <div class="flex justify-end mt-4">
             <UPagination v-model:page="page" :total="total" :items-per-page="size" />
@@ -37,9 +43,6 @@ import type { Category } from '~/types/models/product';
 import { CategorySchema } from '~/validations/schemas/category_schema';
 import type PaginationResponse from '~/../server/utils/pagination_response';
 
-const UInput = resolveComponent('UInput')
-const UButton = resolveComponent('UButton')
-const UDropdownMenu = resolveComponent('UDropdownMenu')
 
 const schema = CategorySchema
 const toast = useToast()
@@ -70,25 +73,7 @@ const columns = ref<TableColumn<Category>[]>([
         header: "Name",
     },
     {
-        accessorKey: 'actions', header: 'Actions', cell: ({ row }) => {
-            return h(
-                UDropdownMenu,
-                {
-                    content: {
-                        align: 'end'
-                    },
-                    items: getRowActions(row),
-                    'aria-label': 'Actions dropdown'
-                },
-                () =>
-                    h(UButton, {
-                        icon: 'i-lucide-ellipsis-vertical',
-                        color: 'neutral',
-                        variant: 'ghost',
-                        'aria-label': 'Actions dropdown'
-                    })
-            )
-        }
+        id: 'actions',
     }
 ])
 

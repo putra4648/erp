@@ -46,7 +46,7 @@
                     <UTable :data="state.items" :columns="itemDisplayColumns" />
 
                     <div class="flex justify-end mt-4">
-                        <UButton label="Close" color="neutral" variant="ghost" @click="open = false" />
+                        <UButton label="Close" color="neutral" variant="subtle" @click="open = false" />
                     </div>
                 </div>
 
@@ -55,14 +55,14 @@
                         <UFormField label="Warehouse" name="warehouse_id">
                             <USelectMenu class="w-full" v-model="(state.warehouse_id)" :items="allWarehouses"
                                 value-key="id" label-key="name" placeholder="Select warehouse"
-                                @update:model-value="updateAllSystemQtys" />
+                                @update:model-value="updateAllSystemQtys" clear />
                         </UFormField>
                         <UFormField label="Transaction Date" name="transaction_date">
                             <UInput type="date" class="w-full" v-model="state.transaction_date" />
                         </UFormField>
                         <UFormField label="Status" name="status">
                             <USelectMenu class="w-full" v-model="(state.status)" :items="allStatus" value-key="id"
-                                label-key="name" placeholder="Select status" disabled />
+                                label-key="name" placeholder="Select status" disabled clear />
                         </UFormField>
                     </div>
 
@@ -78,18 +78,18 @@
 
                         <div v-for="(item, index) in state.items" :key="index"
                             class="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800 space-y-4 relative">
-                            <UButton icon="i-lucide-x" color="error" variant="ghost" size="xs"
+                            <UButton icon="i-lucide-x" color="error" variant="subtle" size="xs"
                                 class="absolute top-2 right-2" @click="removeItem(index)" />
 
                             <div class="grid grid-cols-2 gap-4">
                                 <UFormField label="Product" :name="`items.${index}.product_id`">
                                     <USelectMenu class="w-full" v-model="item.product_id" :items="allProducts"
                                         value-key="id" label-key="name" placeholder="Select product"
-                                        @update:model-value="() => fetchSystemQty(index)" />
+                                        @update:model-value="() => fetchSystemQty(index)" clear />
                                 </UFormField>
                                 <UFormField label="Reason" :name="`items.${index}.reason_id`">
                                     <USelectMenu class="w-full" v-model="item.reason_id" :items="allReasons"
-                                        value-key="id" label-key="name" placeholder="Select reason" />
+                                        value-key="id" label-key="name" placeholder="Select reason" clear />
                                 </UFormField>
                             </div>
 
@@ -106,14 +106,23 @@
                     </div>
 
                     <div class="flex justify-end gap-2 pt-4">
-                        <UButton label="Cancel" color="neutral" variant="ghost" @click="open = false" />
+                        <UButton label="Cancel" color="neutral" variant="subtle" @click="open = false" />
                         <UButton type="submit">Save Adjustment</UButton>
                     </div>
                 </UForm>
             </template>
         </UModal>
 
-        <UTable :loading="status === 'pending'" :data="adjustments" :columns="adjustmentColumns" />
+        <UTable :loading="status === 'pending'" :data="adjustments" :columns="adjustmentColumns">
+            <template #status-cell="{ row }">
+                <StatusBadge :status="row.original.status" />
+            </template>
+            <template #actions-cell="{ row }">
+                <UDropdownMenu :items="getRowActions(row)" :ui="{ item: 'cursor-pointer' }">
+                    <UButton icon="i-lucide-ellipsis-vertical" color="neutral" variant="subtle" />
+                </UDropdownMenu>
+            </template>
+        </UTable>
 
         <div class="flex justify-end mt-4">
             <UPagination v-model:page="page" :total="total" :items-per-page="size" />
@@ -136,9 +145,6 @@ import { StockAdjustmentSchema } from '~/validations/schemas/stock_adjustment_sc
 import type PaginationResponse from '~/../server/utils/pagination_response';
 import { Status } from '~/types/enums/status_enum';
 
-const UInput = resolveComponent('UInput')
-const UButton = resolveComponent('UButton')
-const UDropdownMenu = resolveComponent('UDropdownMenu')
 const { data: authData } = useAuth()
 
 const userRoles = computed(() => authData.value?.user.groups || []);
@@ -153,7 +159,7 @@ const state = reactive<StockAdjustment>({
     adjustment_no: "",
     warehouse_id: "",
     transaction_date: new Date().toISOString().split('T')[0] as string,
-    status: "DRAFT",
+    status: Status.DRAFT,
     note: "",
     created_by: "",
     items: []
@@ -202,44 +208,14 @@ const adjustmentColumns = ref<TableColumn<StockAdjustment>[]>([
     {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => {
-            const status = row.original.status
-            let color: 'neutral' | 'primary' | 'success' | 'warning' | 'error' = 'neutral'
-            if (status === 'DRAFT') color = 'warning'
-            else if (status === 'APPROVED') color = 'success'
-            else if (status === 'VOID') color = 'error'
 
-            return h(resolveComponent('UBadge'), {
-                label: status,
-                color: color,
-                variant: 'subtle'
-            })
-        }
     },
     {
         accessorKey: "note",
         header: "Note",
     },
     {
-        accessorKey: 'actions', header: 'Actions', cell: ({ row }) => {
-            return h(
-                UDropdownMenu,
-                {
-                    content: {
-                        align: 'end'
-                    },
-                    items: getRowActions(row),
-                    'aria-label': 'Actions dropdown'
-                },
-                () =>
-                    h(UButton, {
-                        icon: 'i-lucide-ellipsis-vertical',
-                        color: 'neutral',
-                        variant: 'ghost',
-                        'aria-label': 'Actions dropdown'
-                    })
-            )
-        }
+        id: 'actions',
     }
 ])
 
