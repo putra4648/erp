@@ -127,7 +127,7 @@ const items = computed<BreadcrumbItem[]>(() => {
 
     return crumbs
 })
-const isAdmin = computed(() => (data.value?.user as any)?.groups?.includes('admin'))
+const isAdmin = computed(() => data.value?.user?.groups?.includes('admin') ?? false)
 
 const links = computed<NavigationMenuItem[]>(() => {
     const baseLinks: NavigationMenuItem[] = [
