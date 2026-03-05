@@ -7,4 +7,5 @@ export enum Status {
   POSTED = "POSTED",
   CANCELLED = "CANCELLED",
   VOID = "VOID",
+  COMPLETED = "COMPLETED",
 }

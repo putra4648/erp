@@ -1,9 +1,11 @@
+import { Status } from "../enums/status_enum";
+
 export interface StockAdjustment {
   id: string;
   adjustment_no: string;
   warehouse_id: string;
   transaction_date: string;
-  status: string;
+  status: Status;
   note: string;
   created_by?: string;
   approved_by?: string;

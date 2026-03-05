@@ -17,7 +17,13 @@
             </template>
         </UModal>
 
-        <UTable :loading="status === 'pending'" :data="uoms" :columns="columns" />
+        <UTable :loading="status === 'pending'" :data="uoms" :columns="columns">
+            <template #actions-cell="{ row }">
+                <UDropdownMenu :items="getRowActions(row)" :ui="{ item: 'cursor-pointer' }">
+                    <UButton icon="i-lucide-ellipsis-vertical" color="neutral" variant="subtle" />
+                </UDropdownMenu>
+            </template>
+        </UTable>
 
         <div class="flex justify-end mt-4">
             <UPagination v-model:page="page" :total="total" :items-per-page="size" />
@@ -27,7 +33,6 @@
 
 <script setup lang="ts">
 definePageMeta({
-    layout: 'master-layout',
     label: "UOM"
 })
 
@@ -37,9 +42,6 @@ import type { UOM } from '~/types/models/product';
 import { UOMSchema } from '~/validations/schemas/uom_schema';
 import type PaginationResponse from '~/../server/utils/pagination_response';
 
-const UInput = resolveComponent('UInput')
-const UButton = resolveComponent('UButton')
-const UDropdownMenu = resolveComponent('UDropdownMenu')
 
 const schema = UOMSchema
 const toast = useToast()
@@ -70,25 +72,7 @@ const columns = ref<TableColumn<UOM>[]>([
         header: "Name",
     },
     {
-        accessorKey: 'actions', header: 'Actions', cell: ({ row }) => {
-            return h(
-                UDropdownMenu,
-                {
-                    content: {
-                        align: 'end'
-                    },
-                    items: getRowActions(row),
-                    'aria-label': 'Actions dropdown'
-                },
-                () =>
-                    h(UButton, {
-                        icon: 'i-lucide-ellipsis-vertical',
-                        color: 'neutral',
-                        variant: 'ghost',
-                        'aria-label': 'Actions dropdown'
-                    })
-            )
-        }
+        id: 'actions'
     }
 ])
 

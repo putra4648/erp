@@ -5,8 +5,8 @@
             <div class="flex gap-2">
                 <UInput v-model="search" placeholder="Search product..." icon="i-lucide-search" />
                 <USelectMenu v-model="warehouseFilter" :items="allWarehouses" value-key="id" label-key="name"
-                    placeholder="Warehouse" class="w-48" />
-                <UButton icon="i-lucide-refresh-cw" color="neutral" variant="ghost" @click="refresh" />
+                    placeholder="Warehouse" class="w-48" clear />
+                <UButton icon="i-lucide-refresh-cw" color="neutral" variant="subtle" @click="refresh" />
             </div>
         </div>
 
@@ -20,7 +20,6 @@
 
 <script setup lang="ts">
 definePageMeta({
-    layout: 'master-layout',
     label: 'Stock Level'
 })
 
@@ -29,17 +28,18 @@ import type { Warehouse } from '~/types/models/warehouse'
 import type { StockLevelResponse } from '~/types/models/stock_level'
 import type PaginationResponse from '~/../server/utils/pagination_response'
 
-const UInput = resolveComponent('UInput')
-const UButton = resolveComponent('UButton')
-const USelectMenu = resolveComponent('USelectMenu')
 
 const page = ref(1)
 const size = ref(10)
 const search = ref('')
 const warehouseFilter = ref<string>('')
 
+const refresh = () => {
+    refreshStockLevels()
+}
+
 // Fetch Stock Levels
-const { data, status, refresh } = await useFetch<PaginationResponse<StockLevelResponse>>('/api/stock-levels', {
+const { data, status, refresh: refreshStockLevels } = await useFetch<PaginationResponse<StockLevelResponse>>('/api/stock-levels', {
     query: {
         page,
         size,
@@ -57,7 +57,6 @@ const { data: warehouseData } = await useFetch<PaginationResponse<Warehouse>>('/
 const stocks = computed(() => data.value?.items || [])
 const total = computed(() => data.value?.total || 0)
 const allWarehouses = computed(() => [
-    { id: '', name: 'All Warehouses' },
     ...(warehouseData.value?.items || [])
 ])
 

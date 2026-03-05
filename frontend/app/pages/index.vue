@@ -8,9 +8,9 @@
                     today.</p>
             </div>
             <div class="flex gap-2">
-                <UButton icon="i-heroicons-arrow-path" color="white" @click="refreshAll" :loading="pending">Refresh
+                <UButton icon="i-heroicons-arrow-path" color="secondary" variant="outline" @click="refreshAll"
+                    :loading="pending">Refresh
                 </UButton>
-                <UButton color="black" @click="signout">Logout</UButton>
             </div>
         </div>
 
@@ -35,7 +35,7 @@
                 <template #header>
                     <div class="flex items-center justify-between">
                         <h3 class="font-semibold text-gray-900 dark:text-white">Low Stock Alerts</h3>
-                        <UBadge v-if="lowStockItems.length" color="red" variant="subtle">{{ lowStockItems.length }}
+                        <UBadge v-if="lowStockItems.length" color="error" variant="subtle">{{ lowStockItems.length }}
                             items</UBadge>
                     </div>
                 </template>
@@ -57,8 +57,9 @@
                             <p class="text-[10px] text-gray-400">Qty Remaining</p>
                         </div>
                     </div>
-                    <UButton v-if="lowStockItems.length > 5" to="/inventory/stock-level" variant="ghost" block
-                        size="sm">View All Alerts
+                    <UButton v-if="lowStockItems.length > 5" to="/inventory/stock-level" variant="subtle" block
+                        size="sm">View All
+                        Alerts
                     </UButton>
                 </div>
             </UCard>
@@ -74,13 +75,11 @@
                 </template>
 
                 <UTable :data="recentMovements" :columns="movementColumns" class="w-full">
-                    <template #type-data="{ row }">
-                        <UBadge :color="getMovementColor(row.type)" variant="subtle" class="capitalize">{{
-                            row.type.replace('_', ' ') }}</UBadge>
+                    <template #type-cell="{ row }">
+                        <StockMovementBadge :type="row.original.type" />
                     </template>
-                    <template #status-data="{ row }">
-                        <UBadge :color="row.status === 'COMPLETED' ? 'green' : 'orange'" variant="solid" size="sm">{{
-                            row.status }}</UBadge>
+                    <template #status-cell="{ row }">
+                        <StatusBadge :status="row.original.status" />
                     </template>
                 </UTable>
             </UCard>
@@ -91,7 +90,7 @@
             <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Quick Actions</h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <UButton v-for="action in quickActions" :key="action.label" :to="action.to" variant="outline"
-                    color="white"
+                    color="neutral"
                     class="flex flex-col items-center justify-center p-6 h-auto hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors gap-3">
                     <UIcon :name="action.icon" class="w-8 h-8 text-primary" />
                     <span class="font-medium">{{ action.label }}</span>
@@ -108,7 +107,6 @@ import type { StockMovement } from '~/types/models/stock_movement'
 import type PaginationResponse from '~/../server/utils/pagination_response'
 
 definePageMeta({
-    layout: 'master-layout',
     label: "Dashboard"
 })
 
@@ -194,15 +192,6 @@ const movementColumns: TableColumn<StockMovement>[] = [
     }
 ]
 
-const getMovementColor = (type: string) => {
-    switch (type.toLowerCase()) {
-        case 'inbound': return 'blue'
-        case 'outbound': return 'red'
-        case 'transfer': return 'yellow'
-        default: return 'gray'
-    }
-}
-
 // Quick Actions Navigation
 const quickActions = [
     { label: 'New Adjustment', icon: 'i-heroicons-plus-circle', to: '/inventory/adjustment' },
@@ -211,15 +200,5 @@ const quickActions = [
     { label: 'Check Levels', icon: 'i-heroicons-chart-bar', to: '/inventory/stock-level' }
 ]
 
-// Auth Logic
-const signout = async () => {
-    const idToken = authData.value?.idToken
-    await signOut({ redirect: false })
-    const keycloakLogoutUrl = `${config.public.keycloakUrl}/realms/erp/protocol/openid-connect/logout`
-    const url = new URL(keycloakLogoutUrl)
-    url.searchParams.append('client_id', config.public.clientId)
-    url.searchParams.append('post_logout_redirect_uri', window.location.origin)
-    if (idToken) url.searchParams.append('id_token_hint', idToken)
-    window.location.href = url.toString()
-}
+
 </script>

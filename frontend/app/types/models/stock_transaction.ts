@@ -1,3 +1,5 @@
+import { TransactionType } from "../enums/transaction_enum";
+
 export interface StockTransactionResponse {
   id: string;
   product_id: string;
@@ -6,7 +8,7 @@ export interface StockTransactionResponse {
   warehouse_name: string;
   supplier_id?: string;
   supplier_name?: string;
-  type: "IN" | "OUT" | "ADJUST";
+  type: TransactionType;
   quantity: number;
   reference_no: string;
   created_at: string;
