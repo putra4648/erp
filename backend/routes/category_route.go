@@ -1,10 +1,10 @@
 package routes
 
 import (
-	"putra4648/erp/internal/modules/category/dto"
-	categoryDto "putra4648/erp/internal/modules/category/dto"
-	categoryService "putra4648/erp/internal/modules/category/service"
-	. "putra4648/erp/internal/modules/shared/utils"
+	"putra4648/erp/internal/category/dto"
+	categoryDto "putra4648/erp/internal/category/dto"
+	categoryService "putra4648/erp/internal/category/service"
+	. "putra4648/erp/internal/shared/utils"
 
 	"github.com/casbin/casbin/v3"
 	"github.com/gofiber/fiber/v2"

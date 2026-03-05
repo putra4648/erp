@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"putra4648/erp/internal/modules/stock_movement/dto"
-	"putra4648/erp/internal/modules/stock_movement/service"
+	"putra4648/erp/internal/stock_movement/dto"
+	"putra4648/erp/internal/stock_movement/service"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"

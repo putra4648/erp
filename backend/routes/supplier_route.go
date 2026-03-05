@@ -1,8 +1,8 @@
 package routes
 
 import (
-	supplierDto "putra4648/erp/internal/modules/supplier/dto"
-	supplierService "putra4648/erp/internal/modules/supplier/service"
+	supplierDto "putra4648/erp/internal/supplier/dto"
+	supplierService "putra4648/erp/internal/supplier/service"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
