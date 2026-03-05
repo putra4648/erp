@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	app "putra4648/erp/cmd"
 	"putra4648/erp/configs/auth"
 	"putra4648/erp/configs/config"
@@ -11,6 +10,7 @@ import (
 	"putra4648/erp/internal/modules/category"
 	"putra4648/erp/internal/modules/product"
 	"putra4648/erp/internal/modules/stock_adjustment"
+	"putra4648/erp/internal/modules/stock_level"
 	"putra4648/erp/internal/modules/stock_movement"
 	"putra4648/erp/internal/modules/supplier"
 	"putra4648/erp/internal/modules/uom"
@@ -84,12 +84,17 @@ func main() {
 	if err := stock_adjustment.Register(container); err != nil {
 		logger.Log.Fatalf("Failed to register stock_adjustment module: %v", err)
 	}
+
 	if err := stock_movement.Register(container); err != nil {
 		logger.Log.Fatalf("Failed to register stock_movement module: %v", err)
 	}
 
+	if err := stock_level.Register(container); err != nil {
+		logger.Log.Fatalf("Failed to register stock_level module: %v", err)
+	}
+
 	if err := container.Invoke(app.Server); err != nil {
-                logger.Log.Fatalf("Failed to start server: %v", err.Error())
+		logger.Log.Fatalf("Failed to start server: %v", err.Error())
 	}
 
 }

@@ -17,10 +17,16 @@ func Register(container *dig.Container) error {
 	}
 
 	// Services
-	if err := container.Provide(service.NewAdjustmentReasonService); err != nil {
+	if err := container.Provide(service.NewAdjustmentReasonQueryService); err != nil {
 		return err
 	}
-	if err := container.Provide(service.NewStockAdjustmentService); err != nil {
+	if err := container.Provide(service.NewAdjustmentReasonCommandService); err != nil {
+		return err
+	}
+	if err := container.Provide(service.NewStockAdjustmentQueryService); err != nil {
+		return err
+	}
+	if err := container.Provide(service.NewStockAdjustmentCommandService); err != nil {
 		return err
 	}
 

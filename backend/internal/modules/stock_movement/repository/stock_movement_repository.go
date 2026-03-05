@@ -9,14 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type StockMovementRepository interface {
-	Create(ctx context.Context, movement *domain.StockMovement) error
-	FindByID(ctx context.Context, id uuid.UUID) (*domain.StockMovement, error)
-	FindAll(ctx context.Context, req *dto.StockMovementRequest) ([]*domain.StockMovement, int64, error)
-	Update(ctx context.Context, movement *domain.StockMovement) error
-	Delete(ctx context.Context, id uuid.UUID) error
-}
-
 type stockMovementRepository struct {
 	db *gorm.DB
 }
@@ -47,10 +39,16 @@ func (r *stockMovementRepository) FindAll(ctx context.Context, req *dto.StockMov
 	var total int64
 	db := r.db.WithContext(ctx).Model(&domain.StockMovement{}).
 		Preload("OriginWarehouse").
-		Preload("DestinationWarehouse")
+		Preload("DestinationWarehouse").
+		Preload("Items")
 
 	if req.Type != "" {
 		db = db.Where("type = ?", req.Type)
+	}
+
+	if req.Search != "" {
+		searchTerm := "%" + req.Search + "%"
+		db = db.Where("movement_no LIKE ? OR reference_no LIKE ? OR note LIKE ?", searchTerm, searchTerm, searchTerm)
 	}
 
 	db.Count(&total)
@@ -78,4 +76,39 @@ func (r *stockMovementRepository) Update(ctx context.Context, movement *domain.S
 
 func (r *stockMovementRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.db.WithContext(ctx).Delete(&domain.StockMovement{}, "id = ?", id).Error
+}
+
+func (r *stockMovementRepository) CompletedMovement(ctx context.Context, id uuid.UUID) error {
+	return r.db.WithContext(ctx).Model(&domain.StockMovement{}).Where("id = ?", id).Update("status", "COMPLETED").Error
+}
+
+func (r *stockMovementRepository) CreateTransaction(ctx context.Context, transaction *domain.StockTransaction) error {
+	return r.db.WithContext(ctx).Create(transaction).Error
+}
+
+func (r *stockMovementRepository) FindTransactions(ctx context.Context, req *dto.StockTransactionRequest) ([]*domain.StockTransaction, int64, error) {
+	var transactions []*domain.StockTransaction
+	var total int64
+	query := r.db.WithContext(ctx).Model(&domain.StockTransaction{}).
+		Preload("Product").
+		Preload("Warehouse").
+		Preload("Supplier").
+		Order("created_at DESC")
+
+	if req.ProductID != "" {
+		query = query.Where("product_id = ?", req.ProductID)
+	}
+	if req.WarehouseID != "" {
+		query = query.Where("warehouse_id = ?", req.WarehouseID)
+	}
+
+	query.Count(&total)
+
+	if req.Page > 0 && req.Size > 0 {
+		offset := (req.Page - 1) * req.Size
+		query = query.Limit(req.Size).Offset(offset)
+	}
+
+	err := query.Find(&transactions).Error
+	return transactions, total, err
 }

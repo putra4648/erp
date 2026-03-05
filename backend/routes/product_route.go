@@ -2,7 +2,6 @@ package routes
 
 import (
 	"putra4648/erp/configs/logger"
-	productDomain "putra4648/erp/internal/modules/product/domain"
 	"putra4648/erp/internal/modules/product/dto"
 	productService "putra4648/erp/internal/modules/product/service"
 	. "putra4648/erp/internal/modules/shared/utils"
@@ -33,7 +32,7 @@ func RegisterProductRoutes(
 // Product handlers
 func createProduct(service productService.ProductCommandService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var req productDomain.ProductDTO
+		var req dto.ProductDTO
 		if err := c.BodyParser(&req); err != nil {
 			logger.Log.Error(err.Error())
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
@@ -98,7 +97,7 @@ func updateProduct(service productService.ProductCommandService) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid product ID"})
 		}
 
-		var req productDomain.ProductDTO
+		var req dto.ProductDTO
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 		}

@@ -3,7 +3,6 @@ package domain
 import (
 	domainProduct "putra4648/erp/internal/modules/product/domain"
 	"putra4648/erp/internal/modules/shared/enums"
-	"putra4648/erp/internal/modules/stock_adjustment/dto"
 	domainWarehouse "putra4648/erp/internal/modules/warehouse/domain"
 	"time"
 
@@ -34,36 +33,4 @@ type StockAdjustmentItem struct {
 	ActualQty         decimal.Decimal       `gorm:"type:decimal(19,4)" json:"actual_qty"`
 	SystemQty         decimal.Decimal       `gorm:"type:decimal(19,4)" json:"system_qty"`
 	AdjustmentQty     decimal.Decimal       `gorm:"type:decimal(19,4)" json:"adjustment_qty"`
-}
-
-func (s *StockAdjustment) ToResponse() *dto.StockAdjustmentResponse {
-	var items []dto.StockAdjustmentItemResponse
-	for _, item := range s.Items {
-		items = append(items, *item.ToResponse())
-	}
-
-	return &dto.StockAdjustmentResponse{
-		ID:              s.ID,
-		AdjustmentNo:    s.AdjustmentNo,
-		WarehouseID:     s.WarehouseID,
-		TransactionDate: s.TransactionDate,
-		Status:          string(s.Status),
-		Note:            s.Note,
-		CreatedBy:       s.CreatedBy,
-		ApprovedBy:      s.ApprovedBy,
-		Items:           items,
-	}
-}
-
-func (i *StockAdjustmentItem) ToResponse() *dto.StockAdjustmentItemResponse {
-	return &dto.StockAdjustmentItemResponse{
-		ID:            i.ID,
-		ProductID:     i.ProductID,
-		ProductName:   i.Product.Name,
-		ReasonID:      i.ReasonID,
-		ReasonName:    i.Reason.Name,
-		ActualQty:     i.ActualQty,
-		SystemQty:     i.SystemQty,
-		AdjustmentQty: i.AdjustmentQty,
-	}
 }

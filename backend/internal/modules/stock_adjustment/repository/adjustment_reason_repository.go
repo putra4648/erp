@@ -12,7 +12,7 @@ type adjustmentReasonRepository struct {
 	db *gorm.DB
 }
 
-func NewAdjustmentReasonRepository(db *gorm.DB) domain.AdjustmentReasonRepository {
+func NewAdjustmentReasonRepository(db *gorm.DB) AdjustmentReasonRepository {
 	return &adjustmentReasonRepository{db: db}
 }
 

@@ -3,40 +3,40 @@ package service
 import (
 	"context"
 	categoryRepository "putra4648/erp/internal/modules/category/repository"
-	productDomain "putra4648/erp/internal/modules/product/domain"
-	productRepository "putra4648/erp/internal/modules/product/repository" // Added import
+	productDto "putra4648/erp/internal/modules/product/dto"
+	"putra4648/erp/internal/modules/product/mapper"
+	"putra4648/erp/internal/modules/product/repository"
+	productRepository "putra4648/erp/internal/modules/product/repository"
+	supplierRepository "putra4648/erp/internal/modules/supplier/repository"
 	uomRepository "putra4648/erp/internal/modules/uom/repository"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
-type ProductCommandService interface {
-	CreateProduct(ctx context.Context, req *productDomain.ProductDTO) (*productDomain.ProductResponse, error)
-	UpdateProduct(ctx context.Context, id uuid.UUID, productDTO *productDomain.ProductDTO) (*productDomain.ProductResponse, error)
-	DeleteProduct(ctx context.Context, id uuid.UUID) error
-}
-
 type productCommandService struct {
-	productRepo  productRepository.ProductRepository
+	productRepo  repository.ProductRepository
 	categoryRepo categoryRepository.CategoryRepository
 	uomRepo      uomRepository.UOMRepository
+	supplierRepo supplierRepository.SupplierRepository
 }
 
 func NewProductCommandService(
 	productRepo productRepository.ProductRepository,
 	categoryRepo categoryRepository.CategoryRepository,
 	uomRepo uomRepository.UOMRepository,
+	supplierRepo supplierRepository.SupplierRepository,
 	logger *zap.Logger,
 ) ProductCommandService {
 	return &productCommandService{
 		productRepo:  productRepo,
 		categoryRepo: categoryRepo,
 		uomRepo:      uomRepo,
+		supplierRepo: supplierRepo,
 	}
 }
 
-func (s *productCommandService) CreateProduct(ctx context.Context, productDTO *productDomain.ProductDTO) (*productDomain.ProductResponse, error) {
+func (s *productCommandService) CreateProduct(ctx context.Context, productDTO *productDto.ProductDTO) (*productDto.ProductDTO, error) {
 	// Check if SKU already exists
 	if _, err := s.productRepo.FindBySKU(ctx, productDTO.SKU); err == nil {
 		return nil, &ProductError{Code: "DUPLICATE_SKU", Message: "SKU already exists"}
@@ -64,10 +64,16 @@ func (s *productCommandService) CreateProduct(ctx context.Context, productDTO *p
 		}
 	}
 
-	// Convert DTO to model
-	// add product id to product dto
-	productDTO.ID = uuid.New().String()
-	product := productDTO.ToModel()
+	// Validate Supplier
+	supplierID, err := uuid.Parse(productDTO.SupplierID)
+	if err != nil {
+		return nil, &ProductError{Code: "INVALID_ID", Message: "Invalid Supplier ID"}
+	}
+	if _, err := s.supplierRepo.FindByID(ctx, supplierID); err != nil {
+		return nil, &ProductError{Code: "NOT_FOUND", Message: "Supplier not found"}
+	}
+
+	product := mapper.ToProduct(productDTO)
 
 	// Create product in database
 	if err := s.productRepo.Create(ctx, product); err != nil {
@@ -80,11 +86,10 @@ func (s *productCommandService) CreateProduct(ctx context.Context, productDTO *p
 		return nil, &ProductError{Code: "DATABASE_ERROR", Message: "Failed to retrieve created product"}
 	}
 
-	// Return response
-	return createdProduct.ToResponse(), nil
+	return mapper.ToProductDTO(createdProduct), nil
 }
 
-func (s *productCommandService) UpdateProduct(ctx context.Context, id uuid.UUID, productDTO *productDomain.ProductDTO) (*productDomain.ProductResponse, error) {
+func (s *productCommandService) UpdateProduct(ctx context.Context, id uuid.UUID, productDTO *productDto.ProductDTO) (*productDto.ProductDTO, error) {
 	// Find existing product
 	existingProduct, err := s.productRepo.FindByID(ctx, id)
 	if err != nil {
@@ -120,10 +125,17 @@ func (s *productCommandService) UpdateProduct(ctx context.Context, id uuid.UUID,
 		}
 	}
 
-	// Update product fields
-	productDTO.ID = id.String()
-	updatedProduct := productDTO.ToModel()
-	updatedProduct.ID = id // Ensure ID is set
+	// Validate Supplier
+	supplierID, err := uuid.Parse(productDTO.SupplierID)
+	if err != nil {
+		return nil, &ProductError{Code: "INVALID_ID", Message: "Invalid Supplier ID"}
+	}
+	if _, err := s.supplierRepo.FindByID(ctx, supplierID); err != nil {
+		return nil, &ProductError{Code: "NOT_FOUND", Message: "Supplier not found"}
+	}
+
+	updatedProduct := mapper.ToProduct(productDTO)
+	updatedProduct.ID = id
 
 	// Save updated product
 	if err := s.productRepo.Update(ctx, updatedProduct); err != nil {
@@ -136,8 +148,7 @@ func (s *productCommandService) UpdateProduct(ctx context.Context, id uuid.UUID,
 		return nil, &ProductError{Code: "DATABASE_ERROR", Message: "Failed to retrieve updated product"}
 	}
 
-	// Return response
-	return reloadedProduct.ToResponse(), nil
+	return mapper.ToProductDTO(reloadedProduct), nil
 }
 
 func (s *productCommandService) DeleteProduct(ctx context.Context, id uuid.UUID) error {

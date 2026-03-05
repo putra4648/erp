@@ -25,7 +25,7 @@ func RegisterSupplierRoutes(
 
 func createSupplier(service supplierService.SupplierCommandService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var req supplierDto.CreateSupplierRequest
+		var req supplierDto.SupplierDto
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
@@ -43,7 +43,7 @@ func getSupplierByID(service supplierService.SupplierQueryService) fiber.Handler
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
 		}
-		supplier, err := service.FindByID(c.Context(), id)
+		supplier, err := service.FindByID(c.Context(), id.String())
 		if err != nil {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "supplier not found"})
 		}
@@ -71,14 +71,16 @@ func updateSupplier(service supplierService.SupplierCommandService) fiber.Handle
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
 		}
-		var req supplierDto.UpdateSupplierRequest
+		var req supplierDto.SupplierDto
+		req.ID = id.String()
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
-		if err := service.Update(c.Context(), id, &req); err != nil {
+		dto, err := service.Update(c.Context(), &req)
+		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
-		return c.SendStatus(fiber.StatusNoContent)
+		return c.JSON(dto)
 	}
 }
 
@@ -88,9 +90,10 @@ func deleteSupplier(service supplierService.SupplierCommandService) fiber.Handle
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
 		}
-		if err := service.Delete(c.Context(), id); err != nil {
+		dto, err := service.Delete(c.Context(), id.String())
+		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
-		return c.SendStatus(fiber.StatusNoContent)
+		return c.JSON(dto)
 	}
 }

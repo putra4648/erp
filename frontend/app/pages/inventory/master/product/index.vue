@@ -16,6 +16,10 @@
                     <UFormField label="Name" name="name">
                         <UInput class="w-full" v-model="state.name" />
                     </UFormField>
+                    <UFormField label="Supplier" name="supplier_id">
+                        <USelectMenu class="w-full" v-model="state.supplier_id" :items="allSuppliers" value-key="id"
+                            label-key="name" placeholder="Select supplier" searchable />
+                    </UFormField>
                     <UFormField label="Category" name="categories">
                         <USelectMenu class="w-full" v-model="state.categories" :items="allCategories" multiple
                             label-key="name" placeholder="Select categories" />
@@ -50,6 +54,7 @@ definePageMeta({
 import type { TableRow, TableColumn, FormSubmitEvent, DropdownMenuItem, BreadcrumbItem } from '@nuxt/ui'
 import type { FormError } from '#ui/types';
 import type { Product, Category, UOM } from '~/types/models/product';
+import type { Supplier } from '~/types/models/supplier';
 import { ProductSchema } from '~/validations/schemas/product_schema';
 import type PaginationResponse from '~/../server/utils/pagination_response';
 
@@ -63,6 +68,7 @@ const state = reactive<Product>({
     id: "",
     sku: '',
     name: '',
+    supplier_id: '',
     categories: [],
     uoms: [],
     min_stock: 0
@@ -96,11 +102,16 @@ const { data: uomsData } = await useFetch<PaginationResponse<UOM>>('/api/uoms', 
     watch: [page, size]
 })
 
+const { data: suppliersData } = await useFetch<PaginationResponse<Supplier>>('/api/suppliers', {
+    query: { page: 1, size: 100 }
+})
+
 const products = computed(() => (data.value?.items || []) as Product[])
 const total = computed(() => data.value?.total || 0)
 
 const allCategories = computed(() => categoriesData.value?.items || [])
 const allUoms = computed(() => uomsData.value?.items || [])
+const allSuppliers = computed(() => suppliersData.value?.items || [])
 
 const productColumns = ref<TableColumn<Product>[]>([
     {
@@ -126,6 +137,11 @@ const productColumns = ref<TableColumn<Product>[]>([
             if (!row.original.uoms) return ""
             return row.original.uoms.map(c => c.name).join(", ")
         }
+    },
+    {
+        accessorKey: "supplier",
+        header: "Supplier",
+        cell: ({ row }) => row.original.supplier?.name || "-"
     },
     {
         accessorKey: "min_stock",
@@ -172,6 +188,7 @@ function getRowActions(row: TableRow<Product>): DropdownMenuItem[] {
                 state.id = row.original.id
                 state.sku = row.original.sku
                 state.name = row.original.name
+                state.supplier_id = row.original.supplier_id
                 state.categories = row.original.categories
                 state.uoms = row.original.uoms
                 state.min_stock = row.original.min_stock
@@ -202,6 +219,7 @@ function addProduct() {
     state.id = ""
     state.sku = ""
     state.name = ""
+    state.supplier_id = ""
     state.categories = []
     state.uoms = []
     state.min_stock = 0
