@@ -1,9 +1,9 @@
 package routes
 
 import (
-	. "putra4648/erp/internal/modules/shared/utils"
-	"putra4648/erp/internal/modules/uom/dto"
-	"putra4648/erp/internal/modules/uom/service"
+	. "putra4648/erp/internal/shared/utils"
+	"putra4648/erp/internal/uom/dto"
+	"putra4648/erp/internal/uom/service"
 
 	"github.com/casbin/casbin/v3"
 	"github.com/gofiber/fiber/v2"

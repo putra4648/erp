@@ -25,6 +25,25 @@ A modern ERP (Enterprise Resource Planning) system built with high-performance t
 
 ---
 
+## ✨ Features
+
+- **Inventory Management**:
+  - **Stock Levels**: Real-time monitoring of product quantities across warehouses.
+  - **Stock Movements**: Track inbound, outbound, and internal transfers.
+  - **Stock Adjustments**: Manual inventory corrections with supervisor approval workflow.
+  - **Stock Transactions**: Detailed audit trail of all inventory changes.
+- **Master Data Management** (Admin only):
+  - Manage Products, Categories, UOMs, Suppliers, and Warehouses.
+- **Role-Based Access Control (RBAC)**:
+  - Dynamic navigation menu based on Keycloak groups (`admin`, `staff`, `inventory`).
+  - Secure API routes and frontend middleware protection.
+- **Modern UI/UX**:
+  - Unified layout with responsive sidebar and mobile drawer.
+  - Dark/Light mode support.
+  - Reusable data-driven components (Badges, Tables, Forms).
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites

@@ -1,9 +1,9 @@
 package routes
 
 import (
-	"putra4648/erp/internal/modules/stock_level/dto"
-	"putra4648/erp/internal/modules/stock_level/mapper"
-	"putra4648/erp/internal/modules/stock_level/service"
+	"putra4648/erp/internal/stock_level/dto"
+	"putra4648/erp/internal/stock_level/mapper"
+	"putra4648/erp/internal/stock_level/service"
 
 	"github.com/casbin/casbin/v3"
 	"github.com/gofiber/fiber/v2"

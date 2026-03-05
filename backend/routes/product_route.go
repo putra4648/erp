@@ -2,9 +2,9 @@ package routes
 
 import (
 	"putra4648/erp/configs/logger"
-	"putra4648/erp/internal/modules/product/dto"
-	productService "putra4648/erp/internal/modules/product/service"
-	. "putra4648/erp/internal/modules/shared/utils"
+	"putra4648/erp/internal/product/dto"
+	productService "putra4648/erp/internal/product/service"
+	. "putra4648/erp/internal/shared/utils"
 
 	"github.com/casbin/casbin/v3"
 	"github.com/gofiber/fiber/v2"
