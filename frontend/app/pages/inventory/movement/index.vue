@@ -4,8 +4,8 @@
             <h1 class="text-2xl font-bold">Stock Movement</h1>
             <div class="flex gap-2">
                 <UInput v-model="search" placeholder="Search..." icon="i-lucide-search" />
-                <USelectMenu v-model="typeFilter" :items="['', 'IN', 'OUT', 'TRANSFER']" placeholder="Type"
-                    class="w-32" />
+                <USelectMenu v-model="typeFilter" :items="['IN', 'OUT', 'TRANSFER']" placeholder="Type" class="w-32"
+                    clear />
                 <UButton label="Add Movement" @click="addMovement" />
             </div>
         </div>
@@ -92,8 +92,7 @@
 
 <script setup lang="ts">
 definePageMeta({
-    layout: 'master-layout',
-    label: 'Stock Movement'
+    label: 'Movement'
 })
 
 import type { TableRow, TableColumn, FormSubmitEvent, DropdownMenuItem } from '@nuxt/ui'
@@ -140,7 +139,7 @@ const availableStatuses = Object.values(Status)
 
 // Fetch Data
 const { data, status, refresh } = await useFetch<PaginationResponse<StockMovement>>('/api/stock-movements', {
-    query: { page, size, search, type: typeFilter },
+    query: { page, size, search, type: typeFilter.value },
     watch: [page, size, search, typeFilter]
 })
 

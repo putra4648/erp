@@ -18,13 +18,16 @@ export default defineNuxtConfig({
       stylistic: true, // <---
     },
   },
+  app: {
+    head: {
+      title: "ERP System",
+    },
+  },
   runtimeConfig: {
     keycloakClientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
     keycloakIssuer: process.env.KEYCLOAK_ISSUER,
     app: {},
     public: {
-      // serverUrl: "http://localhost:9000",
-      // clientUrl: "http://localhost:3000",
       serverUrl: "http://localhost:8080",
       keycloakUrl: process.env.KEYCLOAK_URL,
       clientId: process.env.KEYCLOAK_CLIENT_ID,

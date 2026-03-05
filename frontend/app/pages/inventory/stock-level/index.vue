@@ -4,7 +4,7 @@
             <h1 class="text-2xl font-bold">Stock Levels</h1>
             <div class="flex gap-2">
                 <UInput v-model="search" placeholder="Search product..." icon="i-lucide-search" />
-                <USelectMenu v-model="warehouseFilter" :items="allWarehouses" value-key="id" label-key="name"
+                <USelectMenu v-model="warehouseFilter" :items="allWarehouses" value-key="id" label-key="name" clear
                     placeholder="Warehouse" class="w-48" />
                 <UButton icon="i-lucide-refresh-cw" color="neutral" variant="ghost" @click="refresh" />
             </div>
@@ -20,7 +20,6 @@
 
 <script setup lang="ts">
 definePageMeta({
-    layout: 'master-layout',
     label: 'Stock Level'
 })
 
@@ -57,7 +56,6 @@ const { data: warehouseData } = await useFetch<PaginationResponse<Warehouse>>('/
 const stocks = computed(() => data.value?.items || [])
 const total = computed(() => data.value?.total || 0)
 const allWarehouses = computed(() => [
-    { id: '', name: 'All Warehouses' },
     ...(warehouseData.value?.items || [])
 ])
 

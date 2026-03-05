@@ -123,7 +123,6 @@
 
 <script setup lang="ts">
 definePageMeta({
-    layout: 'default',
     label: "Adjustment"
 })
 

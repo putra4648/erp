@@ -37,7 +37,6 @@
 
 <script setup lang="ts">
 definePageMeta({
-  layout: 'master-layout',
   label: "Warehouse"
 })
 

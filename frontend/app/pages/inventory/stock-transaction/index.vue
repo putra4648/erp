@@ -4,9 +4,9 @@
             <h1 class="text-2xl font-bold">Stock Transactions</h1>
             <div class="flex gap-2">
                 <USelectMenu v-model="productFilter" :items="allProducts" value-key="id" label-key="name"
-                    placeholder="Product" class="w-48" />
+                    placeholder="Product" class="w-48" clear />
                 <USelectMenu v-model="warehouseFilter" :items="allWarehouses" value-key="id" label-key="name"
-                    placeholder="Warehouse" class="w-48" />
+                    placeholder="Warehouse" class="w-48" clear />
                 <UButton icon="i-lucide-refresh-cw" color="neutral" variant="ghost" @click="refresh" />
             </div>
         </div>
@@ -21,7 +21,6 @@
 
 <script setup lang="ts">
 definePageMeta({
-    layout: 'master-layout',
     label: 'Stock Transaction'
 })
 
@@ -63,11 +62,9 @@ const { data: productData } = await useFetch<PaginationResponse<Product>>('/api/
 const transactions = computed(() => data.value?.items || [])
 const total = computed(() => data.value?.total || 0)
 const allWarehouses = computed(() => [
-    { id: '', name: 'All Warehouses' },
     ...(warehouseData.value?.items || [])
 ])
 const allProducts = computed(() => [
-    { id: '', name: 'All Products' },
     ...(productData.value?.items || [])
 ])
 
