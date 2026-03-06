@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	app "putra4648/erp/cmd"
 	"putra4648/erp/configs/auth"
 	"putra4648/erp/configs/config"
@@ -42,15 +43,7 @@ func main() {
 			Token:        "",
 		},
 		{
-			Constructror: auth.SetupCasbin,
-			Token:        "",
-		},
-		{
-			Constructror: auth.NewOIDCProvider,
-			Token:        "",
-		},
-		{
-			Constructror: auth.NewOIDCVerifier,
+			Constructror: auth.NewAuthenticator,
 			Token:        "",
 		},
 	}
@@ -94,7 +87,7 @@ func main() {
 	}
 
 	if err := container.Invoke(app.Server); err != nil {
-		logger.Log.Fatalf("Failed to start server: %v", err.Error())
+		log.Fatalf("Failed to start server: %v", err)
 	}
 
 }

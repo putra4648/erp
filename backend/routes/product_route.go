@@ -2,11 +2,11 @@ package routes
 
 import (
 	"putra4648/erp/configs/logger"
+	"putra4648/erp/configs/middleware"
 	"putra4648/erp/internal/product/dto"
 	productService "putra4648/erp/internal/product/service"
 	. "putra4648/erp/internal/shared/utils"
 
-	"github.com/casbin/casbin/v3"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
@@ -16,16 +16,15 @@ func RegisterProductRoutes(
 	api fiber.Router,
 	productCommandService productService.ProductCommandService,
 	productQueryService productService.ProductQueryService,
-	enforcer *casbin.Enforcer,
 ) {
-	// Product routes with Casbin authorization
+	// Product routes
 	products := api.Group("/products")
 	{
-		products.Post("/", createProduct(productCommandService))
-		products.Get("/:id", getProductByID(productQueryService))
-		products.Get("/", getAllProducts(productQueryService))
-		products.Put("/:id", updateProduct(productCommandService))
-		products.Delete("/:id", deleteProduct(productCommandService))
+		products.Post("/", middleware.RequirePermission("manager"), createProduct(productCommandService))
+		products.Get("/:id", middleware.RequirePermission("staff"), getProductByID(productQueryService))
+		products.Get("/", middleware.RequirePermission("staff"), getAllProducts(productQueryService))
+		products.Put("/:id", middleware.RequirePermission("admin"), updateProduct(productCommandService))
+		products.Delete("/:id", middleware.RequirePermission("admin"), deleteProduct(productCommandService))
 	}
 }
 

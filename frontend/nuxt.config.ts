@@ -2,17 +2,8 @@
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
-  modules: ["@nuxt/ui", "@sidebase/nuxt-auth", "@nuxt/eslint"],
+  modules: ["@nuxt/ui", "@auth0/auth0-nuxt", "@nuxt/eslint"],
   css: ["~/assets/css/main.css"],
-  auth: {
-    provider: {
-      type: "authjs",
-      trustHost: false,
-      defaultProvider: "keycloak",
-      addDefaultCallbackUrl: true,
-    },
-    globalAppMiddleware: true,
-  },
   eslint: {
     config: {
       stylistic: true, // <---
@@ -24,13 +15,16 @@ export default defineNuxtConfig({
     },
   },
   runtimeConfig: {
-    keycloakClientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
-    keycloakIssuer: process.env.KEYCLOAK_ISSUER,
-    app: {},
+    auth0: {
+      domain: process.env.NUXT_AUTH0_DOMAIN,
+      clientId: process.env.NUXT_AUTH0_CLIENT_ID,
+      clientSecret: process.env.NUXT_AUTH0_CLIENT_SECRET,
+      sessionSecret: process.env.NUXT_AUTH0_SESSION_SECRET,
+      appBaseUrl: process.env.NUXT_AUTH0_APP_BASE_URL,
+      audience: process.env.NUXT_AUTH0_AUDIENCE,
+    },
     public: {
-      serverUrl: "http://localhost:8080",
-      keycloakUrl: process.env.KEYCLOAK_URL,
-      clientId: process.env.KEYCLOAK_CLIENT_ID,
+      serverUrl: process.env.NUXT_SERVER_URL,
     },
   },
 });

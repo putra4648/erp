@@ -1,11 +1,11 @@
 package routes
 
 import (
+	"putra4648/erp/configs/middleware"
 	"putra4648/erp/internal/stock_level/dto"
 	"putra4648/erp/internal/stock_level/mapper"
 	"putra4648/erp/internal/stock_level/service"
 
-	"github.com/casbin/casbin/v3"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
@@ -14,13 +14,12 @@ func RegisterStockLevelRoutes(
 	app *fiber.App,
 	api fiber.Router,
 	stockLevelService service.StockLevelQueryService,
-	enforcer *casbin.Enforcer,
 ) {
 	stock := api.Group("/stock-levels")
 	{
-		stock.Get("/", getAllStockLevels(stockLevelService))
-		stock.Get("/:id", getStockLevelByID(stockLevelService))
-		stock.Get("/:wh_id/:prod_id", getStockLevelByWarehouseAndProduct(stockLevelService))
+		stock.Get("/", middleware.RequirePermission("staff"), getAllStockLevels(stockLevelService))
+		stock.Get("/:id", middleware.RequirePermission("staff"), getStockLevelByID(stockLevelService))
+		stock.Get("/:wh_id/:prod_id", middleware.RequirePermission("staff"), getStockLevelByWarehouseAndProduct(stockLevelService))
 	}
 }
 

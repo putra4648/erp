@@ -145,11 +145,12 @@ import { StockAdjustmentSchema } from '~/validations/schemas/stock_adjustment_sc
 import type PaginationResponse from '~/../server/utils/pagination_response';
 import { Status } from '~/types/enums/status_enum';
 
-const { data: authData } = useAuth()
+const user = useUser()
 
-const userRoles = computed(() => authData.value?.user.groups || []);
-const isSupervisor = computed(() => userRoles.value.includes('supervisor'))
-const isStaff = computed(() => userRoles.value.includes('staff'))
+const userRoles = computed(() => user.value?.groups || []);
+// TODO: Implement permission
+// const isSupervisor = computed(() => userRoles.value.includes('supervisor'))
+const isSupervisor = computed(() => false);
 
 const schema = StockAdjustmentSchema
 const toast = useToast()

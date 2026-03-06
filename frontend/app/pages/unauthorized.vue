@@ -21,9 +21,9 @@
                 <UButton color="neutral" variant="outline" to="/" size="lg">
                     Go to Dashboard
                 </UButton>
-                <UButton color="primary" size="lg" @click="handleLogout">
+                <a color="primary" size="lg" href="/auth/logout">
                     Logout
-                </UButton>
+                </a>
             </div>
         </div>
     </UContainer>
@@ -31,10 +31,4 @@
 
 <script setup lang="ts">
 
-const { signOut } = useAuth()
-
-const handleLogout = async () => {
-    await signOut()
-    navigateTo('/')
-}
 </script>

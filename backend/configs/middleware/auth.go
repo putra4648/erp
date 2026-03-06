@@ -1,38 +1,65 @@
 package middleware
 
 import (
-	"context"
 	"putra4648/erp/configs/auth"
 	"strings"
 
-	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gofiber/fiber/v2"
+	"go.uber.org/zap"
 )
 
-func AuthMiddleware(verifier *oidc.IDTokenVerifier) fiber.Handler {
+func AuthMiddleware(a *auth.Authenticator, log *zap.Logger) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		rawToken := c.Get("Authorization")
-		if rawToken == "" || !strings.HasPrefix(rawToken, "Bearer ") {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Token diperlukan"})
+		authHeader := c.Get("Authorization")
+		if authHeader == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"message": "Required authorization header is missing",
+			})
 		}
 
-		tokenString := strings.TrimPrefix(rawToken, "Bearer ")
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"message": "Authorization header format must be Bearer {token}",
+			})
+		}
 
-		// 1. Verifikasi Signature & Expiration secara OFFLINE
-		idToken, err := verifier.Verify(context.Background(), tokenString)
+		tokenString := parts[1]
+		accessToken, err := a.VerifyToken(c.Context(), tokenString)
 		if err != nil {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Token tidak valid: " + err.Error()})
+			log.Error("JWT validation failed", zap.Error(err), zap.String("path", c.Path()))
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"message": "Failed to validate JWT.",
+			})
 		}
 
-		// 2. Parse Claims untuk mengambil Roles
-		var claims auth.KeycloakClaims
-		if err := idToken.Claims(&claims); err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal extract claims"})
+		var profile map[string]interface{}
+		if err := accessToken.Claims(&profile); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": err.Error(),
+			})
 		}
 
-		// Simpan data ke context agar bisa dipakai di handler berikutnya
-		c.Locals("user_id", claims.Subject)
-		c.Locals("roles", claims.RealmAccess.Roles)
+		c.Locals("user", profile)
+		c.Locals("access_token", tokenString)
+
+		// Extract permissions for RequirePermission
+		var roles []string
+		if permissions, ok := profile["permissions"].([]interface{}); ok {
+			for _, p := range permissions {
+				if s, ok := p.(string); ok {
+					roles = append(roles, s)
+				}
+			}
+		}
+
+		// Also add scope if useful
+		if scope, ok := profile["scope"].(string); ok {
+			roles = append(roles, strings.Split(scope, " ")...)
+		}
+
+		c.Locals("roles", roles)
+
 		return c.Next()
 	}
 }

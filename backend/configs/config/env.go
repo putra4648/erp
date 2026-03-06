@@ -8,12 +8,12 @@ import (
 )
 
 type AppEnv struct {
-	KeycloakURL          string
-	KeycloakClientID     string
-	KeycloakClientSecret string
-	KeycloakRealmName    string
-	DBDSN                string
-	Port                 string
+	Auth0ClientID     string
+	Auth0ClientSecret string
+	Auth0Domain       string
+	Auth0Audience     string
+	DBDSN             string
+	Port              string
 }
 
 func LoadConfig() *AppEnv {
@@ -23,12 +23,12 @@ func LoadConfig() *AppEnv {
 	}
 
 	return &AppEnv{
-		KeycloakURL:          getEnv("KEYCLOAK_URL", ""),
-		KeycloakClientID:     getEnv("KEYCLOAK_CLIENT_ID", ""),
-		KeycloakClientSecret: getEnv("KEYCLOAK_CLIENT_SECRET", ""),
-		KeycloakRealmName:    getEnv("KEYCLOAK_REALM_NAME", ""),
-		DBDSN:                getEnv("DB_DSN", ""),
-		Port:                 getEnv("PORT", "8080"),
+		Auth0ClientID:     getEnv("AUTH0_CLIENT_ID", ""),
+		Auth0ClientSecret: getEnv("AUTH0_CLIENT_SECRET", ""),
+		Auth0Domain:       getEnv("AUTH0_DOMAIN", ""),
+		Auth0Audience:     getEnv("AUTH0_AUDIENCE", ""),
+		DBDSN:             getEnv("DB_DSN", ""),
+		Port:              getEnv("PORT", "8080"),
 	}
 }
 

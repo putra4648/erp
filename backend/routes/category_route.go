@@ -1,12 +1,12 @@
 package routes
 
 import (
+	"putra4648/erp/configs/middleware"
 	"putra4648/erp/internal/category/dto"
 	categoryDto "putra4648/erp/internal/category/dto"
 	categoryService "putra4648/erp/internal/category/service"
 	. "putra4648/erp/internal/shared/utils"
 
-	"github.com/casbin/casbin/v3"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
@@ -16,15 +16,14 @@ func RegisterCategoryRoutes(
 	api fiber.Router,
 	categoryCommandService categoryService.CategoryCommandService,
 	categoryQueryService categoryService.CategoryQueryService,
-	enforcer *casbin.Enforcer,
 ) {
 	categories := api.Group("/categories")
 	{
-		categories.Post("/", createCategory(categoryCommandService))
-		categories.Get("/:id", getCategoryByID(categoryQueryService))
-		categories.Get("/", getAllCategories(categoryQueryService))
-		categories.Put("/:id", updateCategory(categoryCommandService))
-		categories.Delete("/:id", deleteCategory(categoryCommandService))
+		categories.Post("/", middleware.RequirePermission("manager"), createCategory(categoryCommandService))
+		categories.Get("/:id", middleware.RequirePermission("staff"), getCategoryByID(categoryQueryService))
+		categories.Get("/", middleware.RequirePermission("staff"), getAllCategories(categoryQueryService))
+		categories.Put("/:id", middleware.RequirePermission("admin"), updateCategory(categoryCommandService))
+		categories.Delete("/:id", middleware.RequirePermission("admin"), deleteCategory(categoryCommandService))
 	}
 }
 

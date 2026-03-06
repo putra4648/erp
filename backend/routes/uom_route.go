@@ -1,11 +1,11 @@
 package routes
 
 import (
+	"putra4648/erp/configs/middleware"
 	. "putra4648/erp/internal/shared/utils"
 	"putra4648/erp/internal/uom/dto"
 	"putra4648/erp/internal/uom/service"
 
-	"github.com/casbin/casbin/v3"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
@@ -15,15 +15,14 @@ func RegisterUOMRoutes(
 	api fiber.Router,
 	uomCommandService service.UOMCommandService,
 	uomQueryService service.UOMQueryService,
-	enforcer *casbin.Enforcer,
 ) {
 	uoms := api.Group("/uoms")
 	{
-		uoms.Post("/", createUOM(uomCommandService))
-		uoms.Get("/:id", getUOMByID(uomQueryService))
-		uoms.Get("/", getAllUOMs(uomQueryService))
-		uoms.Put("/:id", updateUOM(uomCommandService))
-		uoms.Delete("/:id", deleteUOM(uomCommandService))
+		uoms.Post("/", middleware.RequirePermission("manager"), createUOM(uomCommandService))
+		uoms.Get("/:id", middleware.RequirePermission("staff"), getUOMByID(uomQueryService))
+		uoms.Get("/", middleware.RequirePermission("staff"), getAllUOMs(uomQueryService))
+		uoms.Put("/:id", middleware.RequirePermission("admin"), updateUOM(uomCommandService))
+		uoms.Delete("/:id", middleware.RequirePermission("admin"), deleteUOM(uomCommandService))
 	}
 }
 

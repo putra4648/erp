@@ -14,16 +14,16 @@
 
             <!-- User Profile -->
             <div class="p-4 border-t border-gray-200 dark:border-gray-800 flex flex-row justify-between">
-                <UUser :name="data?.user?.name ?? ''" :avatar="{
-                    src: 'https://i.pravatar.cc/150?u=john-doe',
+                <UUser :name="user?.name ?? ''" :avatar="{
+                    src: user?.picture,
                     loading: 'lazy',
                     icon: 'i-lucide-image'
                 }" :chip="{
                     color: 'primary',
                     position: 'top-right'
-                }" :description="data?.user?.email ?? ''" />
-                <UButton color="error" @click="signout" variant="subtle" icon="i-lucide-square-arrow-right-exit">
-                </UButton>
+                }" :description="user?.email ?? ''" />
+                <a href="/auth/logout" variant="subtle" icon="i-lucide-square-arrow-right-exit">
+                </a>
             </div>
 
             <div class="p-4 border-t border-gray-200 dark:border-gray-800">
@@ -58,17 +58,16 @@
                     <UNavigationMenu :items="links" orientation="vertical" @click="isOpen = false" />
                     <!-- User Profile -->
                     <div class="mt-auto  flex flex-row justify-between">
-                        <UUser :name="data?.user?.name ?? ''" :avatar="{
-                            src: 'https://i.pravatar.cc/150?u=john-doe',
+                        <UUser :name="user?.name ?? ''" :avatar="{
+                            src: user?.picture,
                             loading: 'lazy',
                             icon: 'i-lucide-image'
                         }" :chip="{
                             color: 'primary',
                             position: 'top-right'
-                        }" :description="data?.user?.email ?? ''" />
-                        <UButton color="error" @click="signout" variant="subtle"
-                            icon="i-lucide-square-arrow-right-exit">
-                        </UButton>
+                        }" :description="user?.email ?? ''" />
+                        <a href="/auth/logout" variant="subtle" icon="i-lucide-square-arrow-right-exit">
+                        </a>
                     </div>
                     <div class="pt-4 border-t border-gray-200 dark:border-gray-800 flex justify-between items-center">
                         <span class="text-sm text-gray-500">Theme</span>
@@ -92,20 +91,8 @@ import type { NavigationMenuItem, BreadcrumbItem } from '@nuxt/ui'
 
 const route = useRoute()
 const isOpen = ref(false);
-const { data, signOut } = useAuth()
-const config = useRuntimeConfig()
+const user = useUser()
 
-// Auth Logic
-const signout = async () => {
-    const idToken = data.value?.idToken
-    await signOut({ redirect: false })
-    const keycloakLogoutUrl = `${config.public.keycloakUrl}/realms/erp/protocol/openid-connect/logout`
-    const url = new URL(keycloakLogoutUrl)
-    url.searchParams.append('client_id', config.public.clientId)
-    url.searchParams.append('post_logout_redirect_uri', window.location.origin)
-    if (idToken) url.searchParams.append('id_token_hint', idToken)
-    window.location.href = url.toString()
-}
 
 const items = computed<BreadcrumbItem[]>(() => {
     const crumbs: BreadcrumbItem[] = [
@@ -127,7 +114,6 @@ const items = computed<BreadcrumbItem[]>(() => {
 
     return crumbs
 })
-const isAdmin = computed(() => data.value?.user?.groups?.includes('admin') ?? false)
 
 const links = computed<NavigationMenuItem[]>(() => {
     const baseLinks: NavigationMenuItem[] = [
@@ -164,36 +150,34 @@ const links = computed<NavigationMenuItem[]>(() => {
         }
     ]
 
-    if (isAdmin.value) {
-        const inventoryLink = baseLinks.find(link => link.label === 'Inventory')
-        if (inventoryLink && inventoryLink.children) {
-            inventoryLink.children.unshift({
-                label: "Master",
-                icon: "i-lucide-database",
-                children: [
-                    {
-                        label: 'Product',
-                        to: '/inventory/master/product',
-                    },
-                    {
-                        label: 'Category',
-                        to: '/inventory/master/category',
-                    },
-                    {
-                        label: 'UOM',
-                        to: '/inventory/master/uom',
-                    },
-                    {
-                        label: 'Supplier',
-                        to: '/inventory/master/supplier',
-                    },
-                    {
-                        label: 'Warehouse',
-                        to: '/inventory/master/warehouse',
-                    }
-                ]
-            })
-        }
+    const inventoryLink = baseLinks.find(link => link.label === 'Inventory')
+    if (inventoryLink && inventoryLink.children) {
+        inventoryLink.children.unshift({
+            label: "Master",
+            icon: "i-lucide-database",
+            children: [
+                {
+                    label: 'Product',
+                    to: '/inventory/master/product',
+                },
+                {
+                    label: 'Category',
+                    to: '/inventory/master/category',
+                },
+                {
+                    label: 'UOM',
+                    to: '/inventory/master/uom',
+                },
+                {
+                    label: 'Supplier',
+                    to: '/inventory/master/supplier',
+                },
+                {
+                    label: 'Warehouse',
+                    to: '/inventory/master/warehouse',
+                }
+            ]
+        })
     }
 
     return baseLinks

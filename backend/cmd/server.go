@@ -1,8 +1,8 @@
 package app
 
 import (
+	"putra4648/erp/configs/auth"
 	"putra4648/erp/configs/config"
-	"putra4648/erp/configs/logger"
 	"putra4648/erp/configs/middleware"
 	categoryService "putra4648/erp/internal/category/service"
 	productService "putra4648/erp/internal/product/service"
@@ -14,8 +14,6 @@ import (
 	warehouseService "putra4648/erp/internal/warehouse/service"
 	"putra4648/erp/routes"
 
-	"github.com/casbin/casbin/v3"
-	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/dig"
 	"go.uber.org/zap"
@@ -26,8 +24,7 @@ type AppDependencies struct {
 	dig.In
 	Config                  *config.AppEnv
 	DB                      *gorm.DB
-	Enforcer                *casbin.Enforcer
-	Verifier                *oidc.IDTokenVerifier
+	Authenticator           *auth.Authenticator
 	ZapLogger               *zap.Logger
 	WarehouseCommandService warehouseService.WarehouseCommandService
 	WarehouseQueryService   warehouseService.WarehouseQueryService
@@ -54,37 +51,6 @@ type AppDependencies struct {
 func Server(deps AppDependencies) error {
 	defer deps.ZapLogger.Sync()
 
-	// Add policies: p, role, path, action
-	// This gives the 'admin' role GET access to all routes under /api/admin/*
-	if hasPolicy, _ := deps.Enforcer.HasPolicy("admin", "/api/admin/*", "GET"); !hasPolicy {
-		if _, err := deps.Enforcer.AddPolicy("admin", "/api/admin/*", "GET"); err != nil {
-			logger.Log.Warnf("Could not add admin policy: %v", err)
-		}
-	}
-
-	// Add product-specific policies for different roles
-	productPolicies := []struct {
-		role string
-		obj  string
-		act  string
-	}{
-		{"admin", "/api/products/*", "GET"},
-		{"admin", "/api/products/*", "POST"},
-		{"admin", "/api/products/*", "PUT"},
-		{"admin", "/api/products/*", "DELETE"},
-		{"manager", "/api/products/*", "GET"},
-		{"manager", "/api/products/*", "POST"},
-		{"staff", "/api/products/*", "GET"},
-	}
-
-	for _, policy := range productPolicies {
-		if hasPolicy, _ := deps.Enforcer.HasPolicy(policy.role, policy.obj, policy.act); !hasPolicy {
-			if _, err := deps.Enforcer.AddPolicy(policy.role, policy.obj, policy.act); err != nil {
-				logger.Log.Warnf("Could not add product policy for %s: %v", policy.role, err)
-			}
-		}
-	}
-
 	sqlDb, err := deps.DB.DB()
 	if err != nil {
 		return err
@@ -107,18 +73,17 @@ func Server(deps AppDependencies) error {
 
 	// Protected Route (Semua user yang login)
 	api := app.Group("/api")
-	api.Use(middleware.AuthMiddleware(deps.Verifier))
+	api.Use(middleware.AuthMiddleware(deps.Authenticator, deps.ZapLogger))
 
-	routes.RegisterAdminRoutes(app, api, deps.Enforcer)
 	routes.RegisterUserProfile(app, api)
 	routes.RegisterWarehouseRoutes(api, deps.WarehouseCommandService, deps.WarehouseQueryService)
 	routes.RegisterSupplierRoutes(api, deps.SupplierCommandService, deps.SupplierQueryService)
-	routes.RegisterProductRoutes(app, api, deps.ProductCommandService, deps.ProductQueryService, deps.Enforcer)
-	routes.RegisterCategoryRoutes(app, api, deps.CategoryCommandService, deps.CategoryQueryService, deps.Enforcer)
-	routes.RegisterUOMRoutes(app, api, deps.UOMCommandService, deps.UOMQueryService, deps.Enforcer)
+	routes.RegisterProductRoutes(app, api, deps.ProductCommandService, deps.ProductQueryService)
+	routes.RegisterCategoryRoutes(app, api, deps.CategoryCommandService, deps.CategoryQueryService)
+	routes.RegisterUOMRoutes(app, api, deps.UOMCommandService, deps.UOMQueryService)
 	routes.RegisterStockAdjustmentRoutes(api, deps.StockAdjustmentQueryService, deps.StockAdjustmentCommandService, deps.AdjustmentReasonQueryService, deps.AdjustmentReasonCommandService)
 	routes.RegisterStockMovementRoutes(api, deps.StockMovementCommandService, deps.StockMovementQueryService)
-	routes.RegisterStockLevelRoutes(app, api, deps.StockLevelService, deps.Enforcer)
+	routes.RegisterStockLevelRoutes(app, api, deps.StockLevelService)
 
 	return app.Listen(":" + deps.Config.Port)
 }
