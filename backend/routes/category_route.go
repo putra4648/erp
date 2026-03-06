@@ -19,11 +19,11 @@ func RegisterCategoryRoutes(
 ) {
 	categories := api.Group("/categories")
 	{
-		categories.Post("/", middleware.RequirePermission("manager"), createCategory(categoryCommandService))
-		categories.Get("/:id", middleware.RequirePermission("staff"), getCategoryByID(categoryQueryService))
-		categories.Get("/", middleware.RequirePermission("staff"), getAllCategories(categoryQueryService))
-		categories.Put("/:id", middleware.RequirePermission("admin"), updateCategory(categoryCommandService))
-		categories.Delete("/:id", middleware.RequirePermission("admin"), deleteCategory(categoryCommandService))
+		categories.Post("/", middleware.RequirePermission("create:categories"), createCategory(categoryCommandService))
+		categories.Get("/:id", middleware.RequirePermission("read:categories"), getCategoryByID(categoryQueryService))
+		categories.Get("/", middleware.RequirePermission("read:categories"), getAllCategories(categoryQueryService))
+		categories.Put("/:id", middleware.RequirePermission("update:categories"), updateCategory(categoryCommandService))
+		categories.Delete("/:id", middleware.RequirePermission("delete:categories"), deleteCategory(categoryCommandService))
 	}
 }
 

@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"putra4648/erp/configs/middleware"
 	supplierDto "putra4648/erp/internal/supplier/dto"
 	supplierService "putra4648/erp/internal/supplier/service"
 
@@ -15,11 +16,11 @@ func RegisterSupplierRoutes(
 ) {
 	supplier := api.Group("/supplier")
 	{
-		supplier.Post("/", createSupplier(scs))
-		supplier.Get("/:id", getSupplierByID(sqs))
-		supplier.Get("/", getAllSuppliers(sqs))
-		supplier.Put("/:id", updateSupplier(scs))
-		supplier.Delete("/:id", deleteSupplier(scs))
+		supplier.Post("/", middleware.RequirePermission("create:suppliers"), createSupplier(scs))
+		supplier.Get("/:id", middleware.RequirePermission("read:suppliers"), getSupplierByID(sqs))
+		supplier.Get("/", middleware.RequirePermission("read:suppliers"), getAllSuppliers(sqs))
+		supplier.Put("/:id", middleware.RequirePermission("update:suppliers"), updateSupplier(scs))
+		supplier.Delete("/:id", middleware.RequirePermission("delete:suppliers"), deleteSupplier(scs))
 	}
 }
 

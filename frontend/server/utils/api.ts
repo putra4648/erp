@@ -11,8 +11,6 @@ export const callBackend = async <T>(
   const token = await auth.getAccessToken();
   const config = useRuntimeConfig(event);
 
-  console.log(token.accessToken);
-
   return $fetch<T>(url, {
     baseURL: String(config.public.serverUrl),
     ...options,

@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"putra4648/erp/configs/middleware"
 	"putra4648/erp/internal/stock_adjustment/dto"
 	"putra4648/erp/internal/stock_adjustment/service"
 
@@ -18,19 +19,19 @@ func RegisterStockAdjustmentRoutes(
 	// Stock Adjustment routes
 	adjustment := api.Group("/stock-adjustment")
 	{
-		adjustment.Post("/", createStockAdjustment(sacs))
-		adjustment.Get("/:id", getStockAdjustmentByID(saqs))
-		adjustment.Get("/", getAllStockAdjustments(saqs))
-		adjustment.Put("/:id", updateStockAdjustment(sacs))
-		adjustment.Post("/:id/approve", approveStockAdjustment(sacs))
-		adjustment.Post("/:id/void", voidStockAdjustment(sacs))
+		adjustment.Post("/", middleware.RequirePermission("create:adjustments"), createStockAdjustment(sacs))
+		adjustment.Get("/:id", middleware.RequirePermission("read:adjustments"), getStockAdjustmentByID(saqs))
+		adjustment.Get("/", middleware.RequirePermission("read:adjustments"), getAllStockAdjustments(saqs))
+		adjustment.Put("/:id", middleware.RequirePermission("update:adjustments"), updateStockAdjustment(sacs))
+		adjustment.Post("/:id/approve", middleware.RequirePermission("approve:adjustments"), approveStockAdjustment(sacs))
+		adjustment.Post("/:id/void", middleware.RequirePermission("void:adjustments"), voidStockAdjustment(sacs))
 	}
 
 	// Adjustment Reason routes
 	reason := api.Group("/adjustment-reason")
 	{
-		reason.Post("/", createAdjustmentReason(arcs))
-		reason.Get("/", getAllAdjustmentReasons(arqs))
+		reason.Post("/", middleware.RequirePermission("create:adjustment-reasons"), createAdjustmentReason(arcs))
+		reason.Get("/", middleware.RequirePermission("read:adjustment-reasons"), getAllAdjustmentReasons(arqs))
 	}
 }
 

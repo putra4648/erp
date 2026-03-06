@@ -18,11 +18,11 @@ func RegisterUOMRoutes(
 ) {
 	uoms := api.Group("/uoms")
 	{
-		uoms.Post("/", middleware.RequirePermission("manager"), createUOM(uomCommandService))
-		uoms.Get("/:id", middleware.RequirePermission("staff"), getUOMByID(uomQueryService))
-		uoms.Get("/", middleware.RequirePermission("staff"), getAllUOMs(uomQueryService))
-		uoms.Put("/:id", middleware.RequirePermission("admin"), updateUOM(uomCommandService))
-		uoms.Delete("/:id", middleware.RequirePermission("admin"), deleteUOM(uomCommandService))
+		uoms.Post("/", middleware.RequirePermission("create:uoms"), createUOM(uomCommandService))
+		uoms.Get("/:id", middleware.RequirePermission("read:uoms"), getUOMByID(uomQueryService))
+		uoms.Get("/", middleware.RequirePermission("read:uoms"), getAllUOMs(uomQueryService))
+		uoms.Put("/:id", middleware.RequirePermission("update:uoms"), updateUOM(uomCommandService))
+		uoms.Delete("/:id", middleware.RequirePermission("delete:uoms"), deleteUOM(uomCommandService))
 	}
 }
 

@@ -40,25 +40,23 @@ func AuthMiddleware(a *auth.Authenticator, log *zap.Logger) fiber.Handler {
 			})
 		}
 
-		c.Locals("user", profile)
-		c.Locals("access_token", tokenString)
-
 		// Extract permissions for RequirePermission
-		var roles []string
+		var userPermissions []string
 		if permissions, ok := profile["permissions"].([]interface{}); ok {
 			for _, p := range permissions {
 				if s, ok := p.(string); ok {
-					roles = append(roles, s)
+					userPermissions = append(userPermissions, s)
 				}
 			}
 		}
+		c.Locals("permissions", userPermissions)
 
 		// Also add scope if useful
+		var userScopes []string
 		if scope, ok := profile["scope"].(string); ok {
-			roles = append(roles, strings.Split(scope, " ")...)
+			userScopes = append(userPermissions, strings.Split(scope, " ")...)
 		}
-
-		c.Locals("roles", roles)
+		c.Locals("scopes", userScopes)
 
 		return c.Next()
 	}

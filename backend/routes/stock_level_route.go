@@ -17,9 +17,9 @@ func RegisterStockLevelRoutes(
 ) {
 	stock := api.Group("/stock-levels")
 	{
-		stock.Get("/", middleware.RequirePermission("staff"), getAllStockLevels(stockLevelService))
-		stock.Get("/:id", middleware.RequirePermission("staff"), getStockLevelByID(stockLevelService))
-		stock.Get("/:wh_id/:prod_id", middleware.RequirePermission("staff"), getStockLevelByWarehouseAndProduct(stockLevelService))
+		stock.Get("/", middleware.RequirePermission("read:stock-levels"), getAllStockLevels(stockLevelService))
+		stock.Get("/:id", middleware.RequirePermission("read:stock-levels"), getStockLevelByID(stockLevelService))
+		stock.Get("/:wh_id/:prod_id", middleware.RequirePermission("read:stock-levels"), getStockLevelByWarehouseAndProduct(stockLevelService))
 	}
 }
 

@@ -20,11 +20,11 @@ func RegisterProductRoutes(
 	// Product routes
 	products := api.Group("/products")
 	{
-		products.Post("/", middleware.RequirePermission("manager"), createProduct(productCommandService))
-		products.Get("/:id", middleware.RequirePermission("staff"), getProductByID(productQueryService))
-		products.Get("/", middleware.RequirePermission("staff"), getAllProducts(productQueryService))
-		products.Put("/:id", middleware.RequirePermission("admin"), updateProduct(productCommandService))
-		products.Delete("/:id", middleware.RequirePermission("admin"), deleteProduct(productCommandService))
+		products.Post("/", middleware.RequirePermission("create:products"), createProduct(productCommandService))
+		products.Get("/:id", middleware.RequirePermission("read:products"), getProductByID(productQueryService))
+		products.Get("/", middleware.RequirePermission("read:products"), getAllProducts(productQueryService))
+		products.Put("/:id", middleware.RequirePermission("update:products"), updateProduct(productCommandService))
+		products.Delete("/:id", middleware.RequirePermission("delete:products"), deleteProduct(productCommandService))
 	}
 }
 

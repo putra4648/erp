@@ -1,6 +1,9 @@
 package middleware
 
 import (
+	"slices"
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -9,13 +12,15 @@ import (
 // and placed their permissions into c.Locals("roles") as a []string.
 func RequirePermission(requiredPermission string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		permissions, ok := c.Locals("roles").([]string)
+		permissions, ok := c.Locals("permissions").([]string)
 		if !ok {
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "You don't have permission to access this resource"})
 		}
 
-		for _, p := range permissions {
-			if p == requiredPermission {
+		requiredPermissions := strings.SplitSeq(requiredPermission, ",")
+
+		for required := range requiredPermissions {
+			if slices.Contains(permissions, required) {
 				return c.Next()
 			}
 		}

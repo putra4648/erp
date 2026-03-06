@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"putra4648/erp/configs/middleware"
 	warehouseDto "putra4648/erp/internal/warehouse/dto"
 	warehouseService "putra4648/erp/internal/warehouse/service"
 
@@ -15,11 +16,11 @@ func RegisterWarehouseRoutes(
 ) {
 	warehouse := api.Group("/warehouse")
 	{
-		warehouse.Post("/", createWarehouse(wcs))
-		warehouse.Get("/:id", getWarehouseByID(wqs))
-		warehouse.Get("/", getAllWarehouses(wqs))
-		warehouse.Put("/:id", updateWarehouse(wcs))
-		warehouse.Delete("/:id", deleteWarehouse(wcs))
+		warehouse.Post("/", middleware.RequirePermission("create:warehouses"), createWarehouse(wcs))
+		warehouse.Get("/:id", middleware.RequirePermission("read:warehouses"), getWarehouseByID(wqs))
+		warehouse.Get("/", middleware.RequirePermission("read:warehouses"), getAllWarehouses(wqs))
+		warehouse.Put("/:id", middleware.RequirePermission("update:warehouses"), updateWarehouse(wcs))
+		warehouse.Delete("/:id", middleware.RequirePermission("delete:warehouses"), deleteWarehouse(wcs))
 	}
 }
 

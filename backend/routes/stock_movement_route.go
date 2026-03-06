@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"putra4648/erp/configs/middleware"
 	"putra4648/erp/internal/stock_movement/dto"
 	"putra4648/erp/internal/stock_movement/service"
 
@@ -15,13 +16,13 @@ func RegisterStockMovementRoutes(
 ) {
 	movements := api.Group("/stock-movements")
 	{
-		movements.Post("/", createStockMovement(commandService))
-		movements.Get("/", getAllStockMovements(queryService))
-		movements.Get("/transactions", getStockTransactions(queryService))
-		movements.Get("/:id", getStockMovementByID(queryService))
-		movements.Put("/:id", updateStockMovement(commandService))
-		movements.Delete("/:id", deleteStockMovement(commandService))
-		movements.Post("/:id/approve", approveStockMovement(commandService))
+		movements.Post("/", middleware.RequirePermission("create:movements"), createStockMovement(commandService))
+		movements.Get("/", middleware.RequirePermission("read:movements"), getAllStockMovements(queryService))
+		movements.Get("/transactions", middleware.RequirePermission("read:transactions"), getStockTransactions(queryService))
+		movements.Get("/:id", middleware.RequirePermission("read:movements"), getStockMovementByID(queryService))
+		movements.Put("/:id", middleware.RequirePermission("update:movements"), updateStockMovement(commandService))
+		movements.Delete("/:id", middleware.RequirePermission("delete:movements"), deleteStockMovement(commandService))
+		movements.Post("/:id/approve", middleware.RequirePermission("approve:movements"), approveStockMovement(commandService))
 	}
 }
 
