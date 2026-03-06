@@ -107,11 +107,12 @@ import type { StockMovement } from '~/types/models/stock_movement'
 import type PaginationResponse from '~/../server/utils/pagination_response'
 
 definePageMeta({
-    label: "Dashboard"
+    label: "Dashboard",
 })
 
-const user = useUser()
-const userName = computed(() => user.value?.name || 'User')
+const { data } = useAuth()
+console.log("PELER ", data.value?.accessToken)
+const userName = computed(() => data.value?.user.name || 'User')
 
 // Fetch Data
 const { data: stockLevels, pending: stockPending, refresh: refreshStock } = await useFetch<PaginationResponse<StockLevelResponse>>('/api/stock-levels', {

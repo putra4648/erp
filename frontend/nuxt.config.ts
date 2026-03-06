@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
-  modules: ["@nuxt/ui", "@auth0/auth0-nuxt", "@nuxt/eslint"],
+  modules: ["@nuxt/ui", "@nuxt/eslint", "@sidebase/nuxt-auth"],
   css: ["~/assets/css/main.css"],
   eslint: {
     config: {
@@ -13,6 +13,15 @@ export default defineNuxtConfig({
     head: {
       title: "ERP System",
     },
+  },
+  auth: {
+    provider: {
+      type: "authjs",
+      trustHost: true,
+      defaultProvider: "auth0",
+      addDefaultCallbackUrl: true,
+    },
+    globalAppMiddleware: true,
   },
   runtimeConfig: {
     auth0: {
@@ -25,6 +34,10 @@ export default defineNuxtConfig({
     },
     public: {
       serverUrl: process.env.NUXT_SERVER_URL,
+      auth0: {
+        domain: process.env.NUXT_AUTH0_DOMAIN,
+        clientId: process.env.NUXT_AUTH0_CLIENT_ID,
+      },
     },
   },
 });

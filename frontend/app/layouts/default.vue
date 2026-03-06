@@ -13,27 +13,31 @@
 
 
             <!-- User Profile -->
-            <div class="p-4 border-t border-gray-200 dark:border-gray-800 flex flex-row justify-between">
-                <UUser :name="user?.name ?? ''" :avatar="{
-                    src: user?.picture,
+            <div
+                class="p-4 border-t border-gray-200 dark:border-gray-800 flex flex-row justify-between overflow-hidden text-ellipsis">
+                <UUser :name="data?.user?.name ?? ''" :avatar="{
+                    src: data?.user?.image ?? '',
                     loading: 'lazy',
                     icon: 'i-lucide-image'
                 }" :chip="{
                     color: 'primary',
                     position: 'top-right'
-                }" :description="user?.email ?? ''" />
-                <a href="/auth/logout" variant="subtle" icon="i-lucide-square-arrow-right-exit">
-                </a>
+                }" :description="data?.user?.email ?? ''" />
             </div>
 
             <div class="p-4 border-t border-gray-200 dark:border-gray-800">
                 <div class="flex items-center justify-between">
                     <span class="text-sm text-gray-500 dark:text-gray-400">© {{ new Date().getFullYear() }}</span>
-                    <UColorModeButton />
+                    <div>
+                        <UColorModeButton />
+
+                        <UButton color="error" @click="signout" variant="ghost" icon="i-lucide-square-arrow-right-exit"
+                            :loading="isLoggingOut">
+                            Logout
+                        </UButton>
+                    </div>
                 </div>
             </div>
-
-
         </aside>
 
         <!-- Mobile Header -->
@@ -58,16 +62,18 @@
                     <UNavigationMenu :items="links" orientation="vertical" @click="isOpen = false" />
                     <!-- User Profile -->
                     <div class="mt-auto  flex flex-row justify-between">
-                        <UUser :name="user?.name ?? ''" :avatar="{
-                            src: user?.picture,
+                        <UUser :name="data?.user?.name ?? ''" :avatar="{
+                            src: data?.user?.image ?? '',
                             loading: 'lazy',
                             icon: 'i-lucide-image'
                         }" :chip="{
                             color: 'primary',
                             position: 'top-right'
-                        }" :description="user?.email ?? ''" />
-                        <a href="/auth/logout" variant="subtle" icon="i-lucide-square-arrow-right-exit">
-                        </a>
+                        }" :description="data?.user?.email ?? ''" />
+                        <UButton color="error" variant="ghost" icon="i-lucide-square-arrow-right-exit" @click="signout"
+                            :loading="isLoggingOut">
+                            Logout
+                        </UButton>
                     </div>
                     <div class="pt-4 border-t border-gray-200 dark:border-gray-800 flex justify-between items-center">
                         <span class="text-sm text-gray-500">Theme</span>
@@ -91,8 +97,48 @@ import type { NavigationMenuItem, BreadcrumbItem } from '@nuxt/ui'
 
 const route = useRoute()
 const isOpen = ref(false);
-const user = useUser()
+const { data, signOut } = useAuth()
 
+const isLoggingOut = ref(false)
+const signout = async () => {
+    isLoggingOut.value = true
+    try {
+        const config = useRuntimeConfig()
+        console.log('Raw config public auth0:', config.public.auth0)
+
+        const domain = config.public.auth0?.domain
+        const clientId = config.public.auth0?.clientId
+
+        if (!domain || !clientId) {
+            console.error('CRITICAL: Auth0 configuration is missing in runtimeConfig!')
+            console.log('Check nuxt.config.ts and .env variables.')
+            await signOut({ callbackUrl: '/' })
+            return
+        }
+
+        // Auth0 logout needs the domain, client_id, and an ALLOWED returnTo URL
+        const returnTo = window.location.origin.replace(/\/$/, '') // Ensure no trailing slash
+        const logoutUrl = `https://${domain}/v2/logout?client_id=${clientId}&returnTo=${encodeURIComponent(returnTo)}`
+
+        console.log('Signout triggered:', { domain, clientId, returnTo, logoutUrl })
+
+        // 1. Sign out locally without Nuxt's automatic redirect
+        // This clears the app session cookies
+        await signOut({ redirect: false })
+
+        console.log('Session cleared locally. Redirecting to Auth0...')
+
+        // 2. Redirect the entire browser to Auth0 to clear the SSO session
+        // Bypass the Nuxt Router to ensure we actually hit the external URL
+        window.location.assign(logoutUrl)
+
+    } catch (error) {
+        console.error('Signout process failed:', error)
+        window.location.href = '/'
+    } finally {
+        setTimeout(() => { isLoggingOut.value = false }, 1000)
+    }
+}
 
 const items = computed<BreadcrumbItem[]>(() => {
     const crumbs: BreadcrumbItem[] = [

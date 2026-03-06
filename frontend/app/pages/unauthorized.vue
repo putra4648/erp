@@ -21,9 +21,9 @@
                 <UButton color="neutral" variant="outline" to="/" size="lg">
                     Go to Dashboard
                 </UButton>
-                <a color="primary" size="lg" href="/auth/logout">
+                <UButton color="primary" size="lg" href="/auth/logout">
                     Logout
-                </a>
+                </UButton>
             </div>
         </div>
     </UContainer>
