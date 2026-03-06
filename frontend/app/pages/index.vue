@@ -111,7 +111,6 @@ definePageMeta({
 })
 
 const { data } = useAuth()
-console.log("PELER ", data.value?.accessToken)
 const userName = computed(() => data.value?.user.name || 'User')
 
 // Fetch Data

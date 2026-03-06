@@ -12,6 +12,7 @@ import (
 // and placed their permissions into c.Locals("roles") as a []string.
 func RequirePermission(requiredPermission string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		c.Locals("required_permission", requiredPermission)
 		permissions, ok := c.Locals("permissions").([]string)
 		if !ok {
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "You don't have permission to access this resource"})
