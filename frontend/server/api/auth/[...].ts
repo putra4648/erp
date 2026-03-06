@@ -19,17 +19,16 @@ export default NuxtAuthHandler({
     }),
   ],
   callbacks: {
-    jwt: ({ token, account }) => {
+    jwt: ({ token, account, user }) => {
       if (account) {
         token.accessToken = account.access_token;
         token.idToken = account.id_token;
       }
       return token;
     },
-    session: ({ session, token }) => {
+    session: ({ session, token, user }) => {
       if (session.user) {
-        (session as any).accessToken = token.accessToken;
-        (session as any).user.id = token.sub;
+        session.accessToken = token.accessToken;
       }
       return session;
     },

@@ -145,12 +145,7 @@ import { StockAdjustmentSchema } from '~/validations/schemas/stock_adjustment_sc
 import type PaginationResponse from '~/../server/utils/pagination_response';
 import { Status } from '~/types/enums/status_enum';
 
-const user = useUser()
 
-const userRoles = computed(() => user.value?.groups || []);
-// TODO: Implement permission
-// const isSupervisor = computed(() => userRoles.value.includes('supervisor'))
-const isSupervisor = computed(() => false);
 
 const schema = StockAdjustmentSchema
 const toast = useToast()
@@ -291,14 +286,12 @@ function getRowActions(row: TableRow<StockAdjustment>): DropdownMenuItem[] {
         })
 
         // Supervisor can approve
-        if (isSupervisor.value) {
-            actions.push({
-                label: 'Approve',
-                icon: 'i-lucide-check-circle',
-                color: 'success',
-                onSelect: () => handleApprove(row.original.id)
-            })
-        }
+        actions.push({
+            label: 'Approve',
+            icon: 'i-lucide-check-circle',
+            color: 'success',
+            onSelect: () => handleApprove(row.original.id)
+        })
 
         // Both can void
         actions.push({
@@ -309,7 +302,7 @@ function getRowActions(row: TableRow<StockAdjustment>): DropdownMenuItem[] {
         })
     }
 
-    if (status === 'APPROVED' && isSupervisor.value) {
+    if (status === 'APPROVED') {
         actions.push({
             label: 'Void Approval',
             icon: 'i-lucide-ban',

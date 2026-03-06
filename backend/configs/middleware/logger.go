@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -21,6 +22,12 @@ func LoggerMiddleware(log *zap.Logger) fiber.Handler {
 		method := c.Method()
 		url := c.OriginalURL()
 		ip := c.IP()
+		var permissionsStr string
+		if p, ok := c.Locals("permissions").([]string); ok {
+			permissionsStr = strings.Join(p, ",")
+		}
+
+		requiredPermission, _ := c.Locals("required_permission").(string)
 
 		fields := []zap.Field{
 			zap.Int("status", status),
@@ -29,6 +36,8 @@ func LoggerMiddleware(log *zap.Logger) fiber.Handler {
 			zap.String("ip", ip),
 			zap.Duration("latency", duration),
 			zap.String("user_agent", c.Get(fiber.HeaderUserAgent)),
+			zap.String("permissions", permissionsStr),
+			zap.String("required_permission", requiredPermission),
 		}
 
 		if err != nil {
