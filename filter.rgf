@@ -1,0 +1,8 @@
+{
+    "version": "1.2",
+    "postFilters":
+    [
+      // see https://help.red-gate.com/h/flyway-filters1/2/postgres
+      // for latest documentation on how to use this filter file.
+    ]
+}
