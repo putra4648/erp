@@ -28,66 +28,56 @@ type Dependency struct {
 func main() {
 	container := dig.New()
 
-	// Register constructors
-	providers := []Dependency{
-		{
-			Constructror: logger.InitLogger,
-			Token:        "",
-		},
-		{
-			Constructror: config.LoadConfig,
-			Token:        "",
-		},
-		{
-			Constructror: database.InitDatabase,
-			Token:        "",
-		},
-		{
-			Constructror: auth.NewAuthenticator,
-			Token:        "",
-		},
+	// Register constructors without names if Token is empty
+	if err := container.Provide(logger.InitLogger); err != nil {
+		fmt.Printf("Failed to provide logger: %v\n", err)
+	}
+	if err := container.Provide(config.LoadConfig); err != nil {
+		fmt.Printf("Failed to provide config: %v\n", err)
+	}
+	if err := container.Provide(database.InitDatabase); err != nil {
+		fmt.Printf("Failed to provide database: %v\n", err)
+	}
+	if err := container.Provide(auth.NewAuthenticator); err != nil {
+		fmt.Printf("Failed to provide authenticator: %v\n", err)
 	}
 
-	for _, p := range providers {
-		if err := container.Provide(p.Constructror, dig.Name(p.Token)); err != nil {
-			fmt.Printf("Failed to initialize %v", err)
-		}
-	}
-
+	// For modules, if they fail to register, we use standard log because
+	// logger.Log might not be initialized by dig yet (constructors run only on Invoke)
+	// although our init() should have filled it, standard log is safer here.
 	if err := warehouse.Register(container); err != nil {
-		logger.Log.Fatalf("Failed to register warehouse module: %v", err)
+		log.Fatalf("Failed to register warehouse module: %v", err)
 	}
 
 	if err := supplier.Register(container); err != nil {
-		logger.Log.Fatalf("Failed to register supplier module: %v", err)
+		log.Fatalf("Failed to register supplier module: %v", err)
 	}
 
 	if err := product.Register(container); err != nil {
-		logger.Log.Fatalf("Failed to register product module: %v", err)
+		log.Fatalf("Failed to register product module: %v", err)
 	}
 
 	if err := category.Register(container); err != nil {
-		logger.Log.Fatalf("Failed to register category module: %v", err)
+		log.Fatalf("Failed to register category module: %v", err)
 	}
 
 	if err := uom.Register(container); err != nil {
-		logger.Log.Fatalf("Failed to register uom module: %v", err)
+		log.Fatalf("Failed to register uom module: %v", err)
 	}
 
 	if err := stock_adjustment.Register(container); err != nil {
-		logger.Log.Fatalf("Failed to register stock_adjustment module: %v", err)
+		log.Fatalf("Failed to register stock_adjustment module: %v", err)
 	}
 
 	if err := stock_movement.Register(container); err != nil {
-		logger.Log.Fatalf("Failed to register stock_movement module: %v", err)
+		log.Fatalf("Failed to register stock_movement module: %v", err)
 	}
 
 	if err := stock_level.Register(container); err != nil {
-		logger.Log.Fatalf("Failed to register stock_level module: %v", err)
+		log.Fatalf("Failed to register stock_level module: %v", err)
 	}
 
 	if err := container.Invoke(app.Server); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
-
 }

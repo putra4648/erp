@@ -1,6 +1,7 @@
 package app
 
 import (
+	"log"
 	"putra4648/erp/configs/auth"
 	"putra4648/erp/configs/config"
 	"putra4648/erp/configs/middleware"
@@ -49,6 +50,19 @@ type AppDependencies struct {
 }
 
 func Server(deps AppDependencies) error {
+	if deps.ZapLogger == nil {
+		log.Fatal("ZapLogger dependency is nil")
+	}
+	if deps.Config == nil {
+		deps.ZapLogger.Fatal("Config dependency is nil")
+	}
+	if deps.DB == nil {
+		deps.ZapLogger.Fatal("DB dependency is nil")
+	}
+	if deps.Authenticator == nil {
+		deps.ZapLogger.Fatal("Authenticator dependency is nil")
+	}
+
 	defer deps.ZapLogger.Sync()
 
 	sqlDb, err := deps.DB.DB()

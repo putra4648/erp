@@ -2,9 +2,9 @@ package config
 
 import (
 	"os"
-	"putra4648/erp/configs/logger"
 
 	"github.com/joho/godotenv"
+	"go.uber.org/zap"
 )
 
 type AppEnv struct {
@@ -16,11 +16,12 @@ type AppEnv struct {
 	Port              string
 }
 
-func LoadConfig() *AppEnv {
-	err := godotenv.Load("../../.env")
-	if err != nil {
-		logger.Log.Fatalf("Error loading .env file: %v", err)
-	}
+func LoadConfig(zapLogger *zap.Logger) *AppEnv {
+	// Try to load .env from several possible locations relative to the binary/execution context.
+	// We don't fatal here because environment variables might already be set in the system/docker.
+	_ = godotenv.Load(".env")
+	_ = godotenv.Load("../.env")
+	_ = godotenv.Load("../../.env")
 
 	return &AppEnv{
 		Auth0ClientID:     getEnv("AUTH0_CLIENT_ID", ""),
