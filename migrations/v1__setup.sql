@@ -20,7 +20,7 @@ CREATE TABLE public.adjustment_reasons (
 -- DROP TABLE public.approval_workflows;
 
 CREATE TABLE public.approval_workflows (
-	id uuid DEFAULT uuid_generate_v4() NOT NULL,
+	id uuid DEFAULT gen_random_uuid() NOT NULL,
 	doc_code varchar(50) NOT NULL,
 	doc_name varchar(100) NOT NULL,
 	is_active bool DEFAULT true NULL,
@@ -103,7 +103,7 @@ CREATE TABLE public.stock_movements (
 	origin_warehouse_id uuid NULL,
 	destination_warehouse_id uuid NULL,
 	reference_no varchar(100) NULL,
-	status varchar(20) DEFAULT 'DRAFT'::character varying NULL,
+	status varchar(20) DEFAULT 'DRAFT' NULL,
 	transaction_date date DEFAULT CURRENT_DATE NOT NULL,
 	note text NULL,
 	created_at timestamptz DEFAULT CURRENT_TIMESTAMP NULL,
@@ -121,7 +121,7 @@ CREATE INDEX idx_movement_type_status ON public.stock_movements USING btree (typ
 -- DROP TABLE public.stock_mutations;
 
 CREATE TABLE public.stock_mutations (
-	id uuid DEFAULT uuid_generate_v4() NOT NULL,
+	id uuid DEFAULT gen_random_uuid() NOT NULL,
 	product_id uuid NULL,
 	qty numeric(19, 4) NOT NULL,
 	"type" varchar(20) NOT NULL,
@@ -149,7 +149,7 @@ CREATE TABLE public.suppliers (
 	created_at timestamptz DEFAULT CURRENT_TIMESTAMP NULL,
 	code varchar(20) NOT NULL,
 	CONSTRAINT suppliers_pkey PRIMARY KEY (id),
-	CONSTRAINT suppliers_unique UNIQUE (code)
+	CONSTRAINT suppliers_code_key UNIQUE (code)
 );
 
 
@@ -193,13 +193,13 @@ CREATE TABLE public.warehouses (
 -- DROP TABLE public.approval_steps;
 
 CREATE TABLE public.approval_steps (
-	id uuid DEFAULT uuid_generate_v4() NOT NULL,
+	id uuid DEFAULT gen_random_uuid() NOT NULL,
 	workflow_id uuid NULL,
 	step_order int4 NOT NULL,
 	target_group_name varchar(100) NOT NULL,
 	min_approver int4 DEFAULT 1 NULL,
 	CONSTRAINT approval_steps_pkey PRIMARY KEY (id),
-	CONSTRAINT approval_steps_workflow_id_fkey FOREIGN KEY (workflow_id) REFERENCES public.approval_workflows(id)
+	CONSTRAINT approval_steps_workflow_id_fkey FOREIGN KEY (workflow_id) REFERENCES public.approval_workflows(id) ON DELETE CASCADE
 );
 
 
@@ -210,7 +210,7 @@ CREATE TABLE public.approval_steps (
 -- DROP TABLE public.approval_transactions;
 
 CREATE TABLE public.approval_transactions (
-	id uuid DEFAULT uuid_generate_v4() NOT NULL,
+	id uuid DEFAULT gen_random_uuid() NOT NULL,
 	workflow_id uuid NULL,
 	reference_id uuid NOT NULL,
 	current_step int4 DEFAULT 1 NULL,
@@ -244,7 +244,6 @@ CREATE TABLE public.products (
 	CONSTRAINT products_primary_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES public.suppliers(id) ON DELETE SET NULL,
 	CONSTRAINT products_uom_id_fkey FOREIGN KEY (uom_id) REFERENCES public.uoms(id) ON DELETE RESTRICT
 );
-CREATE INDEX idx_products_sku ON public.products USING btree (sku);
 
 
 -- public.stock_adjustments definition
