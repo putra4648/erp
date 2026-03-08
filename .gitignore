@@ -4,3 +4,4 @@
 *.artifact
 report.html
 report.json
+.env*
