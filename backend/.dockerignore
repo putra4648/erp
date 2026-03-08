@@ -1,0 +1,11 @@
+# Go
+.git
+.vscode
+.air.toml
+.env
+bin/
+tmp/
+main
+vendor/
+docker-compose.yml
+Dockerfile

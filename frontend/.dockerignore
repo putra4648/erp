@@ -1,0 +1,12 @@
+# Node
+node_modules
+.nuxt
+.output
+.git
+.vscode
+.env
+dist/
+README.md
+docker-compose.yml
+Dockerfile
+pnpm-debug.log
