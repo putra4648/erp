@@ -1,8 +1,10 @@
+import type { NuxtPage } from "nuxt/schema";
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
-  modules: ["@nuxt/ui", "@nuxt/eslint", "@sidebase/nuxt-auth"],
+  modules: ["@nuxt/ui", "@nuxt/eslint", "nuxt-auth-utils"],
   css: ["~/assets/css/main.css"],
   eslint: {
     config: {
@@ -14,30 +16,26 @@ export default defineNuxtConfig({
       title: "ERP System",
     },
   },
-  auth: {
-    provider: {
-      type: "authjs",
-      trustHost: true,
-      defaultProvider: "auth0",
-      addDefaultCallbackUrl: true,
-    },
-    globalAppMiddleware: true,
-  },
   runtimeConfig: {
-    auth0: {
-      domain: process.env.NUXT_AUTH0_DOMAIN,
-      clientId: process.env.NUXT_AUTH0_CLIENT_ID,
-      clientSecret: process.env.NUXT_AUTH0_CLIENT_SECRET,
-      sessionSecret: process.env.NUXT_AUTH0_SESSION_SECRET,
-      appBaseUrl: process.env.NUXT_AUTH0_APP_BASE_URL,
-      audience: process.env.NUXT_AUTH0_AUDIENCE,
-    },
     public: {
       serverUrl: process.env.NUXT_SERVER_URL,
-      auth0: {
-        domain: process.env.NUXT_AUTH0_DOMAIN,
-        clientId: process.env.NUXT_AUTH0_CLIENT_ID,
-      },
+    },
+  },
+  hooks: {
+    "pages:extend"(pages) {
+      function setMiddleware(pages: NuxtPage[]) {
+        for (const page of pages) {
+          if (/* some condition */ Math.random() > 0.5) {
+            page.meta ||= {};
+            // Note that this will override any middleware set in `definePageMeta` in the page
+            page.meta.middleware = ["auth"];
+          }
+          if (page.children) {
+            setMiddleware(page.children);
+          }
+        }
+      }
+      setMiddleware(pages);
     },
   },
 });

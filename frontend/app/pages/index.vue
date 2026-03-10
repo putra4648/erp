@@ -110,8 +110,8 @@ definePageMeta({
     label: "Dashboard",
 })
 
-const { data } = useAuth()
-const userName = computed(() => data.value?.user.name || 'User')
+const { user } = useUserSession()
+const userName = computed(() => user.value?.name || 'User')
 
 // Fetch Data
 const { data: stockLevels, pending: stockPending, refresh: refreshStock } = await useFetch<PaginationResponse<StockLevelResponse>>('/api/stock-levels', {

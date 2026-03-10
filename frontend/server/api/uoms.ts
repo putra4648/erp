@@ -1,4 +1,3 @@
-import { getServerSession } from "#auth";
 import type { UOM } from "~/types/models/product";
 import PaginationResponse from "../utils/pagination_response";
 
