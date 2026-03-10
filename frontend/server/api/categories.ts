@@ -1,4 +1,3 @@
-import { getServerSession } from "#auth";
 import type { Category } from "~/types/models/product";
 import PaginationResponse from "../utils/pagination_response";
 

@@ -15,15 +15,14 @@
     "@nuxt/eslint": "1.13.0",
     "@nuxt/ui": "4.3.0",
     "joi": "^18.0.2",
-    "next-auth": "4.21.1",
     "nuxt": "^4.3.0",
+    "nuxt-auth-utils": "0.5.29",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
     "vue": "^3.5.27",
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
-    "@sidebase/nuxt-auth": "^1.2.0",
     "@types/node": "^25.1.0"
   }
 }
