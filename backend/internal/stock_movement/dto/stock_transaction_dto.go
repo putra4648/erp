@@ -4,14 +4,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type StockTransactionRequest struct {
-	ProductID   string `query:"product_id"`
-	WarehouseID string `query:"warehouse_id"`
-	Page        int    `query:"page"`
-	Size        int    `query:"size"`
-}
-
-type StockTransactionResponse struct {
+type StockTransactionDTO struct {
 	ID            string          `json:"id"`
 	ProductID     string          `json:"product_id"`
 	ProductName   string          `json:"product_name"`

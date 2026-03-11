@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	sharedDto "putra4648/erp/internal/shared/dto"
 	"putra4648/erp/internal/uom/domain"
 	"putra4648/erp/internal/uom/dto"
 
@@ -30,7 +31,7 @@ func (r *uomRepository) FindByID(ctx context.Context, id uuid.UUID) (*domain.UOM
 	return &uom, nil
 }
 
-func (r *uomRepository) FindAll(ctx context.Context, req *dto.UOMRequest) ([]*domain.UOM, int64, error) {
+func (r *uomRepository) FindAll(ctx context.Context, pagination *sharedDto.PaginationRequest, req *dto.UOMDTO) ([]*domain.UOM, int64, error) {
 	var uoms []*domain.UOM
 	var total int64
 	db := r.db.WithContext(ctx).Model(&domain.UOM{})
@@ -41,9 +42,9 @@ func (r *uomRepository) FindAll(ctx context.Context, req *dto.UOMRequest) ([]*do
 
 	db.Count(&total)
 
-	if req.Page > 0 && req.Size > 0 {
-		offset := (req.Page - 1) * req.Size
-		db = db.Limit(req.Size).Offset(offset)
+	if pagination.Page > 0 && pagination.Size > 0 {
+		offset := (pagination.Page - 1) * pagination.Size
+		db = db.Limit(pagination.Size).Offset(offset)
 	}
 
 	err := db.Find(&uoms).Error

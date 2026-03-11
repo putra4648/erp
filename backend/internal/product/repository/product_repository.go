@@ -4,6 +4,7 @@ import (
 	"context"
 	"putra4648/erp/internal/product/domain"
 	"putra4648/erp/internal/product/dto"
+	sharedDto "putra4648/erp/internal/shared/dto"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -18,7 +19,17 @@ func NewProductRepository(db *gorm.DB) ProductRepository {
 }
 
 func (r *productRepository) Create(ctx context.Context, product *domain.Product) error {
-	return r.db.WithContext(ctx).Create(product).Error
+
+	productDomain := &domain.Product{
+		Name:       product.Name,
+		SKU:        product.SKU,
+		Price:      product.Price,
+		SupplierID: product.SupplierID,
+		IsActive:   product.IsActive,
+		Categories: product.Categories,
+		UOMs:       product.UOMs,
+	}
+	return r.db.WithContext(ctx).Create(productDomain).Error
 }
 
 func (r *productRepository) FindByID(ctx context.Context, id uuid.UUID) (*domain.Product, error) {
@@ -30,7 +41,7 @@ func (r *productRepository) FindByID(ctx context.Context, id uuid.UUID) (*domain
 	return &product, nil
 }
 
-func (r *productRepository) FindAll(ctx context.Context, req *dto.ProductRequest) ([]*domain.Product, int64, error) {
+func (r *productRepository) FindAll(ctx context.Context, pagination *sharedDto.PaginationRequest, req *dto.ProductDTO) ([]*domain.Product, int64, error) {
 	var products []*domain.Product
 	var total int64
 	db := r.db.WithContext(ctx).Model(&domain.Product{}).Preload("Categories").Preload("UOMs").Preload("Supplier")
@@ -41,9 +52,9 @@ func (r *productRepository) FindAll(ctx context.Context, req *dto.ProductRequest
 
 	db.Count(&total)
 
-	if req.Page > 0 && req.Size > 0 {
-		offset := (req.Page - 1) * req.Size
-		db = db.Limit(req.Size).Offset(offset)
+	if pagination.Page > 0 && pagination.Size > 0 {
+		offset := (pagination.Page - 1) * pagination.Size
+		db = db.Offset(offset).Limit(pagination.Size)
 	}
 
 	err := db.Find(&products).Error

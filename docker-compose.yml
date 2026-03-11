@@ -1,5 +1,10 @@
 services:
   backend:
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1024M
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -7,43 +12,60 @@ services:
       - "8080:8080"
     environment:
       - PORT=8080
-      - DB_DSN=host=db user=postgres password=postgres dbname=erp port=5432 sslmode=disable
-      - AUTH0_CLIENT_ID=${AUTH0_CLIENT_ID}
-      - AUTH0_CLIENT_SECRET=${AUTH0_CLIENT_SECRET}
-      - AUTH0_DOMAIN=${AUTH0_DOMAIN}
-      - AUTH0_AUDIENCE=${AUTH0_AUDIENCE}
-    depends_on:
-      db:
-        condition: service_healthy
+      - DB_DSN=host=192.168.1.6 user=postgres password=admin123 dbname=erp port=5432 sslmode=disable
+      - AUTH0_CLIENT_ID=${CLIENT_ID}
+      - AUTH0_CLIENT_SECRET=${CLIENT_SECRET}
+      - AUTH0_DOMAIN=${DOMAIN}
+      - AUTH0_AUDIENCE=${AUDIENCE}
+    # depends_on:
+    #   db:
+    #     condition: service_healthy
 
   frontend:
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1g
     build:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - 3000:3000
     environment:
-      - NUXT_PUBLIC_API_BASE=http://localhost:8080/api
-      - NUXT_PUBLIC_AUTH_BASE_URL=http://localhost:3000
+      - NUXT_OAUTH_AUTH0_CLIENT_ID=${CLIENT_ID}
+      - NUXT_OAUTH_AUTH0_CLIENT_SECRET=${CLIENT_SECRET}
+      - NUXT_OAUTH_AUTH0_DOMAIN=${DOMAIN}
+      - NUXT_OAUTH_AUTH0_AUDIENCE=${AUDIENCE}
+      - NUXT_OAUTH_AUTH0_REDIRECT_URL=${REDIRECT_URL}
+      - NUXT_SESSION_PASSWORD=${SESSION_PASSWORD}
+      - NUXT_SERVER_URL=${SERVER_URL}
       - NODE_ENV=production
     depends_on:
       - backend
+    env_file:
+      - .env
 
-  db:
-    image: postgres:16-alpine
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=erp
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d erp"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+  # db:
+  #   image: postgres:16-alpine
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: '1'
+  #         memory: 512M
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #     - POSTGRES_DB=erp
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U postgres -d erp"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
 
 volumes:
   postgres_data:

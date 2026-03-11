@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	sharedDto "putra4648/erp/internal/shared/dto"
 	"putra4648/erp/internal/stock_movement/domain"
 	"putra4648/erp/internal/stock_movement/dto"
 
@@ -34,9 +35,10 @@ func (r *stockMovementRepository) FindByID(ctx context.Context, id uuid.UUID) (*
 	return &movement, nil
 }
 
-func (r *stockMovementRepository) FindAll(ctx context.Context, req *dto.StockMovementRequest) ([]*domain.StockMovement, int64, error) {
+func (r *stockMovementRepository) FindAll(ctx context.Context, pagination *sharedDto.PaginationRequest, req *dto.StockMovementDTO) ([]*domain.StockMovement, int64, error) {
 	var movements []*domain.StockMovement
 	var total int64
+
 	db := r.db.WithContext(ctx).Model(&domain.StockMovement{}).
 		Preload("OriginWarehouse").
 		Preload("DestinationWarehouse").
@@ -46,16 +48,16 @@ func (r *stockMovementRepository) FindAll(ctx context.Context, req *dto.StockMov
 		db = db.Where("type = ?", req.Type)
 	}
 
-	if req.Search != "" {
-		searchTerm := "%" + req.Search + "%"
+	if req.Name != "" {
+		searchTerm := "%" + req.Name + "%"
 		db = db.Where("movement_no LIKE ? OR reference_no LIKE ? OR note LIKE ?", searchTerm, searchTerm, searchTerm)
 	}
 
 	db.Count(&total)
 
-	if req.Page > 0 && req.Size > 0 {
-		offset := (req.Page - 1) * req.Size
-		db = db.Limit(req.Size).Offset(offset)
+	if pagination.Page > 0 && pagination.Size > 0 {
+		offset := (pagination.Page - 1) * pagination.Size
+		db = db.Limit(pagination.Size).Offset(offset)
 	}
 
 	err := db.Order("transaction_date desc").Find(&movements).Error
@@ -86,29 +88,29 @@ func (r *stockMovementRepository) CreateTransaction(ctx context.Context, transac
 	return r.db.WithContext(ctx).Create(transaction).Error
 }
 
-func (r *stockMovementRepository) FindTransactions(ctx context.Context, req *dto.StockTransactionRequest) ([]*domain.StockTransaction, int64, error) {
+func (r *stockMovementRepository) FindTransactions(ctx context.Context, pagination *sharedDto.PaginationRequest, req *dto.StockTransactionDTO) ([]*domain.StockTransaction, int64, error) {
 	var transactions []*domain.StockTransaction
 	var total int64
-	query := r.db.WithContext(ctx).Model(&domain.StockTransaction{}).
+	db := r.db.WithContext(ctx).Model(&domain.StockTransaction{}).
 		Preload("Product").
 		Preload("Warehouse").
 		Preload("Supplier").
 		Order("created_at DESC")
 
 	if req.ProductID != "" {
-		query = query.Where("product_id = ?", req.ProductID)
+		db = db.Where("product_id = ?", req.ProductID)
 	}
 	if req.WarehouseID != "" {
-		query = query.Where("warehouse_id = ?", req.WarehouseID)
+		db = db.Where("warehouse_id = ?", req.WarehouseID)
 	}
 
-	query.Count(&total)
+	db.Count(&total)
 
-	if req.Page > 0 && req.Size > 0 {
-		offset := (req.Page - 1) * req.Size
-		query = query.Limit(req.Size).Offset(offset)
+	if pagination.Page > 0 && pagination.Size > 0 {
+		offset := (pagination.Page - 1) * pagination.Size
+		db = db.Limit(pagination.Size).Offset(offset)
 	}
 
-	err := query.Find(&transactions).Error
+	err := db.Find(&transactions).Error
 	return transactions, total, err
 }

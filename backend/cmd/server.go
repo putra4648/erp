@@ -89,7 +89,6 @@ func Server(deps AppDependencies) error {
 	api := app.Group("/api")
 	api.Use(middleware.AuthMiddleware(deps.Authenticator, deps.ZapLogger))
 
-	routes.RegisterUserProfile(app, api)
 	routes.RegisterWarehouseRoutes(api, deps.WarehouseCommandService, deps.WarehouseQueryService)
 	routes.RegisterSupplierRoutes(api, deps.SupplierCommandService, deps.SupplierQueryService)
 	routes.RegisterProductRoutes(app, api, deps.ProductCommandService, deps.ProductQueryService)

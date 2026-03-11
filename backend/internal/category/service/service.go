@@ -10,7 +10,7 @@ import (
 
 type CategoryQueryService interface {
 	GetCategoryByID(ctx context.Context, id uuid.UUID) (*dto.CategoryDTO, error)
-	GetAllCategories(ctx context.Context, request *dto.CategoryRequest) (*sharedDto.PaginationResponse[*dto.CategoryDTO], error)
+	GetAllCategories(ctx context.Context, pagination *sharedDto.PaginationRequest, request *dto.CategoryDTO) (*sharedDto.PaginationResponse[*dto.CategoryDTO], error)
 }
 
 type CategoryCommandService interface {

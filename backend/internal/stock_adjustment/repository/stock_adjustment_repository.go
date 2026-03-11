@@ -2,7 +2,9 @@ package repository
 
 import (
 	"context"
+	sharedDto "putra4648/erp/internal/shared/dto"
 	"putra4648/erp/internal/stock_adjustment/domain"
+	"putra4648/erp/internal/stock_adjustment/dto"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -33,17 +35,17 @@ func (r *stockAdjustmentRepository) FindByID(ctx context.Context, id uuid.UUID) 
 	return &adjustment, nil
 }
 
-func (r *stockAdjustmentRepository) FindAll(ctx context.Context, page, size int) ([]*domain.StockAdjustment, int64, error) {
+func (r *stockAdjustmentRepository) FindAll(ctx context.Context, pagination *sharedDto.PaginationRequest, dto *dto.StockAdjustmentDto) ([]*domain.StockAdjustment, int64, error) {
 	var adjustments []*domain.StockAdjustment
 	var total int64
 
 	model := r.db.WithContext(ctx).Model(&domain.StockAdjustment{})
 	model.Count(&total)
 
-	offset := (page - 1) * size
+	offset := (pagination.Page - 1) * pagination.Size
 	err := model.
 		Preload("Warehouse").
-		Offset(offset).Limit(size).Find(&adjustments).Error
+		Offset(offset).Limit(pagination.Size).Find(&adjustments, "adjustment_no LIKE ?", "%"+dto.AdjustmentNo+"%").Error
 	if err != nil {
 		return nil, 0, err
 	}

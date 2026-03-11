@@ -7,12 +7,12 @@ import (
 )
 
 type SupplierCommandService interface {
-	Create(ctx context.Context, req *dto.SupplierDto) (*dto.SupplierDto, error)
-	Update(ctx context.Context, req *dto.SupplierDto) (*dto.SupplierDto, error)
-	Delete(ctx context.Context, id string) (*dto.SupplierDto, error)
+	Create(ctx context.Context, req *dto.SupplierDTO) (*dto.SupplierDTO, error)
+	Update(ctx context.Context, req *dto.SupplierDTO) (*dto.SupplierDTO, error)
+	Delete(ctx context.Context, id string) (*dto.SupplierDTO, error)
 }
 
 type SupplierQueryService interface {
-	FindByID(ctx context.Context, id string) (*dto.SupplierDto, error)
-	FindAll(ctx context.Context, req *dto.SupplierFindAllRequest) (*sharedDto.PaginationResponse[*dto.SupplierDto], error)
+	FindByID(ctx context.Context, id string) (*dto.SupplierDTO, error)
+	FindAll(ctx context.Context, pagination *sharedDto.PaginationRequest, req *dto.SupplierDTO) (*sharedDto.PaginationResponse[*dto.SupplierDTO], error)
 }

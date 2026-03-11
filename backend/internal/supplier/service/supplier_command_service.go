@@ -18,7 +18,7 @@ func NewSupplierCommandService(repo repository.SupplierRepository) SupplierComma
 	return &supplierCommandService{repo: repo}
 }
 
-func (s *supplierCommandService) Create(ctx context.Context, req *dto.SupplierDto) (*dto.SupplierDto, error) {
+func (s *supplierCommandService) Create(ctx context.Context, req *dto.SupplierDTO) (*dto.SupplierDTO, error) {
 	supplier := &domain.Supplier{
 		ID:      uuid.New(),
 		Name:    req.Name,
@@ -30,10 +30,10 @@ func (s *supplierCommandService) Create(ctx context.Context, req *dto.SupplierDt
 	if err := s.repo.Save(ctx, supplier); err != nil {
 		return nil, err
 	}
-	return mapper.ToSupplierDto(supplier), nil
+	return mapper.ToSupplierDTO(supplier), nil
 }
 
-func (s *supplierCommandService) Update(ctx context.Context, req *dto.SupplierDto) (*dto.SupplierDto, error) {
+func (s *supplierCommandService) Update(ctx context.Context, req *dto.SupplierDTO) (*dto.SupplierDTO, error) {
 	supplier, err := s.repo.FindByID(ctx, uuid.Must(uuid.Parse(req.ID)))
 	if err != nil {
 		return nil, err
@@ -46,10 +46,10 @@ func (s *supplierCommandService) Update(ctx context.Context, req *dto.SupplierDt
 	if err := s.repo.Update(ctx, supplier); err != nil {
 		return nil, err
 	}
-	return mapper.ToSupplierDto(supplier), nil
+	return mapper.ToSupplierDTO(supplier), nil
 }
 
-func (s *supplierCommandService) Delete(ctx context.Context, id string) (*dto.SupplierDto, error) {
+func (s *supplierCommandService) Delete(ctx context.Context, id string) (*dto.SupplierDTO, error) {
 	supplierID, err := uuid.Parse(id)
 	if err != nil {
 		return nil, err
@@ -61,5 +61,5 @@ func (s *supplierCommandService) Delete(ctx context.Context, id string) (*dto.Su
 	if err := s.repo.Delete(ctx, supplierID); err != nil {
 		return nil, err
 	}
-	return mapper.ToSupplierDto(supplier), nil
+	return mapper.ToSupplierDTO(supplier), nil
 }

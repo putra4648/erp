@@ -7,12 +7,6 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type ProductRequest struct {
-	Name string `json:"name"`
-	Page int    `json:"page"`
-	Size int    `json:"size"`
-}
-
 type ProductDTO struct {
 	ID          string                     `json:"id"`
 	Name        string                     `json:"name" validate:"required,max=255"`

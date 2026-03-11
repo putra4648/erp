@@ -5,8 +5,8 @@ import (
 	"putra4648/erp/internal/supplier/dto"
 )
 
-func ToSupplierDto(supplier *domain.Supplier) *dto.SupplierDto {
-	return &dto.SupplierDto{
+func ToSupplierDTO(supplier *domain.Supplier) *dto.SupplierDTO {
+	return &dto.SupplierDTO{
 		ID:      supplier.ID.String(),
 		Name:    supplier.Name,
 		Code:    supplier.Code,
@@ -16,7 +16,7 @@ func ToSupplierDto(supplier *domain.Supplier) *dto.SupplierDto {
 	}
 }
 
-func ToSupplier(req *dto.SupplierDto) *domain.Supplier {
+func ToSupplier(req *dto.SupplierDTO) *domain.Supplier {
 	return &domain.Supplier{
 		Name:    req.Name,
 		Code:    req.Code,

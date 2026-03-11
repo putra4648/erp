@@ -10,7 +10,9 @@ import (
 )
 
 func ToProduct(productDTO *dto.ProductDTO) *domain.Product {
+
 	return &domain.Product{
+		ID:   uuid.MustParse(productDTO.ID),
 		Name: productDTO.Name,
 		// Description: productDTO.Description,
 		Price:      productDTO.Price,

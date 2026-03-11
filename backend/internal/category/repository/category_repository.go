@@ -4,6 +4,7 @@ import (
 	"context"
 	"putra4648/erp/internal/category/domain"
 	"putra4648/erp/internal/category/dto"
+	sharedDto "putra4648/erp/internal/shared/dto"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -30,9 +31,10 @@ func (r *categoryRepository) FindByID(ctx context.Context, id uuid.UUID) (*domai
 	return &category, nil
 }
 
-func (r *categoryRepository) FindAll(ctx context.Context, req *dto.CategoryRequest) ([]*domain.Category, int64, error) {
+func (r *categoryRepository) FindAll(ctx context.Context, pagination *sharedDto.PaginationRequest, req *dto.CategoryDTO) ([]*domain.Category, int64, error) {
 	var categories []*domain.Category
 	var total int64
+
 	db := r.db.WithContext(ctx).Model(&domain.Category{})
 
 	if req.Name != "" {
@@ -41,9 +43,9 @@ func (r *categoryRepository) FindAll(ctx context.Context, req *dto.CategoryReque
 
 	db.Count(&total)
 
-	if req.Page > 0 && req.Size > 0 {
-		offset := (req.Page - 1) * req.Size
-		db = db.Limit(req.Size).Offset(offset)
+	if pagination.Page > 0 && pagination.Size > 0 {
+		offset := (pagination.Page - 1) * pagination.Size
+		db = db.Offset(offset).Limit(pagination.Size)
 	}
 
 	err := db.Find(&categories).Error

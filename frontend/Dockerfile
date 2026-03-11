@@ -27,13 +27,12 @@ WORKDIR /app
 # Nuxt builds into .output by default
 COPY --from=builder /app/.output ./.output
 
-# Expose the default Nuxt port
 EXPOSE 3000
 
 # Set environment variables
-ENV HOST=0.0.0.0
+ENV NUXT_HOST=0.0.0.0
+ENV NUXT_PORT=3000
 ENV PORT=3000
-ENV NODE_ENV=production
 
 # Run the Nitro server
 CMD ["node", ".output/server/index.mjs"]

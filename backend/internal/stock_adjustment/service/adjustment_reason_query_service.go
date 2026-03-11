@@ -5,6 +5,8 @@ import (
 	"putra4648/erp/internal/stock_adjustment/dto"
 	"putra4648/erp/internal/stock_adjustment/mapper"
 	"putra4648/erp/internal/stock_adjustment/repository"
+
+	sharedDto "putra4648/erp/internal/shared/dto"
 )
 
 type adjustmentReasonQueryService struct {
@@ -15,8 +17,8 @@ func NewAdjustmentReasonQueryService(repo repository.AdjustmentReasonRepository)
 	return &adjustmentReasonQueryService{repo: repo}
 }
 
-func (s *adjustmentReasonQueryService) FindAll(ctx context.Context) ([]*dto.AdjustmentReasonDto, error) {
-	reasons, err := s.repo.FindAll(ctx)
+func (s *adjustmentReasonQueryService) FindAll(ctx context.Context, pagination *sharedDto.PaginationRequest, req *dto.AdjustmentReasonDto) (*sharedDto.PaginationResponse[*dto.AdjustmentReasonDto], error) {
+	reasons, total, err := s.repo.FindAll(ctx, pagination, req)
 	if err != nil {
 		return nil, err
 	}
@@ -25,5 +27,10 @@ func (s *adjustmentReasonQueryService) FindAll(ctx context.Context) ([]*dto.Adju
 	for _, reason := range reasons {
 		responses = append(responses, mapper.ToAdjustmentReasonDto(reason))
 	}
-	return responses, nil
+	return &sharedDto.PaginationResponse[*dto.AdjustmentReasonDto]{
+		Items: responses,
+		Total: total,
+		Page:  pagination.Page,
+		Size:  pagination.Size,
+	}, nil
 }

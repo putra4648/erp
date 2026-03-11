@@ -2,6 +2,7 @@ package routes
 
 import (
 	"putra4648/erp/configs/middleware"
+	sharedDto "putra4648/erp/internal/shared/dto"
 	"putra4648/erp/internal/stock_level/dto"
 	"putra4648/erp/internal/stock_level/mapper"
 	"putra4648/erp/internal/stock_level/service"
@@ -25,36 +26,22 @@ func RegisterStockLevelRoutes(
 
 func getAllStockLevels(s service.StockLevelQueryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var req dto.StockLevelRequest
+
+		pagination := sharedDto.PaginationRequest{
+			Page: c.QueryInt("page", 1),
+			Size: c.QueryInt("size", 10),
+		}
+		var req *dto.StockLevelDto
 		if err := c.QueryParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		var warehouseIDPtr *uuid.UUID
-		if req.WarehouseID != "" {
-			if id, err := uuid.Parse(req.WarehouseID); err == nil {
-				warehouseIDPtr = &id
-			}
-		}
-
-		var productIDPtr *uuid.UUID
-		if req.ProductID != "" {
-			if id, err := uuid.Parse(req.ProductID); err == nil {
-				productIDPtr = &id
-			}
-		}
-
-		res, total, err := s.GetAllStockLevels(c.Context(), warehouseIDPtr, productIDPtr, req.Search, req.Page, req.Size)
+		res, err := s.FindAllStockLevels(c.Context(), &pagination, req)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		return c.JSON(fiber.Map{
-			"items": mapper.ToStockLevelResponses(res),
-			"total": total,
-			"page":  req.Page,
-			"size":  req.Size,
-		})
+		return c.JSON(res)
 	}
 }
 
@@ -76,17 +63,13 @@ func getStockLevelByID(s service.StockLevelQueryService) fiber.Handler {
 
 func getStockLevelByWarehouseAndProduct(s service.StockLevelQueryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		whID, err := uuid.Parse(c.Params("wh_id"))
-		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid Warehouse ID"})
-		}
+		whID := c.Params("wh_id")
+		prodID := c.Params("prod_id")
 
-		prodID, err := uuid.Parse(c.Params("prod_id"))
-		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid Product ID"})
-		}
-
-		res, err := s.GetByProductAndWarehouseWithPreload(c.Context(), prodID, whID)
+		res, err := s.FindByProductAndWarehouseWithPreload(c.Context(), &dto.StockLevelDto{
+			WarehouseID: &whID,
+			ProductID:   &prodID,
+		})
 		if err != nil {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Stock Level not found"})
 		}

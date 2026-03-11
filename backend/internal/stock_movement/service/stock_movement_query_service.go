@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	sharedDto "putra4648/erp/internal/shared/dto"
 	"putra4648/erp/internal/stock_movement/dto"
 	"putra4648/erp/internal/stock_movement/mapper"
 	"putra4648/erp/internal/stock_movement/repository"
@@ -25,25 +26,30 @@ func (s *stockMovementQueryService) FindByID(ctx context.Context, id uuid.UUID) 
 	return mapper.ToDTO(model), nil
 }
 
-func (s *stockMovementQueryService) FindAll(ctx context.Context, req *dto.StockMovementRequest) ([]*dto.StockMovementDTO, int64, error) {
-	models, total, err := s.repo.FindAll(ctx, req)
+func (s *stockMovementQueryService) FindAll(ctx context.Context, pagination *sharedDto.PaginationRequest, req *dto.StockMovementDTO) (*sharedDto.PaginationResponse[*dto.StockMovementDTO], error) {
+	models, total, err := s.repo.FindAll(ctx, pagination, req)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
-	responses := make([]*dto.StockMovementDTO, len(models))
-	for i, m := range models {
-		responses[i] = mapper.ToDTO(m)
-	}
-
-	return responses, total, nil
+	return &sharedDto.PaginationResponse[*dto.StockMovementDTO]{
+		Items: mapper.ToDTOs(models),
+		Total: total,
+		Page:  pagination.Page,
+		Size:  pagination.Size,
+	}, nil
 }
 
-func (s *stockMovementQueryService) FindTransactions(ctx context.Context, req *dto.StockTransactionRequest) ([]*dto.StockTransactionResponse, int64, error) {
-	models, total, err := s.repo.FindTransactions(ctx, req)
+func (s *stockMovementQueryService) FindTransactions(ctx context.Context, pagination *sharedDto.PaginationRequest, req *dto.StockTransactionDTO) (*sharedDto.PaginationResponse[*dto.StockTransactionDTO], error) {
+	models, total, err := s.repo.FindTransactions(ctx, pagination, req)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
-	return mapper.ToTransactionDTOs(models), total, nil
+	return &sharedDto.PaginationResponse[*dto.StockTransactionDTO]{
+		Items: mapper.ToTransactionDTOs(models),
+		Total: total,
+		Page:  pagination.Page,
+		Size:  pagination.Size,
+	}, nil
 }

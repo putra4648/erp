@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	sharedDto "putra4648/erp/internal/shared/dto"
 	"putra4648/erp/internal/supplier/domain"
 	"putra4648/erp/internal/supplier/dto"
 
@@ -30,7 +31,7 @@ func (r *supplierRepository) FindByID(ctx context.Context, id uuid.UUID) (*domai
 	return &supplier, nil
 }
 
-func (r *supplierRepository) FindAll(ctx context.Context, req *dto.SupplierFindAllRequest) ([]*domain.Supplier, int64, error) {
+func (r *supplierRepository) FindAll(ctx context.Context, pagination *sharedDto.PaginationRequest, req *dto.SupplierDTO) ([]*domain.Supplier, int64, error) {
 	var suppliers []*domain.Supplier
 	var total int64
 
@@ -42,9 +43,9 @@ func (r *supplierRepository) FindAll(ctx context.Context, req *dto.SupplierFindA
 
 	db.Count(&total)
 
-	if req.Page > 0 && req.Size > 0 {
-		offset := (req.Page - 1) * req.Size
-		db = db.Offset(offset).Limit(req.Size)
+	if pagination.Page > 0 && pagination.Size > 0 {
+		offset := (pagination.Page - 1) * pagination.Size
+		db = db.Offset(offset).Limit(pagination.Size)
 	}
 
 	err := db.Find(&suppliers).Error

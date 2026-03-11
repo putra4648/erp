@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	sharedDto "putra4648/erp/internal/shared/dto"
 	"putra4648/erp/internal/stock_movement/dto"
 
 	"github.com/google/uuid"
@@ -16,6 +17,6 @@ type StockMovementCommandService interface {
 
 type StockMovementQueryService interface {
 	FindByID(ctx context.Context, id uuid.UUID) (*dto.StockMovementDTO, error)
-	FindAll(ctx context.Context, req *dto.StockMovementRequest) ([]*dto.StockMovementDTO, int64, error)
-	FindTransactions(ctx context.Context, req *dto.StockTransactionRequest) ([]*dto.StockTransactionResponse, int64, error)
+	FindAll(ctx context.Context, pagination *sharedDto.PaginationRequest, req *dto.StockMovementDTO) (*sharedDto.PaginationResponse[*dto.StockMovementDTO], error)
+	FindTransactions(ctx context.Context, pagination *sharedDto.PaginationRequest, req *dto.StockTransactionDTO) (*sharedDto.PaginationResponse[*dto.StockTransactionDTO], error)
 }

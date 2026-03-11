@@ -2,7 +2,8 @@ package routes
 
 import (
 	"putra4648/erp/configs/middleware"
-	supplierDto "putra4648/erp/internal/supplier/dto"
+	sharedDto "putra4648/erp/internal/shared/dto"
+	"putra4648/erp/internal/supplier/dto"
 	supplierService "putra4648/erp/internal/supplier/service"
 
 	"github.com/gofiber/fiber/v2"
@@ -26,7 +27,7 @@ func RegisterSupplierRoutes(
 
 func createSupplier(service supplierService.SupplierCommandService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var req supplierDto.SupplierDto
+		var req dto.SupplierDTO
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
@@ -54,11 +55,12 @@ func getSupplierByID(service supplierService.SupplierQueryService) fiber.Handler
 
 func getAllSuppliers(service supplierService.SupplierQueryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		page := c.QueryInt("page", 1)
-		size := c.QueryInt("size", 10)
-		name := c.Query("name")
+		var req dto.SupplierDTO
+		if err := c.QueryParser(&req); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		}
 
-		suppliers, err := service.FindAll(c.Context(), &supplierDto.SupplierFindAllRequest{Name: name, Page: page, Size: size})
+		suppliers, err := service.FindAll(c.Context(), &sharedDto.PaginationRequest{Page: c.QueryInt("page", 1), Size: c.QueryInt("size", 10)}, &req)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
@@ -72,7 +74,7 @@ func updateSupplier(service supplierService.SupplierCommandService) fiber.Handle
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
 		}
-		var req supplierDto.SupplierDto
+		var req dto.SupplierDTO
 		req.ID = id.String()
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})

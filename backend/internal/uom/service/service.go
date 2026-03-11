@@ -16,6 +16,6 @@ type UOMCommandService interface {
 }
 
 type UOMQueryService interface {
-	GetAllUOMs(ctx context.Context, request *dto.UOMRequest) (*sharedDto.PaginationResponse[*uomDto.UOMDTO], error)
+	GetAllUOMs(ctx context.Context, pagination *sharedDto.PaginationRequest, request *dto.UOMDTO) (*sharedDto.PaginationResponse[*uomDto.UOMDTO], error)
 	GetUOMByID(ctx context.Context, id uuid.UUID) (*uomDto.UOMDTO, error)
 }

@@ -2,6 +2,7 @@ package routes
 
 import (
 	"putra4648/erp/configs/middleware"
+	sharedDto "putra4648/erp/internal/shared/dto"
 	"putra4648/erp/internal/stock_movement/dto"
 	"putra4648/erp/internal/stock_movement/service"
 
@@ -57,26 +58,16 @@ func getStockMovementByID(s service.StockMovementQueryService) fiber.Handler {
 
 func getAllStockMovements(s service.StockMovementQueryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		page := c.QueryInt("page", 1)
-		size := c.QueryInt("size", 10)
-		movementType := c.Query("type")
-
-		req := &dto.StockMovementRequest{
-			Page: page,
-			Size: size,
-			Type: movementType,
+		var req dto.StockMovementDTO
+		if err := c.QueryParser(&req); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		res, total, err := s.FindAll(c.Context(), req)
+		res, err := s.FindAll(c.Context(), &sharedDto.PaginationRequest{Page: c.QueryInt("page", 1), Size: c.QueryInt("size", 10)}, &req)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
-		return c.JSON(fiber.Map{
-			"items": res,
-			"total": total,
-			"page":  page,
-			"size":  size,
-		})
+		return c.JSON(res)
 	}
 }
 
@@ -131,21 +122,16 @@ func approveStockMovement(s service.StockMovementCommandService) fiber.Handler {
 
 func getStockTransactions(s service.StockMovementQueryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var req dto.StockTransactionRequest
+		var req dto.StockTransactionDTO
 		if err := c.QueryParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		res, total, err := s.FindTransactions(c.Context(), &req)
+		res, err := s.FindTransactions(c.Context(), &sharedDto.PaginationRequest{Page: c.QueryInt("page", 1), Size: c.QueryInt("size", 10)}, &req)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		return c.JSON(fiber.Map{
-			"items": res,
-			"total": total,
-			"page":  req.Page,
-			"size":  req.Size,
-		})
+		return c.JSON(res)
 	}
 }

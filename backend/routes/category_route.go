@@ -5,6 +5,8 @@ import (
 	"putra4648/erp/internal/category/dto"
 	categoryDto "putra4648/erp/internal/category/dto"
 	categoryService "putra4648/erp/internal/category/service"
+	sharedDto "putra4648/erp/internal/shared/dto"
+	"putra4648/erp/internal/shared/errors"
 	. "putra4648/erp/internal/shared/utils"
 
 	"github.com/gofiber/fiber/v2"
@@ -36,7 +38,7 @@ func createCategory(service categoryService.CategoryCommandService) fiber.Handle
 
 		response, err := service.CreateCategory(c.Context(), &req)
 		if err != nil {
-			if categoryErr, ok := err.(*categoryService.CategoryError); ok {
+			if categoryErr, ok := err.(*errors.ErrorDto); ok {
 				return c.Status(GetStatusCode(categoryErr.Code)).JSON(fiber.Map{"error": categoryErr.Message})
 			}
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create category"})
@@ -55,7 +57,7 @@ func getCategoryByID(service categoryService.CategoryQueryService) fiber.Handler
 
 		response, err := service.GetCategoryByID(c.Context(), id)
 		if err != nil {
-			if categoryErr, ok := err.(*categoryService.CategoryError); ok {
+			if categoryErr, ok := err.(*errors.ErrorDto); ok {
 				return c.Status(GetStatusCode(categoryErr.Code)).JSON(fiber.Map{"error": categoryErr.Message})
 			}
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve category"})
@@ -67,13 +69,15 @@ func getCategoryByID(service categoryService.CategoryQueryService) fiber.Handler
 
 func getAllCategories(service categoryService.CategoryQueryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		page := c.QueryInt("page", 1)
-		size := c.QueryInt("size", 10)
-		name := c.Query("name")
+		var req dto.CategoryDTO
 
-		responses, err := service.GetAllCategories(c.Context(), &dto.CategoryRequest{Name: name, Page: page, Size: size})
+		if err := c.QueryParser(&req); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request query"})
+		}
+
+		responses, err := service.GetAllCategories(c.Context(), &sharedDto.PaginationRequest{Page: c.QueryInt("page", 1), Size: c.QueryInt("size", 10)}, &req)
 		if err != nil {
-			if categoryErr, ok := err.(*categoryService.CategoryError); ok {
+			if categoryErr, ok := err.(*errors.ErrorDto); ok {
 				return c.Status(GetStatusCode(categoryErr.Code)).JSON(fiber.Map{"error": categoryErr.Message})
 			}
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve categories"})
@@ -97,7 +101,7 @@ func updateCategory(service categoryService.CategoryCommandService) fiber.Handle
 
 		response, err := service.UpdateCategory(c.Context(), id, &req)
 		if err != nil {
-			if categoryErr, ok := err.(*categoryService.CategoryError); ok {
+			if categoryErr, ok := err.(*errors.ErrorDto); ok {
 				return c.Status(GetStatusCode(categoryErr.Code)).JSON(fiber.Map{"error": categoryErr.Message})
 			}
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update category"})
@@ -116,7 +120,7 @@ func deleteCategory(service categoryService.CategoryCommandService) fiber.Handle
 
 		err = service.DeleteCategory(c.Context(), id)
 		if err != nil {
-			if categoryErr, ok := err.(*categoryService.CategoryError); ok {
+			if categoryErr, ok := err.(*errors.ErrorDto); ok {
 				return c.Status(GetStatusCode(categoryErr.Code)).JSON(fiber.Map{"error": categoryErr.Message})
 			}
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete category"})

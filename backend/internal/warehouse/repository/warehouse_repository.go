@@ -2,20 +2,13 @@ package repository
 
 import (
 	"context"
+	sharedDto "putra4648/erp/internal/shared/dto"
 	"putra4648/erp/internal/warehouse/domain"
 	"putra4648/erp/internal/warehouse/dto"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
-
-type WarehouseRepository interface {
-	Save(ctx context.Context, warehouse *domain.Warehouse) error
-	FindByID(ctx context.Context, id uuid.UUID) (*domain.Warehouse, error)
-	FindAll(ctx context.Context, req *dto.WarehouseFindAllRequest) ([]*domain.Warehouse, int64, error)
-	Update(ctx context.Context, warehouse *domain.Warehouse) error
-	Delete(ctx context.Context, id uuid.UUID) error
-}
 
 type warehouseRepository struct {
 	db *gorm.DB
@@ -38,7 +31,7 @@ func (r *warehouseRepository) FindByID(ctx context.Context, id uuid.UUID) (*doma
 	return &warehouse, nil
 }
 
-func (r *warehouseRepository) FindAll(ctx context.Context, req *dto.WarehouseFindAllRequest) ([]*domain.Warehouse, int64, error) {
+func (r *warehouseRepository) FindAll(ctx context.Context, pagination *sharedDto.PaginationRequest, req *dto.WarehouseDTO) ([]*domain.Warehouse, int64, error) {
 	var warehouses []*domain.Warehouse
 	var total int64
 
@@ -50,9 +43,9 @@ func (r *warehouseRepository) FindAll(ctx context.Context, req *dto.WarehouseFin
 
 	db.Count(&total)
 
-	if req.Page > 0 && req.Size > 0 {
-		offset := (req.Page - 1) * req.Size
-		db = db.Limit(req.Size).Offset(offset)
+	if pagination.Page > 0 && pagination.Size > 0 {
+		offset := (pagination.Page - 1) * pagination.Size
+		db = db.Limit(pagination.Size).Offset(offset)
 	}
 
 	err := db.Find(&warehouses).Error

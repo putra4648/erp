@@ -2,8 +2,9 @@ package routes
 
 import (
 	"putra4648/erp/configs/middleware"
-	warehouseDto "putra4648/erp/internal/warehouse/dto"
-	warehouseService "putra4648/erp/internal/warehouse/service"
+	sharedDto "putra4648/erp/internal/shared/dto"
+	"putra4648/erp/internal/warehouse/dto"
+	"putra4648/erp/internal/warehouse/service"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -11,8 +12,8 @@ import (
 
 func RegisterWarehouseRoutes(
 	api fiber.Router,
-	wcs warehouseService.WarehouseCommandService,
-	wqs warehouseService.WarehouseQueryService,
+	wcs service.WarehouseCommandService,
+	wqs service.WarehouseQueryService,
 ) {
 	warehouse := api.Group("/warehouse")
 	{
@@ -24,9 +25,9 @@ func RegisterWarehouseRoutes(
 	}
 }
 
-func createWarehouse(service warehouseService.WarehouseCommandService) fiber.Handler {
+func createWarehouse(service service.WarehouseCommandService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var req warehouseDto.WarehouseDto
+		var req dto.WarehouseDTO
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
@@ -38,7 +39,7 @@ func createWarehouse(service warehouseService.WarehouseCommandService) fiber.Han
 	}
 }
 
-func getWarehouseByID(service warehouseService.WarehouseQueryService) fiber.Handler {
+func getWarehouseByID(service service.WarehouseQueryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := uuid.Parse(c.Params("id"))
 		if err != nil {
@@ -52,13 +53,14 @@ func getWarehouseByID(service warehouseService.WarehouseQueryService) fiber.Hand
 	}
 }
 
-func getAllWarehouses(service warehouseService.WarehouseQueryService) fiber.Handler {
+func getAllWarehouses(service service.WarehouseQueryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		page := c.QueryInt("page", 1)
-		size := c.QueryInt("size", 10)
-		name := c.Query("name")
+		var req dto.WarehouseDTO
+		if err := c.QueryParser(&req); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		}
 
-		warehouses, err := service.FindAll(c.Context(), &warehouseDto.WarehouseFindAllRequest{Name: name, Page: page, Size: size})
+		warehouses, err := service.FindAll(c.Context(), &sharedDto.PaginationRequest{Page: c.QueryInt("page", 1), Size: c.QueryInt("size", 10)}, &req)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
@@ -66,13 +68,13 @@ func getAllWarehouses(service warehouseService.WarehouseQueryService) fiber.Hand
 	}
 }
 
-func updateWarehouse(service warehouseService.WarehouseCommandService) fiber.Handler {
+func updateWarehouse(service service.WarehouseCommandService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := uuid.Parse(c.Params("id"))
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
 		}
-		var req warehouseDto.WarehouseDto
+		var req dto.WarehouseDTO
 		req.ID = id.String()
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -85,7 +87,7 @@ func updateWarehouse(service warehouseService.WarehouseCommandService) fiber.Han
 	}
 }
 
-func deleteWarehouse(service warehouseService.WarehouseCommandService) fiber.Handler {
+func deleteWarehouse(service service.WarehouseCommandService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := uuid.Parse(c.Params("id"))
 		if err != nil {
