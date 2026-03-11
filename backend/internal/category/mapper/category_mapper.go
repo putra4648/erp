@@ -3,6 +3,8 @@ package mapper
 import (
 	"putra4648/erp/internal/category/domain"
 	"putra4648/erp/internal/category/dto"
+
+	"github.com/google/uuid"
 )
 
 func ToCategory(categoryDTO *dto.CategoryDTO) *domain.Category {
@@ -14,7 +16,14 @@ func ToCategory(categoryDTO *dto.CategoryDTO) *domain.Category {
 func ToCategories(categoryDTOs []*dto.CategoryDTO) []*domain.Category {
 	categories := make([]*domain.Category, len(categoryDTOs))
 	for i, categoryDTO := range categoryDTOs {
+		var currentId uuid.UUID
+		if categoryDTO.ID != "" {
+			currentId = uuid.MustParse(categoryDTO.ID)
+		} else {
+			currentId = uuid.New()
+		}
 		categories[i] = &domain.Category{
+			ID:   &currentId,
 			Name: categoryDTO.Name,
 		}
 	}

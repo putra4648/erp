@@ -108,7 +108,7 @@ function getRowActions(row: TableRow<Category>): DropdownMenuItem[] {
                     toast.add({ title: 'Success', description: 'Category has been removed.' })
                     refresh()
                 } catch (error: any) {
-                    toast.add({ title: 'Error', description: error.data?.error || 'Failed to remove category', color: 'error' })
+                    toast.add({ title: 'Error', description: error.data?.data.error || 'Failed to remove category', color: 'error' })
                 }
             }
         },
@@ -142,7 +142,7 @@ async function onSubmit(event: FormSubmitEvent<Category>) {
     } catch (error: any) {
         toast.add({
             title: 'Error',
-            description: error.data?.error || 'Failed to save category',
+            description: error.data?.data.error || 'Failed to save category',
             color: 'error'
         })
     }

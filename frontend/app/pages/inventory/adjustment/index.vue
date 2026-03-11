@@ -320,7 +320,7 @@ async function handleApprove(id: string) {
         toast.add({ title: 'Success', description: 'Adjustment approved successfully' })
         refresh()
     } catch (error: any) {
-        toast.add({ title: 'Error', description: error.data?.error || 'Failed to approve', color: 'error' })
+        toast.add({ title: 'Error', description: error.data?.data.error || 'Failed to approve', color: 'error' })
     }
 }
 
@@ -330,7 +330,7 @@ async function handleVoid(id: string) {
         toast.add({ title: 'Success', description: 'Adjustment voided successfully' })
         refresh()
     } catch (error: any) {
-        toast.add({ title: 'Error', description: error.data?.error || 'Failed to void', color: 'error' })
+        toast.add({ title: 'Error', description: error.data?.data.error || 'Failed to void', color: 'error' })
     }
 }
 
@@ -413,7 +413,7 @@ async function onSubmit(event: FormSubmitEvent<StockAdjustment>) {
     } catch (error: any) {
         toast.add({
             title: 'Error',
-            description: error.data?.error || 'Failed to save adjustment',
+            description: error.data?.data.error || 'Failed to save adjustment',
             color: 'error'
         })
     }

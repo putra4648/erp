@@ -143,7 +143,7 @@ function getRowActions(row: TableRow<Supplier>): DropdownMenuItem[] {
           toast.add({ title: 'Success', description: 'Supplier has been removed.' })
           refresh()
         } catch (error: any) {
-          toast.add({ title: 'Error', description: error.data?.error || 'Failed to remove supplier', color: 'error' })
+          toast.add({ title: 'Error', description: error.data?.data.error || 'Failed to remove supplier', color: 'error' })
         }
       }
     },
@@ -182,7 +182,7 @@ async function onSubmit(event: FormSubmitEvent<Supplier>) {
   } catch (error: any) {
     toast.add({
       title: 'Error',
-      description: error.data?.error || 'Failed to create supplier',
+      description: error.data?.data.error || 'Failed to create supplier',
       color: 'error'
     })
   }

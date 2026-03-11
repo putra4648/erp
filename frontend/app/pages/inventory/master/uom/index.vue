@@ -107,7 +107,7 @@ function getRowActions(row: TableRow<UOM>): DropdownMenuItem[] {
                     toast.add({ title: 'Success', description: 'UOM has been removed.' })
                     refresh()
                 } catch (error: any) {
-                    toast.add({ title: 'Error', description: error.data?.error || 'Failed to remove UOM', color: 'error' })
+                    toast.add({ title: 'Error', description: error.data?.data.error || 'Failed to remove UOM', color: 'error' })
                 }
             }
         },
@@ -141,7 +141,7 @@ async function onSubmit(event: FormSubmitEvent<UOM>) {
     } catch (error: any) {
         toast.add({
             title: 'Error',
-            description: error.data?.error || 'Failed to save UOM',
+            description: error.data?.data.error || 'Failed to save UOM',
             color: 'error'
         })
     }

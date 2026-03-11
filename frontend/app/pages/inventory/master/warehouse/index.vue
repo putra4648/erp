@@ -126,7 +126,7 @@ function getRowActions(row: TableRow<Warehouse>): DropdownMenuItem[] {
           toast.add({ title: 'Success', description: 'Warehouse has been removed.' })
           refresh()
         } catch (error: any) {
-          toast.add({ title: 'Error', description: error.data?.error || 'Failed to remove warehouse', color: 'error' })
+          toast.add({ title: 'Error', description: error.data?.data.error || 'Failed to remove warehouse', color: 'error' })
         }
       }
     },
@@ -162,7 +162,7 @@ async function onSubmit(event: FormSubmitEvent<Warehouse>) {
   } catch (error: any) {
     toast.add({
       title: 'Error',
-      description: error.data?.error || 'Failed to create warehouse',
+      description: error.data?.data.error || 'Failed to create warehouse',
       color: 'error'
     })
   }

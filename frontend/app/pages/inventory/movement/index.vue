@@ -219,7 +219,7 @@ function getRowActions(row: TableRow<StockMovement>): DropdownMenuItem[] {
                         toast.add({ title: 'Success', description: 'Movement approved and stock updated.' })
                         refresh()
                     } catch (error: any) {
-                        toast.add({ title: 'Error', description: error.data?.error || 'Failed to approve', color: 'error' })
+                        toast.add({ title: 'Error', description: error.data?.data.error || 'Failed to approve', color: 'error' })
                     }
                 }
             }
@@ -243,7 +243,7 @@ function getRowActions(row: TableRow<StockMovement>): DropdownMenuItem[] {
                         toast.add({ title: 'Success', description: 'Movement removed.' })
                         refresh()
                     } catch (error: any) {
-                        toast.add({ title: 'Error', description: error.data?.error || 'Failed to remove', color: 'error' })
+                        toast.add({ title: 'Error', description: error.data?.data.error || 'Failed to remove', color: 'error' })
                     }
                 }
             }
@@ -317,7 +317,7 @@ async function onSubmit(event: FormSubmitEvent<StockMovementDTO>) {
     } catch (error: any) {
         toast.add({
             title: 'Error',
-            description: error.data?.error || `Failed to ${isEdit.value ? 'update' : 'create'} movement`,
+            description: error.data?.data.error || `Failed to ${isEdit.value ? 'update' : 'create'} movement`,
             color: 'error'
         })
     } finally {
