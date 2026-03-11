@@ -5,6 +5,8 @@ import (
 	"putra4648/erp/configs/middleware"
 	"putra4648/erp/internal/product/dto"
 	productService "putra4648/erp/internal/product/service"
+	sharedDto "putra4648/erp/internal/shared/dto"
+	"putra4648/erp/internal/shared/errors"
 	. "putra4648/erp/internal/shared/utils"
 
 	"github.com/gofiber/fiber/v2"
@@ -40,7 +42,7 @@ func createProduct(service productService.ProductCommandService) fiber.Handler {
 		// Create product
 		response, err := service.CreateProduct(c.Context(), &req)
 		if err != nil {
-			if productErr, ok := err.(*productService.ProductError); ok {
+			if productErr, ok := err.(*errors.ErrorDto); ok {
 				return c.Status(GetStatusCode(productErr.Code)).JSON(fiber.Map{"error": productErr.Message})
 			}
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create product"})
@@ -60,7 +62,7 @@ func getProductByID(service productService.ProductQueryService) fiber.Handler {
 		// Get product by ID
 		response, err := service.GetProductByID(c.Context(), id)
 		if err != nil {
-			if productErr, ok := err.(*productService.ProductError); ok {
+			if productErr, ok := err.(*errors.ErrorDto); ok {
 				return c.Status(GetStatusCode(productErr.Code)).JSON(fiber.Map{"error": productErr.Message})
 			}
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve product"})
@@ -72,14 +74,10 @@ func getProductByID(service productService.ProductQueryService) fiber.Handler {
 
 func getAllProducts(service productService.ProductQueryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		page := c.QueryInt("page", 1)
-		size := c.QueryInt("size", 10)
-		name := c.Query("name")
-
 		// Get all products
-		responses, err := service.GetAllProducts(c.Context(), &dto.ProductRequest{Name: name, Page: page, Size: size})
+		responses, err := service.GetAllProducts(c.Context(), &sharedDto.PaginationRequest{Page: c.QueryInt("page", 1), Size: c.QueryInt("size", 10)}, &dto.ProductDTO{Name: c.Query("name", "")})
 		if err != nil {
-			if productErr, ok := err.(*productService.ProductError); ok {
+			if productErr, ok := err.(*errors.ErrorDto); ok {
 				return c.Status(GetStatusCode(productErr.Code)).JSON(fiber.Map{"error": productErr.Message})
 			}
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve products"})
@@ -104,7 +102,7 @@ func updateProduct(service productService.ProductCommandService) fiber.Handler {
 		// Update product
 		response, err := service.UpdateProduct(c.Context(), id, &req)
 		if err != nil {
-			if productErr, ok := err.(*productService.ProductError); ok {
+			if productErr, ok := err.(*errors.ErrorDto); ok {
 				return c.Status(GetStatusCode(productErr.Code)).JSON(fiber.Map{"error": productErr.Message})
 			}
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update product"})
@@ -124,7 +122,7 @@ func deleteProduct(service productService.ProductCommandService) fiber.Handler {
 		// Delete product
 		err = service.DeleteProduct(c.Context(), id)
 		if err != nil {
-			if productErr, ok := err.(*productService.ProductError); ok {
+			if productErr, ok := err.(*errors.ErrorDto); ok {
 				return c.Status(GetStatusCode(productErr.Code)).JSON(fiber.Map{"error": productErr.Message})
 			}
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete product"})

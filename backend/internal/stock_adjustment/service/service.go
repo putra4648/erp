@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	sharedDto "putra4648/erp/internal/shared/dto"
 	"putra4648/erp/internal/stock_adjustment/dto"
 
 	"github.com/google/uuid"
@@ -9,7 +10,7 @@ import (
 
 type StockAdjustmentQueryService interface {
 	FindByID(ctx context.Context, id uuid.UUID) (*dto.StockAdjustmentDto, error)
-	FindAll(ctx context.Context, page, size int) ([]*dto.StockAdjustmentDto, int64, error)
+	FindAll(ctx context.Context, pagination *sharedDto.PaginationRequest, dto *dto.StockAdjustmentDto) (*sharedDto.PaginationResponse[*dto.StockAdjustmentDto], error)
 }
 
 type StockAdjustmentCommandService interface {
@@ -20,7 +21,7 @@ type StockAdjustmentCommandService interface {
 }
 
 type AdjustmentReasonQueryService interface {
-	FindAll(ctx context.Context) ([]*dto.AdjustmentReasonDto, error)
+	FindAll(ctx context.Context, pagination *sharedDto.PaginationRequest, dto *dto.AdjustmentReasonDto) (*sharedDto.PaginationResponse[*dto.AdjustmentReasonDto], error)
 }
 
 type AdjustmentReasonCommandService interface {

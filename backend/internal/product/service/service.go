@@ -17,5 +17,5 @@ type ProductCommandService interface {
 
 type ProductQueryService interface {
 	GetProductByID(ctx context.Context, id uuid.UUID) (*dto.ProductDTO, error)
-	GetAllProducts(ctx context.Context, req *dto.ProductRequest) (*sharedDto.PaginationResponse[*dto.ProductDTO], error)
+	GetAllProducts(ctx context.Context, pagination *sharedDto.PaginationRequest, req *dto.ProductDTO) (*sharedDto.PaginationResponse[*dto.ProductDTO], error)
 }

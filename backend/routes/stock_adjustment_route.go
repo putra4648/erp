@@ -2,6 +2,7 @@ package routes
 
 import (
 	"putra4648/erp/configs/middleware"
+	sharedDto "putra4648/erp/internal/shared/dto"
 	"putra4648/erp/internal/stock_adjustment/dto"
 	"putra4648/erp/internal/stock_adjustment/service"
 
@@ -72,18 +73,18 @@ func getStockAdjustmentByID(s service.StockAdjustmentQueryService) fiber.Handler
 
 func getAllStockAdjustments(s service.StockAdjustmentQueryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		page := c.QueryInt("page", 1)
-		size := c.QueryInt("size", 10)
-		res, total, err := s.FindAll(c.Context(), page, size)
+
+		pagination := sharedDto.PaginationRequest{}
+		pagination.Page = c.QueryInt("page", 1)
+		pagination.Size = c.QueryInt("size", 10)
+
+		req := dto.StockAdjustmentDto{}
+
+		res, err := s.FindAll(c.Context(), &pagination, &req)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
-		return c.JSON(fiber.Map{
-			"items": res,
-			"total": total,
-			"page":  page,
-			"size":  size,
-		})
+		return c.JSON(res)
 	}
 }
 
@@ -103,7 +104,13 @@ func createAdjustmentReason(s service.AdjustmentReasonCommandService) fiber.Hand
 
 func getAllAdjustmentReasons(s service.AdjustmentReasonQueryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		res, err := s.FindAll(c.Context())
+		pagination := sharedDto.PaginationRequest{}
+		pagination.Page = c.QueryInt("page", 1)
+		pagination.Size = c.QueryInt("size", 10)
+
+		req := dto.AdjustmentReasonDto{}
+
+		res, err := s.FindAll(c.Context(), &pagination, &req)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}

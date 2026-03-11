@@ -9,6 +9,8 @@ import (
 	"putra4648/erp/internal/stock_movement/dto"
 	"putra4648/erp/internal/stock_movement/mapper"
 	"putra4648/erp/internal/stock_movement/repository"
+
+	stockLevelDto "putra4648/erp/internal/stock_level/dto"
 	"time"
 
 	"github.com/google/uuid"
@@ -97,7 +99,13 @@ func (s *stockMovementCommandService) Approve(ctx context.Context, id uuid.UUID)
 		// PROSES OUTGOING (Gudang Asal)
 		if movement.OriginWarehouseID != nil {
 			// 1. Update Stock Level (Atomic UPDATE quantity = quantity + delta)
-			err := s.stockLevelService.AdjustStock(ctx, item.ProductID, *movement.OriginWarehouseID, item.Quantity.Neg())
+			dto := stockLevelDto.StockLevelDto{}
+			productId := item.ProductID.String()
+			dto.ProductID = &productId
+			warehouseId := movement.OriginWarehouseID.String()
+			dto.WarehouseID = &warehouseId
+			dto.Quantity = item.Quantity.Neg()
+			err := s.stockLevelService.AdjustStock(ctx, &dto)
 			if err != nil {
 				return err
 			}
@@ -120,7 +128,13 @@ func (s *stockMovementCommandService) Approve(ctx context.Context, id uuid.UUID)
 		// PROSES INCOMING (Gudang Tujuan)
 		if movement.DestinationWarehouseID != nil {
 			// 1. Update Stock Level
-			err := s.stockLevelService.AdjustStock(ctx, item.ProductID, *movement.DestinationWarehouseID, item.Quantity)
+			dto := stockLevelDto.StockLevelDto{}
+			productId := item.ProductID.String()
+			dto.ProductID = &productId
+			warehouseId := movement.DestinationWarehouseID.String()
+			dto.WarehouseID = &warehouseId
+			dto.Quantity = item.Quantity
+			err := s.stockLevelService.AdjustStock(ctx, &dto)
 			if err != nil {
 				return err
 			}

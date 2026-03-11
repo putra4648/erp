@@ -6,6 +6,7 @@ import (
 	"putra4648/erp/internal/category/mapper"
 	"putra4648/erp/internal/category/repository"
 	sharedDto "putra4648/erp/internal/shared/dto"
+	"putra4648/erp/internal/shared/errors"
 
 	"github.com/google/uuid"
 )
@@ -21,16 +22,16 @@ func NewCategoryQueryService(categoryRepo repository.CategoryRepository) Categor
 func (s *categoryQueryService) GetCategoryByID(ctx context.Context, id uuid.UUID) (*dto.CategoryDTO, error) {
 	category, err := s.categoryRepo.FindByID(ctx, id)
 	if err != nil {
-		return nil, &CategoryError{Code: "NOT_FOUND", Message: "Category not found"}
+		return nil, &errors.ErrorDto{Code: "NOT_FOUND", Message: "Category not found"}
 	}
 
 	return mapper.ToCategoryDTO(category), nil
 }
 
-func (s *categoryQueryService) GetAllCategories(ctx context.Context, request *dto.CategoryRequest) (*sharedDto.PaginationResponse[*dto.CategoryDTO], error) {
-	categories, total, err := s.categoryRepo.FindAll(ctx, request)
+func (s *categoryQueryService) GetAllCategories(ctx context.Context, pagination *sharedDto.PaginationRequest, request *dto.CategoryDTO) (*sharedDto.PaginationResponse[*dto.CategoryDTO], error) {
+	categories, total, err := s.categoryRepo.FindAll(ctx, pagination, request)
 	if err != nil {
-		return nil, &CategoryError{Code: "DATABASE_ERROR", Message: "Failed to retrieve categories"}
+		return nil, &errors.ErrorDto{Code: "DATABASE_ERROR", Message: "Failed to retrieve categories"}
 	}
 
 	responses := mapper.ToCategoryDTOs(categories)
@@ -38,7 +39,7 @@ func (s *categoryQueryService) GetAllCategories(ctx context.Context, request *dt
 	return &sharedDto.PaginationResponse[*dto.CategoryDTO]{
 		Items: responses,
 		Total: total,
-		Page:  request.Page,
-		Size:  request.Size,
+		Page:  pagination.Page,
+		Size:  pagination.Size,
 	}, nil
 }

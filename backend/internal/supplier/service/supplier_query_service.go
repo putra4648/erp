@@ -19,7 +19,7 @@ func NewSupplierQueryService(repo repository.SupplierRepository) SupplierQuerySe
 	return &supplierQueryService{repo: repo}
 }
 
-func (s *supplierQueryService) FindByID(ctx context.Context, id string) (*dto.SupplierDto, error) {
+func (s *supplierQueryService) FindByID(ctx context.Context, id string) (*dto.SupplierDTO, error) {
 	supplierID, err := uuid.Parse(id)
 	if err != nil {
 		return nil, err
@@ -28,24 +28,24 @@ func (s *supplierQueryService) FindByID(ctx context.Context, id string) (*dto.Su
 	if err != nil {
 		return nil, err
 	}
-	return mapper.ToSupplierDto(supplier), nil
+	return mapper.ToSupplierDTO(supplier), nil
 }
 
-func (s *supplierQueryService) FindAll(ctx context.Context, req *dto.SupplierFindAllRequest) (*sharedDto.PaginationResponse[*dto.SupplierDto], error) {
-	suppliers, total, err := s.repo.FindAll(ctx, req)
+func (s *supplierQueryService) FindAll(ctx context.Context, pagination *sharedDto.PaginationRequest, req *dto.SupplierDTO) (*sharedDto.PaginationResponse[*dto.SupplierDTO], error) {
+	suppliers, total, err := s.repo.FindAll(ctx, pagination, req)
 	if err != nil {
 		return nil, err
 	}
 
-	var supplierDtos []*dto.SupplierDto
+	var supplierDtos []*dto.SupplierDTO
 	for _, supplier := range suppliers {
-		supplierDtos = append(supplierDtos, mapper.ToSupplierDto(supplier))
+		supplierDtos = append(supplierDtos, mapper.ToSupplierDTO(supplier))
 	}
 
-	return &sharedDto.PaginationResponse[*dto.SupplierDto]{
+	return &sharedDto.PaginationResponse[*dto.SupplierDTO]{
 		Items: supplierDtos,
 		Total: total,
-		Page:  req.Page,
-		Size:  req.Size,
+		Page:  pagination.Page,
+		Size:  pagination.Size,
 	}, nil
 }

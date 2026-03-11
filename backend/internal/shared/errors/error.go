@@ -1,10 +1,10 @@
-package service
+package errors
 
-type CategoryError struct {
+type ErrorDto struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
 }
 
-func (e *CategoryError) Error() string {
+func (e *ErrorDto) Error() string {
 	return e.Message
 }

@@ -2,17 +2,19 @@ package repository
 
 import (
 	"context"
+	sharedDto "putra4648/erp/internal/shared/dto"
 	"putra4648/erp/internal/stock_level/domain"
+	"putra4648/erp/internal/stock_level/dto"
 
 	"github.com/google/uuid"
-	"github.com/shopspring/decimal"
 )
 
 type StockLevelRepository interface {
-	GetByProductAndWarehouse(ctx context.Context, productID, warehouseID uuid.UUID) (*domain.StockLevel, error)
-	GetByProductAndWarehouseWithPreload(ctx context.Context, productID, warehouseID uuid.UUID) (*domain.StockLevel, error)
-	UpdateQuantity(ctx context.Context, productID, warehouseID uuid.UUID, quantity decimal.Decimal) error
-	GetStockLevels(ctx context.Context, warehouseID *uuid.UUID, productID *uuid.UUID, search string, page, size int) ([]*domain.StockLevel, int64, error)
+	UpdateQuantity(ctx context.Context, dto *dto.StockLevelDto) error
+	Create(ctx context.Context, dto *domain.StockLevel) error
+
 	FindByID(ctx context.Context, id uuid.UUID) (*domain.StockLevel, error)
-	Save(ctx context.Context, stockLevel *domain.StockLevel) error
+	FindByProductAndWarehouse(ctx context.Context, dto *dto.StockLevelDto) (*domain.StockLevel, error)
+	FindByProductAndWarehouseWithPreload(ctx context.Context, dto *dto.StockLevelDto) (*domain.StockLevel, error)
+	FindStockLevels(ctx context.Context, pagination *sharedDto.PaginationRequest, dto *dto.StockLevelDto) ([]*domain.StockLevel, int64, error)
 }

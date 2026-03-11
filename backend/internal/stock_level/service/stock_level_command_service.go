@@ -2,10 +2,8 @@ package service
 
 import (
 	"context"
+	"putra4648/erp/internal/stock_level/dto"
 	"putra4648/erp/internal/stock_level/repository"
-
-	"github.com/google/uuid"
-	"github.com/shopspring/decimal"
 )
 
 type stockLevelCommandService struct {
@@ -18,16 +16,17 @@ func NewStockLevelCommandService(repo repository.StockLevelRepository) StockLeve
 	}
 }
 
-func (s *stockLevelCommandService) AdjustStock(ctx context.Context, productID, warehouseID uuid.UUID, delta decimal.Decimal) error {
-	stock, err := s.repo.GetByProductAndWarehouse(ctx, productID, warehouseID)
+func (s *stockLevelCommandService) AdjustStock(ctx context.Context, dto *dto.StockLevelDto) error {
+	stock, err := s.repo.FindByProductAndWarehouse(ctx, dto)
 	if err != nil {
 		return err
 	}
 
-	newQuantity := delta
+	newQuantity := dto.Quantity
 	if stock != nil {
-		newQuantity = stock.Quantity.Add(delta)
+		newQuantity = stock.Quantity.Add(dto.Quantity)
+		dto.Quantity = newQuantity
 	}
 
-	return s.repo.UpdateQuantity(ctx, productID, warehouseID, newQuantity)
+	return s.repo.UpdateQuantity(ctx, dto)
 }

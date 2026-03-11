@@ -89,6 +89,14 @@ func ToDTO(model *domain.StockMovement) *dto.StockMovementDTO {
 	}
 }
 
+func ToDTOs(models []*domain.StockMovement) []*dto.StockMovementDTO {
+	result := make([]*dto.StockMovementDTO, len(models))
+	for i, model := range models {
+		result[i] = ToDTO(model)
+	}
+	return result
+}
+
 func ToDTOItems(items []*domain.StockMovementItem) []*dto.StockMovementItemDTO {
 	result := make([]*dto.StockMovementItemDTO, 0)
 	for _, item := range items {
@@ -108,9 +116,9 @@ func ToDTOItem(model *domain.StockMovementItem) *dto.StockMovementItemDTO {
 	}
 }
 
-func ToTransactionDTO(model *domain.StockTransaction) *dto.StockTransactionResponse {
+func ToTransactionDTO(model *domain.StockTransaction) *dto.StockTransactionDTO {
 
-	return &dto.StockTransactionResponse{
+	return &dto.StockTransactionDTO{
 		ID:            model.ID.String(),
 		ProductID:     model.ProductID.String(),
 		ProductName:   model.Product.Name,
@@ -125,8 +133,8 @@ func ToTransactionDTO(model *domain.StockTransaction) *dto.StockTransactionRespo
 	}
 }
 
-func ToTransactionDTOs(models []*domain.StockTransaction) []*dto.StockTransactionResponse {
-	result := make([]*dto.StockTransactionResponse, len(models))
+func ToTransactionDTOs(models []*domain.StockTransaction) []*dto.StockTransactionDTO {
+	result := make([]*dto.StockTransactionDTO, len(models))
 	for i, m := range models {
 		result[i] = ToTransactionDTO(m)
 	}

@@ -2,11 +2,12 @@ package repository
 
 import (
 	"context"
+	sharedDto "putra4648/erp/internal/shared/dto"
 	"putra4648/erp/internal/stock_level/domain"
+	"putra4648/erp/internal/stock_level/dto"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
@@ -18,10 +19,10 @@ func NewStockLevelRepository(db *gorm.DB) StockLevelRepository {
 	return &stockLevelRepository{db: db}
 }
 
-func (r *stockLevelRepository) GetByProductAndWarehouse(ctx context.Context, productID, warehouseID uuid.UUID) (*domain.StockLevel, error) {
+func (r *stockLevelRepository) FindByProductAndWarehouse(ctx context.Context, dto *dto.StockLevelDto) (*domain.StockLevel, error) {
 	var stockLevel domain.StockLevel
 	err := r.db.WithContext(ctx).
-		Where("product_id = ? AND warehouse_id = ?", productID, warehouseID).
+		Where("product_id = ? AND warehouse_id = ?", dto.ProductID, dto.WarehouseID).
 		First(&stockLevel).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -32,11 +33,11 @@ func (r *stockLevelRepository) GetByProductAndWarehouse(ctx context.Context, pro
 	return &stockLevel, nil
 }
 
-func (r *stockLevelRepository) GetByProductAndWarehouseWithPreload(ctx context.Context, productID, warehouseID uuid.UUID) (*domain.StockLevel, error) {
+func (r *stockLevelRepository) FindByProductAndWarehouseWithPreload(ctx context.Context, dto *dto.StockLevelDto) (*domain.StockLevel, error) {
 	var stockLevel domain.StockLevel
 	err := r.db.WithContext(ctx).
 		Preload("Product").Preload("Warehouse").
-		Where("product_id = ? AND warehouse_id = ?", productID, warehouseID).
+		Where("product_id = ? AND warehouse_id = ?", dto.ProductID, dto.WarehouseID).
 		First(&stockLevel).Error
 	if err != nil {
 		return nil, err
@@ -44,10 +45,10 @@ func (r *stockLevelRepository) GetByProductAndWarehouseWithPreload(ctx context.C
 	return &stockLevel, nil
 }
 
-func (r *stockLevelRepository) UpdateQuantity(ctx context.Context, productID, warehouseID uuid.UUID, quantity decimal.Decimal) error {
+func (r *stockLevelRepository) UpdateQuantity(ctx context.Context, dto *dto.StockLevelDto) error {
 	var stockLevel domain.StockLevel
 	err := r.db.WithContext(ctx).
-		Where("product_id = ? AND warehouse_id = ?", productID, warehouseID).
+		Where("product_id = ? AND warehouse_id = ?", dto.ProductID, dto.WarehouseID).
 		First(&stockLevel).Error
 
 	if err != nil {
@@ -55,9 +56,9 @@ func (r *stockLevelRepository) UpdateQuantity(ctx context.Context, productID, wa
 			// Create new stock level
 			stockLevel = domain.StockLevel{
 				ID:          uuid.New(),
-				ProductID:   productID,
-				WarehouseID: warehouseID,
-				Quantity:    quantity,
+				ProductID:   uuid.MustParse(*dto.ProductID),
+				WarehouseID: uuid.MustParse(*dto.WarehouseID),
+				Quantity:    dto.Quantity,
 				LastUpdated: time.Now(),
 			}
 			return r.db.WithContext(ctx).Create(&stockLevel).Error
@@ -69,36 +70,37 @@ func (r *stockLevelRepository) UpdateQuantity(ctx context.Context, productID, wa
 	// We use the new quantity (it could be absolute or relative depending on how we call this,
 	// but usually derived from movements we want to ATOMICALLY add/subtract).
 	// However, for simplicity now let's say this is the new total.
-	stockLevel.Quantity = quantity
+	stockLevel.Quantity = dto.Quantity
 	stockLevel.LastUpdated = time.Now()
 	return r.db.WithContext(ctx).Save(&stockLevel).Error
 }
 
-func (r *stockLevelRepository) GetStockLevels(ctx context.Context, warehouseID *uuid.UUID, productID *uuid.UUID, search string, page, size int) ([]*domain.StockLevel, int64, error) {
+func (r *stockLevelRepository) FindStockLevels(ctx context.Context, pagination *sharedDto.PaginationRequest, dto *dto.StockLevelDto) ([]*domain.StockLevel, int64, error) {
 	var stockLevels []*domain.StockLevel
 	var total int64
-	query := r.db.WithContext(ctx).Model(&domain.StockLevel{}).Preload("Product").Preload("Warehouse")
 
-	if warehouseID != nil {
-		query = query.Where("warehouse_id = ?", *warehouseID)
-	}
-	if productID != nil {
-		query = query.Where("product_id = ?", *productID)
-	}
+	db := r.db.WithContext(ctx).Model(&domain.StockLevel{}).Preload("Product").Preload("Warehouse")
 
-	if search != "" {
-		query = query.Joins("JOIN products ON products.id = stock_levels.product_id").
-			Where("products.name ILIKE ?", "%"+search+"%")
+	if dto.WarehouseID != nil {
+		db = db.Where("warehouse_id = ?", dto.WarehouseID)
+	}
+	if dto.ProductID != nil {
+		db = db.Where("product_id = ?", dto.ProductID)
 	}
 
-	query.Count(&total)
-
-	if page > 0 && size > 0 {
-		offset := (page - 1) * size
-		query = query.Limit(size).Offset(offset)
+	if dto.Name != "" {
+		db = db.Joins("JOIN products ON products.id = stock_levels.product_id").
+			Where("products.name ILIKE ?", "%"+dto.Name+"%")
 	}
 
-	err := query.Find(&stockLevels).Error
+	db.Count(&total)
+
+	if pagination.Page > 0 && pagination.Size > 0 {
+		offset := (pagination.Page - 1) * pagination.Size
+		db = db.Offset(offset).Limit(pagination.Size)
+	}
+
+	err := db.Find(&stockLevels).Error
 	return stockLevels, total, err
 }
 
@@ -111,10 +113,10 @@ func (r *stockLevelRepository) FindByID(ctx context.Context, id uuid.UUID) (*dom
 	return &stockLevel, nil
 }
 
-func (r *stockLevelRepository) Save(ctx context.Context, stockLevel *domain.StockLevel) error {
+func (r *stockLevelRepository) Create(ctx context.Context, stockLevel *domain.StockLevel) error {
 	if stockLevel.ID == uuid.Nil {
 		stockLevel.ID = uuid.New()
 	}
 	stockLevel.LastUpdated = time.Now()
-	return r.db.WithContext(ctx).Save(stockLevel).Error
+	return r.db.WithContext(ctx).Create(stockLevel).Error
 }
