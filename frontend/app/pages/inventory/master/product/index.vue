@@ -190,7 +190,7 @@ function getRowActions(row: TableRow<Product>): DropdownMenuItem[] {
                     toast.add({ title: 'Success', description: 'Product has been removed.' })
                     refresh()
                 } catch (error: any) {
-                    toast.add({ title: 'Error', description: error.data?.error || 'Failed to remove product', color: 'error' })
+                    toast.add({ title: 'Error', description: error.data?.data.error || 'Failed to remove product', color: 'error', })
                 }
             }
         },
@@ -229,7 +229,7 @@ async function onSubmit(event: FormSubmitEvent<Product>) {
     } catch (error: any) {
         toast.add({
             title: 'Error',
-            description: error.data?.error || 'Failed to save product',
+            description: error.data?.data.error || 'Failed to save product',
             color: 'error'
         })
     }
