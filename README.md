@@ -1,6 +1,6 @@
 # ERP System
 
-A modern ERP (Enterprise Resource Planning) system built with high-performance technologies.
+A modern ERP (Enterprise Resource Planning) system built with high-performance technologies, focused on Inventory Management.
 
 ## 🛠 Tech Stack
 
@@ -10,8 +10,8 @@ A modern ERP (Enterprise Resource Planning) system built with high-performance t
 - **Framework**: [Fiber v2](https://gofiber.io/)
 - **Database ORM**: [GORM](https://gorm.io/) (PostgreSQL)
 - **Authentication/Authorization**:
-  - [Casbin](https://casbin.org/) (RBAC)
-  - [Gocloak](https://github.com/Nerzal/gocloak) / [OIDC](https://github.com/coreos/go-oidc)
+  - [Auth0](https://auth0.com/) (OIDC)
+  - [Goidc](https://github.com/coreos/go-oidc)
 - **Dependency Injection**: [Dig](https://github.com/uber-go/dig)
 - **Logging**: [Zap](https://github.com/uber-go/zap)
 - **Dev Tooling**: [Air](https://github.com/air-verse/air) (Live reload)
@@ -19,8 +19,8 @@ A modern ERP (Enterprise Resource Planning) system built with high-performance t
 ### Frontend
 
 - **Framework**: [Nuxt 4](https://nuxt.com/) (Vue 3)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **Authentication**: [Nuxt Auth](https://sidebase.io/nuxt-auth)
+- **UI Library**: [@nuxt/ui](https://ui.nuxt.com/) (Tailwind CSS 4)
+- **Authentication**: [nuxt-auth-utils](https://github.com/atinux/nuxt-auth-utils)
 - **Package Manager**: [pnpm](https://pnpm.io/)
 
 ---
@@ -30,17 +30,17 @@ A modern ERP (Enterprise Resource Planning) system built with high-performance t
 - **Inventory Management**:
   - **Stock Levels**: Real-time monitoring of product quantities across warehouses.
   - **Stock Movements**: Track inbound, outbound, and internal transfers.
-  - **Stock Adjustments**: Manual inventory corrections with supervisor approval workflow.
-  - **Stock Transactions**: Detailed audit trail of all inventory changes.
-- **Master Data Management** (Admin only):
-  - Manage Products, Categories, UOMs, Suppliers, and Warehouses.
-- **Role-Based Access Control (RBAC)**:
-  - Dynamic navigation menu based on Keycloak groups (`admin`, `staff`, `inventory`).
-  - Secure API routes and frontend middleware protection.
+  - **Stock Adjustments**: Manual inventory corrections with reason tracking.
+  - **Low Stock Alerts**: Intelligent dashboard alerts for replenishment.
+- **Master Data Management**:
+  - Manage **Products**, **Categories**, **UOMs**, **Suppliers**, and **Warehouses**.
 - **Modern UI/UX**:
-  - Unified layout with responsive sidebar and mobile drawer.
-  - Dark/Light mode support.
-  - Reusable data-driven components (Badges, Tables, Forms).
+  - Full-featured Dashboard with quick statistics and recent activity.
+  - Responsive design with dark/light mode support.
+  - Data-driven components based on `@nuxt/ui`.
+- **RBAC & Security**:
+  - Secure API routes with OIDC-based middleware.
+  - Role-based navigation and action control.
 
 ---
 
@@ -54,32 +54,29 @@ Ensure you have the following installed:
 - [Node.js](https://nodejs.org/) (LTS recommended)
 - [pnpm](https://pnpm.io/installation)
 - [PostgreSQL](https://www.postgresql.org/)
-- [Keycloak](https://www.keycloak.org/)
+- [Docker](https://www.docker.com/) (Optional, for containerized setup)
 
-### 🔐 Keycloak Setup
+### 🔐 Auth0 Setup
 
-This project uses Keycloak for Authentication and Authorization. You need to configure a Realm and Client:
+This project uses Auth0 for Authentication. You need to configure an Application and an API:
 
-1. **Realm**: Create a realm named `erp`.
-2. **Client**:
-   - Create a client named `erp`.
-   - Client Protocol: `openid-connect`.
-   - Access Type: `confidential` (or `public` depending on your flow, but `confidential` is recommended for SSR).
-   - Valid Redirect URIs: `http://localhost:3000/*`.
-   - Web Origins: `http://localhost:3000`.
-3. **Roles & Groups**:
-   - Create groups: `admin`, `staff`, `inventory`.
-   - Add your user to these groups to test access control.
+1. **Regular Web Application**:
+   - Create a Regular Web Application in Auth0.
+   - Allowed Callback URLs: `http://localhost:3000/auth/auth0`.
+   - Allowed Logout URLs: `http://localhost:3000`.
+2. **API**:
+   - Create an API in Auth0.
+   - Identifier (Audience): e.g., `http://localhost:8080`.
 
 ### ⚙️ Environment Variables
 
 #### Backend (`backend/.env`)
 
 ```env
-KEYCLOAK_URL=http://localhost:8081
-KEYCLOAK_REALM_NAME=erp
-KEYCLOAK_CLIENT_ID=erp
-KEYCLOAK_CLIENT_SECRET=your-client-secret
+AUTH0_CLIENT_ID=your-auth0-client-id
+AUTH0_CLIENT_SECRET=your-auth0-client-secret
+AUTH0_DOMAIN=your-auth0-domain
+AUTH0_AUDIENCE=http://localhost:8080
 DB_DSN=host=localhost user=postgres password=password dbname=erp port=5432 sslmode=disable
 PORT=8080
 ```
@@ -87,14 +84,18 @@ PORT=8080
 #### Frontend (`frontend/.env`)
 
 ```env
-KEYCLOAK_URL=http://localhost:8081
-KEYCLOAK_ISSUER=http://localhost:8081/realms/erp
-KEYCLOAK_CLIENT_ID=erp
-KEYCLOAK_CLIENT_SECRET=your-client-secret
-AUTH_SECRET=your-nuxt-auth-secret
+NUXT_OAUTH_AUTH0_CLIENT_ID=your-auth0-client-id
+NUXT_OAUTH_AUTH0_CLIENT_SECRET=your-auth0-client-secret
+NUXT_OAUTH_AUTH0_DOMAIN=your-auth0-domain
+NUXT_OAUTH_AUTH0_AUDIENCE=http://localhost:8080
+NUXT_OAUTH_AUTH0_REDIRECT_URL=http://localhost:3000/auth/auth0
+NUXT_SESSION_PASSWORD=at-least-32-character-long-password
+NUXT_SERVER_URL=http://localhost:8080
 ```
 
-### Backend Setup
+### Local Development
+
+#### Backend Setup
 
 1. Navigate to the backend directory:
 
@@ -108,26 +109,13 @@ AUTH_SECRET=your-nuxt-auth-secret
    go mod download
    ```
 
-3. Configure environment variables:
-   Copy the example environment file and update valid configurations (Database credentials, etc.).
-
-   ```bash
-   cp .env.example .env
-   ```
-
-4. Run the development server (with hot reload):
+3. Run with hot reload (using Air):
 
    ```bash
    go tool air
    ```
 
-   Or run normally:
-
-   ```bash
-   go run cmd/main.go
-   ```
-
-### Frontend Setup
+#### Frontend Setup
 
 1. Navigate to the frontend directory:
 
@@ -147,7 +135,18 @@ AUTH_SECRET=your-nuxt-auth-secret
    pnpm dev
    ```
 
-   The application will be accessible at `http://localhost:3000`.
+---
+
+## 🐳 Docker Setup
+
+You can run the entire system using Docker Compose:
+
+1. Create a `.env` file in the root directory with the corresponding environment variables.
+2. Run:
+
+   ```bash
+   docker-compose up -d --build
+   ```
 
 ---
 
@@ -155,17 +154,16 @@ AUTH_SECRET=your-nuxt-auth-secret
 
 ```text
 .
-├── backend/            # Go Backend API
+├── backend/            # Go Backend API (Fiber + GORM)
 │   ├── cmd/            # Entry point
-│   ├── configs/        # Configuration files
-│   ├── internal/       # Internal application logic (Handlers, Services, Repositories)
-│   ├── routes/         # API Routing definition
-│   └── ...
-├── frontend/           # Nuxt Frontend Application
-│   ├── app/            # App components and pages
-│   ├── server/         # Server-side routes
-│   └── ...
-└── README.md           # Project documentation
+│   ├── internal/       # Core business logic (Hexagonal-lite)
+│   ├── routes/         # API Route definitions
+│   └── configs/        # Middleware, DI, and Auth configs
+├── frontend/           # Nuxt 4 Frontend
+│   ├── app/            # Vue components, pages, and layouts
+│   ├── server/         # Nuxt server utilities
+│   └── public/         # Static assets
+└── migrations/         # Database migrations
 ```
 
 ## 🤝 Contributing
