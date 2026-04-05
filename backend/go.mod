@@ -15,7 +15,7 @@ require (
 )
 
 require (
-	github.com/go-jose/go-jose/v4 v4.1.3 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 )
 
