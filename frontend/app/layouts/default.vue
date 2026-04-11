@@ -4,7 +4,7 @@
         <aside
             class="w-64 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 flex-col fixed h-full z-10 hidden md:flex">
             <div class="h-16 flex items-center px-6 border-b border-gray-200 dark:border-gray-800">
-                <span class="ml-3 font-bold text-xl text-gray-900 dark:text-white">My ERP</span>
+                <span class="ml-3 font-bold text-xl text-gray-900 dark:text-white">MyERP</span>
             </div>
 
             <div class="flex-1 overflow-y-auto py-4 px-3">
@@ -13,7 +13,7 @@
 
 
             <!-- User Profile -->
-            <div
+            <div v-if="loggedIn"
                 class="p-4 border-t border-gray-200 dark:border-gray-800 flex flex-row justify-between overflow-hidden text-ellipsis">
                 <UUser :name="user?.name ?? ''" :avatar="{
                     src: user?.image ?? '',
@@ -30,8 +30,8 @@
                     <div>
                         <UColorModeButton />
 
-                        <UButton color="error" @click="signout" variant="ghost" icon="i-lucide-square-arrow-right-exit"
-                            :loading="isLoggingOut">
+                        <UButton v-if="loggedIn" color="error" @click="signout" variant="ghost"
+                            icon="i-lucide-square-arrow-right-exit" :loading="isLoggingOut">
                             Logout
                         </UButton>
                     </div>
@@ -43,7 +43,7 @@
         <div
             class="md:hidden fixed w-full z-20 bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-4 h-16">
             <div class="flex items-center">
-                <span class="ml-2 font-bold text-lg">My ERP</span>
+                <span class="ml-2 font-bold text-lg">MyERP</span>
             </div>
             <UButton icon="i-heroicons-bars-3" variant="subtle" color="secondary" @click="isOpen = true" />
         </div>
@@ -54,7 +54,7 @@
                 <div class="p-4 flex-1 flex flex-col h-full bg-white dark:bg-gray-950">
                     <div class="flex items-center justify-between mb-6">
                         <div class="flex items-center">
-                            <span class="ml-2 font-bold text-xl">My ERP</span>
+                            <span class="ml-2 font-bold text-xl">MyERP</span>
                         </div>
                         <UButton icon="i-heroicons-x-mark" variant="subtle" color="secondary" @click="isOpen = false" />
                     </div>
@@ -97,7 +97,7 @@ import type { NavigationMenuItem, BreadcrumbItem } from '@nuxt/ui'
 
 const route = useRoute()
 const isOpen = ref(false);
-const { user, clear, } = useUserSession()
+const { user, clear, loggedIn } = useUserSession()
 
 
 const isLoggingOut = ref(false)
@@ -132,7 +132,7 @@ const links = computed<NavigationMenuItem[]>(() => {
         {
             label: 'Dashboard',
             icon: 'i-heroicons-home',
-            to: '/',
+            to: '/dashboard',
         },
         {
             label: 'Inventory',
