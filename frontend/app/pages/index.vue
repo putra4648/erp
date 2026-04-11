@@ -34,7 +34,7 @@
         <section class="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden">
             <!-- Background pattern -->
             <div
-                class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-indigo-50 via-transparent to-transparent dark:from-indigo-950/20">
+                class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_right,var(--tw-gradient-stops))] from-indigo-50 via-transparent to-transparent dark:from-indigo-950/20">
             </div>
 
             <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -84,7 +84,7 @@
                         class="absolute -inset-4 bg-indigo-500/20 rounded-[2.5rem] blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000">
                     </div>
                     <div
-                        class="relative rounded-[2rem] border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-xl p-4 shadow-2xl skew-y-3 md:-rotate-2 hover:rotate-0 transition-transform duration-700">
+                        class="relative rounded-4xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-xl p-4 shadow-2xl skew-y-3 md:-rotate-2 hover:rotate-0 transition-transform duration-700">
                         <div
                             class="border border-zinc-100 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-inner bg-zinc-50 dark:bg-zinc-950">
                             <!-- Mock Dashboard Content -->
@@ -115,7 +115,7 @@
                         </div>
                         <!-- Floating stats card -->
                         <div
-                            class="absolute -bottom-10 -right-6 md:-right-12 p-6 rounded-3xl bg-white dark:bg-zinc-900 shadow-2xl border border-zinc-200 dark:border-zinc-800 max-w-[240px] animate-bounce-slow">
+                            class="absolute -bottom-10 -right-6 md:-right-12 p-6 rounded-3xl bg-white dark:bg-zinc-900 shadow-2xl border border-zinc-200 dark:border-zinc-800 max-w-60 animate-bounce-slow">
                             <div class="flex items-center gap-4 mb-4">
                                 <div
                                     class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600">
