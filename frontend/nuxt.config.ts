@@ -22,16 +22,16 @@ export default defineNuxtConfig({
     },
   },
   hooks: {
-    "pages:extend"(pages) {
+    "pages:extend"(pages: NuxtPage[]) {
       function setMiddleware(pages: NuxtPage[]) {
         for (const page of pages) {
-          if (/* some condition */ Math.random() > 0.5) {
+          if (page.path !== "/") {
             page.meta ||= {};
-            // Note that this will override any middleware set in `definePageMeta` in the page
             page.meta.middleware = ["auth"];
-          }
-          if (page.children) {
-            setMiddleware(page.children);
+
+            if (page.children) {
+              setMiddleware(page.children);
+            }
           }
         }
       }
