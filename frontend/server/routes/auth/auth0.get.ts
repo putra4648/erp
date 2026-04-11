@@ -14,7 +14,7 @@ export default defineOAuthAuth0EventHandler({
         access_token: tokens.access_token,
       },
     });
-    return sendRedirect(event, "/");
+    return sendRedirect(event, "/dashboard");
   },
   onError(event, error) {
     console.error("Auth0 Login Error:", error);
