@@ -122,11 +122,11 @@ const { data: movements, pending: movementPending, refresh: refreshMovements } =
     query: { page: 1, size: 5 }
 })
 
-const { data: productsData, refresh: refreshProducts } = await useFetch<PaginationResponse<any>>('/api/products', {
+const { data: productsData, pending: productsPending, refresh: refreshProducts } = await useFetch<PaginationResponse<any>>('/api/products', {
     query: { page: 1, size: 1 }
 })
 
-const pending = computed(() => stockPending.value || movementPending.value)
+const pending = computed(() => stockPending.value || movementPending.value || productsPending.value)
 
 const refreshAll = () => {
     refreshStock()
@@ -183,7 +183,7 @@ const movementColumns: TableColumn<StockMovement>[] = [
     {
         accessorKey: 'transaction_date',
         header: 'Date',
-        cell: ({ row }) => new Date(row.original.transaction_date).toLocaleDateString()
+        cell: ({ row }) => new Date(row.original.transaction_date).toLocaleDateString('id-ID')
     },
     {
         accessorKey: 'status',

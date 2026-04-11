@@ -27,11 +27,18 @@ export default defineNuxtConfig({
         for (const page of pages) {
           if (page.path !== "/") {
             page.meta ||= {};
-            page.meta.middleware = ["auth"];
-
-            if (page.children) {
-              setMiddleware(page.children);
+            const mw = page.meta.middleware;
+            if (!mw) {
+              page.meta.middleware = ["auth"];
+            } else if (Array.isArray(mw)) {
+              if (!mw.includes("auth")) mw.push("auth");
+            } else if (mw !== "auth") {
+              page.meta.middleware = [mw, "auth"];
             }
+          }
+
+          if (page.children) {
+            setMiddleware(page.children);
           }
         }
       }
