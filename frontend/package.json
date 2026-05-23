@@ -15,7 +15,7 @@
     "@nuxt/eslint": "1.13.0",
     "@nuxt/ui": "4.3.0",
     "joi": "^18.0.2",
-    "nuxt": "^4.3.0",
+    "nuxt": "^4.4.6",
     "nuxt-auth-utils": "0.5.29",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
